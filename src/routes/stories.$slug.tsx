@@ -8,7 +8,8 @@ import { BOOT_HEAD_SCRIPT, BootScreen } from '#/components/boot-screen'
 import { Logo } from '#/components/site'
 import { isMuted, play as sfx, setMuted, useMuted } from '#/lib/sfx'
 import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
-import { setMusic, setMusicVolume, useMusicVolume } from '#/lib/music'
+import { playOst, setMusic, setMusicVolume, stopOst, useMusicVolume, useOstState } from '#/lib/music'
+import { OSTS } from '#/data/ost'
 import { SERIES_MUSIC, STORY_MUSIC } from '#/data/music'
 import type { Track } from '#/data/music'
 import type { PadButton, PadKind } from '#/lib/gamepad'
@@ -63,12 +64,13 @@ export const Route = createFileRoute('/stories/$slug')({
 type HubTab = 'stories' | 'series' | 'youtube'
 const TAB_ORDER: HubTab[] = ['stories', 'series', 'youtube']
 const TAB_LABEL: Record<HubTab, string> = { stories: 'Storylines', series: 'Trimz Series', youtube: 'YouTube' }
-type Section = 'overview' | 'intro' | 'cast' | 'gallery' | 'world' | 'watch'
+type Section = 'overview' | 'intro' | 'cast' | 'gallery' | 'ost' | 'world' | 'watch'
 
 const SECTION_LABEL: Record<Section, string> = {
   overview: 'Overview',
   intro: 'Intro',
   gallery: 'Gallery',
+  ost: 'OST',
   world: 'World',
   cast: 'Cast',
   watch: 'Watch',
@@ -131,6 +133,7 @@ function StoryHub() {
     ...(isk?.introCard ? (['intro'] as const) : []),
     'cast',
     ...(isk?.gallery.length ? (['gallery'] as const) : []),
+    ...(OSTS[story.slug]?.tracks.length ? (['ost'] as const) : []),
     'world',
     ...(series.length ? (['watch'] as const) : []),
   ]
@@ -223,6 +226,14 @@ function StoryHub() {
     tab === 'stories' ? (STORY_MUSIC[story.slug] ?? null) : tab === 'series' ? (SERIES_MUSIC[activeSeries.slug] ?? null) : null
   useEffect(() => setMusic(nowPlaying?.src ?? null), [nowPlaying?.src])
   useEffect(() => () => setMusic(null), [])
+  // The OST player belongs to one story: leaving it (or the tab) hands back to the background music
+  useEffect(() => () => stopOst(), [story.slug, tab])
+  const ostState = useOstState()
+  const album = OSTS[story.slug]
+  const ostTrack = album?.tracks.find((t) => t.src === ostState.src)
+  const menuTrack: Track | null = ostTrack
+    ? { title: ostTrack.title, src: ostTrack.src, trackUrl: ostTrack.url, ost: { title: album.title, url: album.url } }
+    : nowPlaying
 
   // Console-style notice when a controller connects
   const [padToast, setPadToast] = useState<string | null>(null)
@@ -261,7 +272,7 @@ function StoryHub() {
         k.cycleTab(-1)
       } else if (e.key === 'e' || e.key === 'E' || e.key === 'm' || e.key === 'M') {
         k.cycleTab(1)
-      } else if (k.tab === 'stories' && /^[1-6]$/.test(e.key)) {
+      } else if (k.tab === 'stories' && /^[1-7]$/.test(e.key)) {
         const s = k.sections[Number(e.key) - 1]
         if (s) k.pickSection(s)
       }
@@ -289,7 +300,7 @@ function StoryHub() {
       </div>
 
       <div className="ps5-app">
-        <TopBar tab={tab} setTab={switchTab} pad={pad} nowPlaying={nowPlaying} />
+        <TopBar tab={tab} setTab={switchTab} pad={pad} nowPlaying={menuTrack} />
         {padToast && (
           <div role="status" className="ps5-glass fixed top-5 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 px-4 py-2.5 text-sm font-semibold">
             <PadIcon /> {padToast}
@@ -402,14 +413,87 @@ function StoryHub() {
   )
 }
 
+type LoadPlan = { preview: boolean; full: boolean }
+
+/** Decide how far to upgrade a backdrop on this device: still → WebM preview → full MP4. */
+function loadPlan(): LoadPlan {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return { preview: false, full: false }
+  const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection
+  const slow = !!conn?.saveData || /(^|slow-)(2g|3g)$/.test(conn?.effectiveType ?? '')
+  const webm = document.createElement('video').canPlayType('video/webm; codecs="vp9"') !== ''
+  // No WebM support (older Safari): go straight from the still to the MP4
+  return { preview: webm, full: !webm || !slow }
+}
+
+/**
+ * Progressive backdrop: the still image paints first, a small WebM loop fades
+ * in once it plays, then the original MP4 loads and takes over in sync.
+ */
 function Backdrop({ src, blurSrc, video, active }: { src: string; blurSrc?: string; video?: string; active: boolean }) {
+  const [plan, setPlan] = useState<LoadPlan | null>(null)
+  const [stage, setStage] = useState(0) // 0 still, 1 preview, 2 full
+  const previewRef = useRef<HTMLVideoElement>(null)
+  const fullRef = useRef<HTMLVideoElement>(null)
+  const synced = useRef(false)
+
+  // Only start loading video the first time this item is highlighted; keep it afterwards
+  useEffect(() => {
+    if (active && video && !plan) setPlan(loadPlan())
+  }, [active, video, plan])
+
+  // Play only while highlighted; once the full video shows, the preview can rest
+  useEffect(() => {
+    const preview = previewRef.current
+    const full = fullRef.current
+    if (preview) {
+      if (active && stage < 2) void preview.play().catch(() => {})
+      else preview.pause()
+    }
+    if (full) {
+      if (active) void full.play().catch(() => {})
+      else full.pause()
+    }
+  }, [active, stage, plan])
+
+  const webm = video?.replace(/\.mp4$/, '.webm')
+  const loadFull = !!plan?.full && (stage >= 1 || !plan.preview)
+
   return (
     <div className={`ps5-layer ${active ? 'is-active' : ''}`}>
       <img className="ps5-layer-blur" src={blurSrc ?? src} alt="" loading={active ? 'eager' : 'lazy'} />
-      {video && active ? (
-        <video className="ps5-layer-art ps5-motion" src={video} poster={src} autoPlay muted loop playsInline />
-      ) : (
-        <img className="ps5-layer-art" src={src} alt="" loading={active ? 'eager' : 'lazy'} />
+      <img className="ps5-layer-art" src={src} alt="" loading={active ? 'eager' : 'lazy'} />
+      {plan?.preview && webm && (
+        <video
+          ref={previewRef}
+          className={`ps5-layer-art ps5-fade ${stage >= 1 ? 'opacity-100' : 'opacity-0'}`}
+          src={webm}
+          muted
+          loop
+          playsInline
+          autoPlay={active}
+          preload="auto"
+          onPlaying={() => setStage((s) => Math.max(s, 1))}
+        />
+      )}
+      {loadFull && video && (
+        <video
+          ref={fullRef}
+          className={`ps5-layer-art ps5-fade ${stage >= 2 ? 'opacity-100' : 'opacity-0'}`}
+          src={video}
+          muted
+          loop
+          playsInline
+          autoPlay={active}
+          preload="auto"
+          onCanPlayThrough={(e) => {
+            // Pick up where the preview is, so the swap is seamless
+            const p = previewRef.current
+            if (synced.current || !p || !Number.isFinite(p.currentTime)) return
+            synced.current = true // seeking fires canplaythrough again; only sync once
+            e.currentTarget.currentTime = p.currentTime
+          }}
+          onPlaying={() => setStage(2)}
+        />
       )}
     </div>
   )
@@ -604,6 +688,7 @@ function StoryDetails({
             ))}
           </ul>
         )}
+        {section === 'ost' && OSTS[story.slug] && <OstPanel slug={story.slug} />}
         {section === 'watch' && (
           <ul className="flex gap-4">
             {series.map((t) => (
@@ -655,6 +740,81 @@ function SeriesDetails({ idx }: { idx: number }) {
         </p>
       )}
     </>
+  )
+}
+
+const fmtLen = (secs: number) => {
+  const m = Math.floor(secs / 60)
+  const sec = Math.round(secs % 60)
+  return `${m}:${String(sec).padStart(2, '0')}`
+}
+
+function OstPanel({ slug }: { slug: string }) {
+  const album = OSTS[slug]
+  const state = useOstState()
+  const total = album.tracks.reduce((n, t) => n + t.duration, 0)
+  const playAt = (i: number) => {
+    const t = album.tracks[i]
+    playOst(t.src, () => playAt((i + 1) % album.tracks.length)) // continue through the album
+  }
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-3">
+        {album.image && <img src={album.image} alt="" className="size-12 shrink-0 rounded-lg object-cover" />}
+        <div className="min-w-0">
+          <a href={album.url} target="_blank" rel="noreferrer" className="block truncate text-sm font-bold text-white hover:underline">
+            {album.title}
+          </a>
+          <p className="text-xs text-white/55">
+            {album.tracks.length} track{album.tracks.length === 1 ? '' : 's'} · {Math.round(total / 60)} min · streams from IsekaiZero
+          </p>
+        </div>
+      </div>
+      <ol className="-mx-2" aria-label={`${album.title} tracks`}>
+        {album.tracks.map((t, i) => {
+          const current = state.src === t.src
+          const playing = current && state.playing
+          return (
+            <li key={t.id} className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => playAt(i)}
+                aria-label={`${playing ? 'Pause' : 'Play'} ${t.title}`}
+                aria-current={current ? 'true' : undefined}
+                className={`flex min-w-0 flex-1 items-center gap-3 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-white/10 ${current ? 'bg-white/10' : ''}`}
+              >
+                <span className="grid w-5 shrink-0 place-items-center text-xs tabular-nums text-white/50">
+                  {playing ? <EqBars /> : current ? '❚❚' : i + 1}
+                </span>
+                {t.image && <img src={t.image} alt="" loading="lazy" className="size-8 shrink-0 rounded object-cover" />}
+                <span className={`min-w-0 flex-1 truncate text-sm ${current ? 'font-bold text-white' : 'text-white/85'}`}>{t.title}</span>
+                <span className="shrink-0 text-xs tabular-nums text-white/50">{fmtLen(t.duration)}</span>
+              </button>
+              <a
+                href={t.url}
+                target="_blank"
+                rel="noreferrer"
+                className="grid size-8 shrink-0 place-items-center rounded-full text-white/45 hover:bg-white/10 hover:text-white"
+                aria-label={`Open ${t.title} on IsekaiZero`}
+                title="Open on IsekaiZero"
+              >
+                ↗
+              </a>
+            </li>
+          )
+        })}
+      </ol>
+    </div>
+  )
+}
+
+function EqBars() {
+  return (
+    <span className="kx-eq" aria-hidden>
+      <i />
+      <i />
+      <i />
+    </span>
   )
 }
 

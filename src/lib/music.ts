@@ -74,7 +74,7 @@ function apply() {
   }
   if (ctx.state !== 'running') return // starts on the first tap/click/key
 
-  const target = held || isMuted() ? null : wanted
+  const target = held || isMuted() || ost.active ? null : wanted
   if (current && current.src === target) {
     if (current.el.paused) void current.el.play().catch(() => {})
     ramp(current, gainFor(), FADE_IN)
@@ -93,6 +93,80 @@ function apply() {
 export function setMusic(src: string | null) {
   wanted = src
   if (typeof window !== 'undefined') apply()
+}
+
+/* ── Soundtrack player (OST tab) ──
+ * OST tracks stream from IsekaiZero's CDN, which doesn't allow cross-origin
+ * Web Audio, so they play through a plain <audio> element. While one plays,
+ * the background music fades out; it fades back when the OST stops. */
+const ost = { el: null as HTMLAudioElement | null, src: null as string | null, active: false, playing: false, onEnded: null as null | (() => void) }
+const ostListeners = new Set<() => void>()
+let ostSnapshot = { src: null as string | null, playing: false }
+const ostEmit = () => {
+  ostSnapshot = { src: ost.src, playing: ost.playing }
+  ostListeners.forEach((l) => l())
+}
+
+function ostElement() {
+  if (!ost.el) {
+    const el = new Audio()
+    el.preload = 'auto'
+    el.addEventListener('play', () => {
+      ost.playing = true
+      ostEmit()
+    })
+    el.addEventListener('pause', () => {
+      ost.playing = false
+      ostEmit()
+    })
+    el.addEventListener('ended', () => ost.onEnded?.())
+    onMutedChange(() => {
+      if (isMuted()) el.pause()
+    })
+    ost.el = el
+  }
+  ost.el.volume = level
+  return ost.el
+}
+
+/** Play an OST track (or toggle pause if it's already the current one). onEnded runs when it finishes. */
+export function playOst(src: string, onEnded?: () => void) {
+  if (typeof window === 'undefined') return
+  const el = ostElement()
+  ost.onEnded = onEnded ?? null
+  if (ost.src === src) {
+    if (el.paused) void el.play().catch(() => {})
+    else el.pause()
+    return
+  }
+  ost.src = src
+  ost.active = true
+  el.src = src
+  void el.play().catch(() => {})
+  ostEmit()
+  apply()
+}
+
+/** Stop the OST and bring the background music back. */
+export function stopOst() {
+  if (!ost.active) return
+  ost.el?.pause()
+  ost.src = null
+  ost.active = false
+  ost.onEnded = null
+  ostEmit()
+  apply()
+}
+
+export function useOstState() {
+  return useSyncExternalStore(
+    (cb) => {
+      ostListeners.add(cb)
+      return () => ostListeners.delete(cb)
+    },
+    () => ostSnapshot,
+    () => ostSnapshot,
+  )
 }
 
 let releaseTimer = 0
@@ -121,6 +195,7 @@ export function setMusicVolume(v: number) {
     /* not persisted */
   }
   if (current) ramp(current, gainFor(), 0.12)
+  if (ost.el) ost.el.volume = level
   volumeListeners.forEach((l) => l())
 }
 

@@ -517,3 +517,47 @@ html.kx-boot body::before {
   height: 20px;
   cursor: pointer;
 }
+
+/* Playing indicator in the OST list */
+.kx-eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+}
+.kx-eq i {
+  width: 3px;
+  height: 100%;
+  border-radius: 1px;
+  background: #fff;
+  animation: kxEq 0.9s ease-in-out infinite;
+}
+.kx-eq i:nth-child(2) {
+  animation-delay: -0.3s;
+}
+.kx-eq i:nth-child(3) {
+  animation-delay: -0.6s;
+}
+@keyframes kxEq {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+.kx-eq i {
+  transform-origin: bottom;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kx-eq i {
+    animation: none;
+    transform: scaleY(0.7);
+  }
+}
+
+/* Progressive backdrop layers (still → preview → full) */
+.ps5-fade {
+  transition: opacity 0.6s ease;
+}
