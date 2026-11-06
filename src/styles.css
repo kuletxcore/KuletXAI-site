@@ -134,6 +134,7 @@ a:focus-visible {
 
 /* ───────── PS5-style story hub ───────── */
 .ps5 {
+  --ps-tile: clamp(62px, 5vw, 80px);
   --ps-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --ps-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
   font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
@@ -245,7 +246,6 @@ a:focus-visible {
 .ps5-tile {
   position: relative;
   flex-shrink: 0;
-  --ps-tile: clamp(62px, 5vw, 80px);
   width: var(--ps-tile);
   height: var(--ps-tile);
   border-radius: 14px;
@@ -560,4 +560,48 @@ html.kx-boot body::before {
 /* Progressive backdrop layers (still → preview → full) */
 .ps5-fade {
   transition: opacity 0.6s ease;
+}
+
+/* Desktop: the highlighted tile's name sits to its right, just under the row of
+   small tiles (console home screen). Phones keep it underneath. */
+@media (min-width: 768px) {
+  .ps5-tile-label {
+    top: calc(var(--ps-tile) + 10px);
+    left: calc(100% + 14px);
+    font-size: 16px;
+  }
+}
+
+/* Title logotype in place of the text title */
+.ps5-title-logo {
+  margin: 0;
+  animation: psFadeUp 0.4s var(--ps-ease) both;
+}
+.ps5-logo {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(560px, 100%);
+  max-height: clamp(72px, 15vh, 150px);
+  object-fit: contain;
+  object-position: left bottom;
+  filter: drop-shadow(0 6px 22px rgba(0, 0, 0, 0.75));
+}
+
+/* Item picked with the controller inside a section (X / Square) */
+[data-sub-active] {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+.ps5-tile-label[data-align="end"] {
+  left: auto;
+  right: 2px;
+  text-align: right;
+}
+@media (min-width: 768px) {
+  .ps5-tile-label[data-align="end"] {
+    right: calc(100% + 14px);
+  }
 }

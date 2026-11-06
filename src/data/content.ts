@@ -18,6 +18,9 @@ export type TrimzSeries = {
   poster: string
   /** Looping cover video for the hub backdrop (optional) */
   video?: string
+  /** Title logotype and square tile art from the IsekaiZero "logotypes" folder */
+  logo?: Logo
+  tile?: string
   episodes: number
   views: number
 }
@@ -26,6 +29,8 @@ export type TrimzSeries = {
 export const TRIMZ: TrimzSeries[] = [
   {
     slug: 'acolytes-maid-for-your-protection',
+    logo: { src: '/titles/acolytes.webp', w: 1100, h: 330 },
+    tile: '/tiles/acolytes.webp',
     title: 'Acolytes: Maid for your Protection',
     summary:
       'Maid café waitresses by day, unkillable black-ops agents by night, and nobody on the block knows.',
@@ -36,6 +41,8 @@ export const TRIMZ: TrimzSeries[] = [
   },
   {
     slug: 'acolytes-maid-for-your-protection-side-b',
+    logo: { src: '/titles/acolytes-side-b.webp', w: 1100, h: 409 },
+    tile: '/tiles/acolytes-side-b.webp',
     title: 'Acolytes: Maid for your Protection (Side B)',
     summary: 'Beneath a maid café, a new squad leader runs secret tactical missions.',
     poster: '/trimz/acolytes-side-b.webp',
@@ -44,6 +51,8 @@ export const TRIMZ: TrimzSeries[] = [
     views: 90,
   },
 ]
+
+export type Logo = { src: string; w: number; h: number }
 
 export type Story = {
   slug: string
@@ -64,12 +73,16 @@ export type Story = {
   castTitle?: string
   hook: string
   trimz?: string[]
+  logo?: Logo
+  tile?: string
 }
 
 // Public storylines from the kuletxcore account on IsekaiZero (Nov 2026)
 export const STORIES: Story[] = [
   {
     slug: 'acolytes',
+    logo: { src: '/titles/acolytes.webp', w: 1100, h: 330 },
+    tile: '/tiles/acolytes.webp',
     id: '6aa78f6bd17fe984ab332064',
     title: 'Acolytes: Maid for your Protection',
     logline:
@@ -101,6 +114,8 @@ export const STORIES: Story[] = [
   },
   {
     slug: 'colossus-protocol',
+    logo: { src: '/titles/colossus-protocol.webp', w: 1100, h: 278 },
+    tile: '/tiles/colossus-protocol.webp',
     id: '6aa4a2ce523ccdd47ab9b80d',
     title: 'Colossus Protocol',
     logline:
@@ -128,6 +143,8 @@ export const STORIES: Story[] = [
   },
   {
     slug: 'queen-bee',
+    logo: { src: '/titles/queen-bee.webp', w: 1100, h: 332 },
+    tile: '/tiles/queen-bee.webp',
     id: '6a9ae1c5a66365ba9f1523f1',
     title: 'Acknowledge Me: Become the Queen Bee',
     logline:
@@ -161,6 +178,8 @@ export const STORIES: Story[] = [
   },
   {
     slug: 'problem-spawner',
+    logo: { src: '/titles/problem-spawner.webp', w: 862, h: 179 },
+    tile: '/tiles/problem-spawner.webp',
     id: '6a9504a149fd840d6d383b33',
     title: 'The Problem Spawner',
     logline:
@@ -190,6 +209,8 @@ export const STORIES: Story[] = [
   },
   {
     slug: 'i-am-the-table',
+    logo: { src: '/titles/i-am-the-table.webp', w: 1100, h: 296 },
+    tile: '/tiles/i-am-the-table.webp',
     id: '6a9d1ba30b414546e54a59aa',
     title: 'I AM THE TABLE!!!',
     logline:

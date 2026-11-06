@@ -2,7 +2,7 @@ import { Link, createFileRoute, notFound, useNavigate } from '@tanstack/react-ro
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { STORIES, TRIMZ, isekaiStoryUrl, trimzSeriesUrl } from '#/data/content'
-import type { Story } from '#/data/content'
+import type { Logo as TitleArt, Story } from '#/data/content'
 import { ISK } from '#/data/isk'
 import { BOOT_HEAD_SCRIPT, BootScreen } from '#/components/boot-screen'
 import { Logo } from '#/components/site'
@@ -163,6 +163,47 @@ function StoryHub() {
     setTab(next)
   }
   const cycleTab = (dir: 1 | -1) => switchTab(TAB_ORDER[(TAB_ORDER.indexOf(tab) + dir + TAB_ORDER.length) % TAB_ORDER.length])
+  // X / Square: "enter" the highlighted section and move between its items
+  const [subIdx, setSubIdx] = useState<number | null>(null)
+  const subItems = () => Array.from(document.querySelectorAll<HTMLElement>('.ps5 [role=tabpanel] [data-sub-item]'))
+  useEffect(() => setSubIdx(null), [story.slug, tab, section])
+  useEffect(() => {
+    const items = subItems()
+    items.forEach((el) => el.removeAttribute('data-sub-active'))
+    if (subIdx === null) return
+    const el = items[subIdx]
+    if (!el) return
+    el.setAttribute('data-sub-active', '')
+    el.focus({ preventScroll: true })
+    el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
+  }, [subIdx, modal])
+  const canEnter = tab === 'stories' && ['intro', 'cast', 'gallery', 'ost', 'watch'].includes(section)
+  const enterSection = () => {
+    if (!canEnter) return
+    const isk = ISK[story.slug]
+    if (section === 'intro' && isk?.introCard) {
+      openModal({ kind: 'card', title: story.title, src: isk.introCard, image: story.cover })
+      return
+    }
+    if (subItems().length) {
+      sfx('enter')
+      setSubIdx(0)
+    }
+  }
+  const moveSub = (dir: 1 | -1) => {
+    const n = subItems().length
+    if (!n || subIdx === null) return
+    const next = Math.min(n - 1, Math.max(0, subIdx + dir))
+    if (next !== subIdx) {
+      sfx('nav')
+      setSubIdx(next)
+    }
+  }
+  const leaveSub = () => {
+    sfx('back')
+    setSubIdx(null)
+  }
+
   const pickSection = (s: Section) => {
     if (s === section) return
     sfx('nav')
@@ -206,7 +247,20 @@ function StoryHub() {
       else if (b === 'right') fire('ArrowRight')
       return
     }
-    if (b === 'lb') cycleTab(-1)
+    if (subIdx !== null) {
+      // Inside a section: D-pad picks an item, A opens/plays it, B or X steps back out
+      if (b === 'left' || b === 'up') moveSub(-1)
+      else if (b === 'right' || b === 'down') moveSub(1)
+      else if (b === 'a') subItems()[subIdx]?.click()
+      else if (b === 'b' || b === 'x') leaveSub()
+      else if (b === 'lb' || b === 'rb') {
+        setSubIdx(null)
+        cycleTab(b === 'lb' ? -1 : 1)
+      }
+      return
+    }
+    if (b === 'x') enterSection()
+    else if (b === 'lb') cycleTab(-1)
     else if (b === 'rb') cycleTab(1)
     else if (b === 'left') step(-1)
     else if (b === 'right') step(1)
@@ -322,7 +376,7 @@ function StoryHub() {
                       aria-label={s.title}
                       className="block h-full w-full"
                     >
-                      <img src={s.cover} alt="" />
+                      <img src={s.tile ?? s.cover} alt="" />
                     </Link>
                   </Tile>
                 ))
@@ -356,7 +410,7 @@ function StoryHub() {
                       aria-label={t.title}
                       className="block h-full w-full"
                     >
-                      <img src={t.poster} alt="" />
+                      <img src={t.tile ?? t.poster} alt="" />
                     </button>
                   </Tile>
                 ))}
@@ -406,7 +460,7 @@ function StoryHub() {
 
         {modal && <ModalView modal={modal} setModal={setModal} />}
 
-        <BottomBar onPrev={() => step(-1)} onNext={() => step(1)} onPrimary={primary} toggleTab={() => cycleTab(1)} pad={pad} tab={tab} />
+        <BottomBar onPrev={() => step(-1)} onNext={() => step(1)} onPrimary={primary} toggleTab={() => cycleTab(1)} pad={pad} tab={tab} canEnter={canEnter} inSub={subIdx !== null} section={section} />
       </div>
     </div>
     </MotionConfig>
@@ -510,8 +564,28 @@ function Backdrop({ src, blurSrc, video, active }: { src: string; blurSrc?: stri
 
 function Tile({ active, label, children }: { active: boolean; label: string; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
+  const labelRef = useRef<HTMLSpanElement>(null)
+  // When the name would run past the edge of the tile row (e.g. the last tile on a phone), anchor it to the tile's right side
+  const [alignEnd, setAlignEnd] = useState(false)
   useEffect(() => {
-    if (active) ref.current?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
+    if (!active) return
+    ref.current?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
+    const measure = () => {
+      const label = labelRef.current
+      const row = ref.current?.closest('.ps5-ribbon')
+      if (!label || !row) return
+      setAlignEnd(false)
+      requestAnimationFrame(() => {
+        const overflow = label.getBoundingClientRect().right > row.getBoundingClientRect().right - 8
+        setAlignEnd(overflow)
+      })
+    }
+    const id = window.setTimeout(measure, 380) // after the smooth scroll settles
+    window.addEventListener('resize', measure)
+    return () => {
+      clearTimeout(id)
+      window.removeEventListener('resize', measure)
+    }
   }, [active])
   return (
     <div ref={ref} role="listitem" className="ps5-tile-slot">
@@ -519,7 +593,7 @@ function Tile({ active, label, children }: { active: boolean; label: string; chi
         {children}
       </div>
       {active && (
-        <span key={label} className="ps5-tile-label" aria-hidden>
+        <span ref={labelRef} key={label} className="ps5-tile-label" data-align={alignEnd ? 'end' : undefined} aria-hidden>
           {label}
         </span>
       )}
@@ -558,6 +632,16 @@ function TopBar({ tab, setTab, pad, nowPlaying }: { tab: HubTab; setTab: (t: Hub
   )
 }
 
+/** Title as its logotype (like a console game tile), falling back to text. */
+function TitleLogo({ title, logo }: { title: string; logo?: TitleArt }) {
+  if (!logo) return <h1 className="ps5-title">{title}</h1>
+  return (
+    <h1 className="ps5-title-logo">
+      <img src={logo.src} alt={title} width={logo.w} height={logo.h} className="ps5-logo" />
+    </h1>
+  )
+}
+
 function ShoulderHint({ label }: { label: string }) {
   return (
     <span className="hidden shrink-0 md:inline-flex" aria-hidden>
@@ -585,9 +669,7 @@ function StoryDetails({
   return (
     <>
       <Badge pill="IsekaiZero" meta={[story.rating, ...story.tags]} />
-      <h1 key={story.slug} className="ps5-title">
-        {story.title}
-      </h1>
+      <TitleLogo key={story.slug} title={story.title} logo={story.logo} />
       <p className="ps5-shadow max-w-[560px] text-sm leading-relaxed text-white/85 md:text-[15px]">{story.logline}</p>
 
       <div className="mt-1 flex flex-wrap gap-2" role="tablist" aria-label="Story sections">
@@ -643,7 +725,7 @@ function StoryDetails({
               sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
               className="h-[22vh] w-full rounded-xl border border-white/10 bg-[#0d0f14] md:h-[19vh]"
             />
-            <button type="button" className="ps5-pill self-start" onClick={() => openModal({ kind: 'card', title: story.title, src: isk.introCard!, image: story.cover })}>
+            <button type="button" data-sub-item className="ps5-pill self-start" onClick={() => openModal({ kind: 'card', title: story.title, src: isk.introCard!, image: story.cover })}>
               Open full intro card ↗
             </button>
           </div>
@@ -653,7 +735,7 @@ function StoryDetails({
             <ul className="ps5-scroll -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
               {isk.cast.map((c) => (
                 <li key={c.id} className="w-24 shrink-0 md:w-28">
-                  <button type="button" onClick={() => openModal({ kind: 'cast', cast: c })} className="group block w-full text-left" aria-label={`${c.name}: open character card`}>
+                  <button type="button" data-sub-item onClick={() => openModal({ kind: 'cast', cast: c })} className="group block w-full text-left" aria-label={`${c.name}: open character card`}>
                     <span className="block overflow-hidden rounded-xl border-2 border-transparent group-hover:border-white group-focus-visible:border-white">
                       {c.portrait ? (
                         <img src={c.portrait} alt="" loading="lazy" className="aspect-[3/4] w-full object-cover transition-transform duration-300 group-hover:scale-105" />
@@ -681,7 +763,7 @@ function StoryDetails({
           <ul className="ps5-scroll -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
             {isk.gallery.map((m, i) => (
               <li key={m.src} className="shrink-0">
-                <button type="button" onClick={() => openModal({ kind: 'gallery', items: isk.gallery, index: i })} className="group block" aria-label={`Open image: ${tidyCaption(m.caption) || 'artwork'}`}>
+                <button type="button" data-sub-item onClick={() => openModal({ kind: 'gallery', items: isk.gallery, index: i })} className="group block" aria-label={`Open image: ${tidyCaption(m.caption) || 'artwork'}`}>
                   <span className="relative block h-28 overflow-hidden rounded-xl border-2 border-transparent group-hover:border-white group-focus-visible:border-white md:h-32">
                     {m.type === 'video' ? (
                       <>
@@ -702,7 +784,7 @@ function StoryDetails({
           <ul className="flex gap-4">
             {series.map((t) => (
               <li key={t.slug} className="w-28 shrink-0">
-                <a href={trimzSeriesUrl(t.slug)} target="_blank" rel="noreferrer" className="group block">
+                <a href={trimzSeriesUrl(t.slug)} target="_blank" rel="noreferrer" data-sub-item className="group block">
                   <img src={t.poster} alt={`Poster for ${t.title}`} className="aspect-[2/3] w-full rounded-xl border-2 border-transparent object-cover group-hover:border-white" />
                   <p className="mt-2 text-xs font-semibold leading-snug text-white/85 group-hover:text-white">{t.title}</p>
                   <p className="text-[11px] text-white/55">
@@ -724,9 +806,7 @@ function SeriesDetails({ idx }: { idx: number }) {
   return (
     <>
       <Badge pill="Trimz" meta={[`${t.episodes} episode${t.episodes === 1 ? '' : 's'}`, `${t.views} views`]} />
-      <h1 key={t.slug} className="ps5-title">
-        {t.title}
-      </h1>
+      <TitleLogo key={t.slug} title={t.title} logo={t.logo} />
       <p className="ps5-shadow max-w-[560px] text-sm leading-relaxed text-white/85 md:text-[15px]">{t.summary}</p>
       {related && (
         <div className="ps5-glass flex items-center gap-4 px-4 py-3">
@@ -787,6 +867,7 @@ function OstPanel({ slug }: { slug: string }) {
             <li key={t.id} className="flex items-center gap-1">
               <button
                 type="button"
+                data-sub-item
                 onClick={() => playAt(i)}
                 aria-label={`${playing ? 'Pause' : 'Play'} ${t.title}`}
                 aria-current={current ? 'true' : undefined}
@@ -1053,6 +1134,9 @@ function BottomBar({
   toggleTab,
   pad,
   tab,
+  canEnter,
+  inSub,
+  section,
 }: {
   onPrev: () => void
   onNext: () => void
@@ -1060,6 +1144,9 @@ function BottomBar({
   toggleTab: () => void
   pad: { connected: boolean; kind: PadKind }
   tab: HubTab
+  canEnter: boolean
+  inSub: boolean
+  section: Section
 }) {
   const l = PAD_LABEL[pad.kind]
   return (
@@ -1067,8 +1154,15 @@ function BottomBar({
       <Link to="/" onClick={() => sfx('back')} className="hidden items-center gap-1.5 rounded-full border border-white/20 px-3.5 py-1.5 font-semibold text-white hover:bg-white/10 md:inline-flex">
         <ChevronLeft /> Back
       </Link>
-      {pad.connected ? (
+      {pad.connected && inSub ? (
         <>
+          <Hint keys={['◀', '▶']} label="Select" />
+          <Hint keys={[l.a]} label={section === 'ost' ? 'Play' : 'Open'} />
+          <Hint keys={[l.b]} label="Back to sections" />
+        </>
+      ) : pad.connected ? (
+        <>
+          {canEnter && <Hint keys={[l.x]} label={section === 'intro' ? 'Expand card' : `Enter ${SECTION_LABEL[section]}`} />}
           <Hint keys={['◀', '▶']} label="Navigate" />
           {tab === 'stories' && <Hint keys={['▲', '▼']} label="Section" className="lg:inline-flex" />}
           <Hint keys={[pad.kind === 'playstation' ? 'L' : 'LS']} label="Scroll" className="xl:inline-flex" />
