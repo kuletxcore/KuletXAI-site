@@ -1,6 +1,10 @@
 // Acolytes achievements from the IsekaiZero codex (category "achievement").
-// Titles and descriptions are the story's own; grades are site picks (the codex has none),
-// and the Platinum is a site addition for collecting the full set.
+// Titles and descriptions are the story's own. The codex has no grades, so they're
+// set here by how hard each card's TRIGGER is to meet:
+//   bronze — one beat, or a milestone that arrives with normal play
+//   silver — a deliberate setup, or several conditions held through one file
+//   gold   — strict all-or-nothing conditions, a chained sequence, or multi-session play
+// The Platinum is a site addition for collecting the full set.
 export type TrophyGrade = 'platinum' | 'gold' | 'silver' | 'bronze'
 export type Trophy = { id: string; title: string; description: string; grade: TrophyGrade; hidden: boolean }
 export type TrophySet = { slug: string; title: string; trophies: Trophy[] }
@@ -31,7 +35,7 @@ const ACOLYTES: Trophy[] = [
     "id": "the-best-there-is",
     "title": "The Best There Is...",
     "description": "You carried the decisive beat yourself. Or you ran the floor alone through the worst rush we've had. Either way — that tracks.",
-    "grade": "silver",
+    "grade": "bronze",
     "hidden": false
   },
   {
@@ -73,7 +77,7 @@ const ACOLYTES: Trophy[] = [
     "id": "double-o-s-got-this",
     "title": "Double O's Got This",
     "description": "Ran the whole file solo. Allowed. Noticed.",
-    "grade": "gold",
+    "grade": "silver",
     "hidden": false
   },
   {
@@ -101,7 +105,7 @@ const ACOLYTES: Trophy[] = [
     "id": "when-there-s-no-good-option-left",
     "title": "When there's no good option left...",
     "description": "Greenlit the ridiculous option. It worked. Told you.",
-    "grade": "bronze",
+    "grade": "silver",
     "hidden": false
   },
   {
@@ -122,7 +126,7 @@ const ACOLYTES: Trophy[] = [
     "id": "they-re-looking",
     "title": "They're Looking...!",
     "description": "They're packing special loads because of us. Meter's moved. Tier 2.",
-    "grade": "silver",
+    "grade": "bronze",
     "hidden": false
   },
   {
@@ -143,14 +147,14 @@ const ACOLYTES: Trophy[] = [
     "id": "exception-handling",
     "title": "Exception Handling",
     "description": "Caught the gas, the poison, the height threat — before it reached anyone. That's the discipline.",
-    "grade": "silver",
+    "grade": "bronze",
     "hidden": false
   },
   {
     "id": "first-contact",
     "title": "First Contact",
     "description": "First real professionals who didn't fight like gangsters. Left a mark on the record.",
-    "grade": "bronze",
+    "grade": "silver",
     "hidden": false
   },
   {
@@ -164,7 +168,7 @@ const ACOLYTES: Trophy[] = [
     "id": "potential-woman",
     "title": "Potential Woman",
     "description": "Trusted the civilian who saw too much. Welp, this girl either becomes our greatest asset or Agent 05. Your call, Boss.",
-    "grade": "silver",
+    "grade": "gold",
     "hidden": true
   },
   {
@@ -206,7 +210,7 @@ const ACOLYTES: Trophy[] = [
     "id": "you-get-five-big-booms",
     "title": "You get five big booms...",
     "description": "Five staged explosions in a row and the target still didn't see it coming. R&D is going to be insufferable.",
-    "grade": "silver",
+    "grade": "gold",
     "hidden": false
   },
   {
@@ -220,42 +224,42 @@ const ACOLYTES: Trophy[] = [
     "id": "patience-of-the-house",
     "title": "Patience of the House",
     "description": "Three or more days of watching before the move. Slowest approach is sometimes the only clean one.",
-    "grade": "bronze",
+    "grade": "silver",
     "hidden": false
   },
   {
     "id": "rsvp",
     "title": "RSVP",
     "description": "Took the target inside their own event. Rude. Also a statement.",
-    "grade": "bronze",
+    "grade": "silver",
     "hidden": false
   },
   {
     "id": "i-didn-t-do-it",
     "title": "I didn't do it.",
     "description": "Environment did the work. No weapons drawn. Official report writes itself.",
-    "grade": "bronze",
+    "grade": "gold",
     "hidden": false
   },
   {
     "id": "three-way-ledger",
     "title": "Three-Way Ledger",
     "description": "Two hostile groups blaming each other. Neither looking at us. Perfect arithmetic.",
-    "grade": "silver",
+    "grade": "gold",
     "hidden": false
   },
   {
     "id": "the-long-con",
     "title": "The Long Con",
     "description": "Cover identity built across multiple sessions. Slowest weapon in the inventory.",
-    "grade": "silver",
+    "grade": "gold",
     "hidden": false
   },
   {
     "id": "no-second-draft",
     "title": "No Second Draft",
     "description": "Plan A the whole way. Insertion to exfil. Every contingency unused. The plan that never needed a friend.",
-    "grade": "gold",
+    "grade": "silver",
     "hidden": false
   },
   {
