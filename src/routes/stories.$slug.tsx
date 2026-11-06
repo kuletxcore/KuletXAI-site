@@ -19,7 +19,16 @@ import type { YtVideo } from '#/data/youtube'
 import { MotionConfig } from 'motion/react'
 import type { IskCast, IskMedia } from '#/data/isk'
 
+/** Shareable hub state: which tab, and which series / video / section is open. */
+type HubSearch = { tab?: 'trimz' | 'youtube'; series?: string; v?: string; section?: string }
+
 export const Route = createFileRoute('/stories/$slug')({
+  validateSearch: (s: Record<string, unknown>): HubSearch => ({
+    tab: s.tab === 'trimz' || s.tab === 'youtube' ? s.tab : undefined,
+    series: typeof s.series === 'string' ? s.series : undefined,
+    v: typeof s.v === 'string' ? s.v : undefined,
+    section: typeof s.section === 'string' ? s.section : undefined,
+  }),
   loader: async ({ params }) => {
     const story = STORIES.find((s) => s.slug === params.slug)
     if (!story) throw notFound()
@@ -121,10 +130,11 @@ function stickScroll(dy: number) {
 function StoryHub() {
   const { story, videos } = Route.useLoaderData()
   const navigate = useNavigate()
-  const [tab, setTab] = useState<HubTab>('stories')
-  const [section, setSection] = useState<Section>('overview')
-  const [seriesIdx, setSeriesIdx] = useState(0)
-  const [ytIdx, setYtIdx] = useState(0)
+  const search = Route.useSearch()
+  const [tab, setTab] = useState<HubTab>(() => (search.tab === 'trimz' ? 'series' : search.tab === 'youtube' ? 'youtube' : 'stories'))
+  const [section, setSection] = useState<Section>(() => (search.section && search.section in SECTION_LABEL ? (search.section as Section) : 'overview'))
+  const [seriesIdx, setSeriesIdx] = useState(() => Math.max(0, TRIMZ.findIndex((t) => t.key === search.series)))
+  const [ytIdx, setYtIdx] = useState(() => Math.max(0, videos.findIndex((v) => v.id === search.v)))
   const activeVideo: YtVideo | undefined = videos[ytIdx]
 
   const storyIdx = STORIES.findIndex((s) => s.slug === story.slug)
@@ -141,12 +151,52 @@ function StoryHub() {
     ...(series.length ? (['watch'] as const) : []),
   ]
   const [modal, setModal] = useState<Modal | null>(null)
+  useEffect(() => {
+    if (!sections.includes(section)) setSection('overview')
+  }, [sections.join(), section])
+
+  // Keep the address and the hub state in step, both ways:
+  // - our own changes are written with replace (so Back still leaves the page)
+  // - an address we didn't write (Back/Forward, a pasted link) drives the state
+  const searchKey = (q: HubSearch) => [q.tab ?? '', q.series ?? '', q.v ?? '', q.section ?? ''].join('|')
+  const written = useRef(searchKey(search))
+  useEffect(() => {
+    const current = searchKey(search)
+    if (current !== written.current) {
+      written.current = current
+      setTab(search.tab === 'trimz' ? 'series' : search.tab === 'youtube' ? 'youtube' : 'stories')
+      setSeriesIdx(Math.max(0, TRIMZ.findIndex((t) => t.key === search.series)))
+      setYtIdx(Math.max(0, videos.findIndex((v) => v.id === search.v)))
+      setSection(search.section && search.section in SECTION_LABEL ? (search.section as Section) : 'overview')
+      return
+    }
+    const next: HubSearch =
+      tab === 'series'
+        ? { tab: 'trimz', series: TRIMZ[seriesIdx]?.key }
+        : tab === 'youtube'
+          ? { tab: 'youtube', v: videos[ytIdx]?.id }
+          : { section: section !== 'overview' ? section : undefined }
+    const nextKey = searchKey(next)
+    if (nextKey !== current) {
+      written.current = nextKey
+      navigate({ to: '/stories/$slug', params: { slug: story.slug }, search: next, replace: true, resetScroll: false })
+    }
+  }, [search, tab, section, seriesIdx, ytIdx, story.slug])
   const play = isekaiStoryUrl(story.id)
   const activeSeries = TRIMZ[seriesIdx]
   const primaryHref = tab === 'stories' ? play : tab === 'series' ? trimzSeriesUrl(activeSeries.slug) : activeVideo ? ytWatchUrl(activeVideo) : YT_CHANNEL_URL
 
   // New story: start on its overview
-  useEffect(() => setSection('overview'), [story.slug])
+  // New story: start on its overview — unless the address asks for a section
+  // (on Back/Forward the address can arrive a render before the story data does)
+  const firstSlug = useRef(story.slug)
+  const latestSearch = useRef(search)
+  latestSearch.current = search
+  useEffect(() => {
+    if (story.slug === firstSlug.current) return
+    firstSlug.current = ''
+    if (!latestSearch.current.section) setSection('overview')
+  }, [story.slug])
 
   const step = (dir: 1 | -1) => {
     sfx('nav')

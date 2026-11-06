@@ -13,6 +13,8 @@ export const trimzSeriesUrl = (slug: string) => `https://trimz.tv/${slug}`
 
 export type TrimzSeries = {
   slug: string
+  /** Short name used in shareable links (?tab=trimz&series=…) */
+  key: string
   title: string
   summary: string
   poster: string
@@ -29,6 +31,7 @@ export type TrimzSeries = {
 export const TRIMZ: TrimzSeries[] = [
   {
     slug: 'acolytes-maid-for-your-protection',
+    key: 'acolytes',
     logo: { src: '/titles/acolytes.webp', w: 1100, h: 330 },
     tile: '/tiles/acolytes.webp',
     title: 'Acolytes: Maid for your Protection',
@@ -41,6 +44,7 @@ export const TRIMZ: TrimzSeries[] = [
   },
   {
     slug: 'acolytes-maid-for-your-protection-side-b',
+    key: 'side-b',
     logo: { src: '/titles/acolytes-side-b.webp', w: 1100, h: 409 },
     tile: '/tiles/acolytes-side-b.webp',
     title: 'Acolytes: Maid for your Protection (Side B)',
