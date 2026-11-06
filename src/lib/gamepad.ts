@@ -49,17 +49,26 @@ function pressed(pad: Gamepad, b: PadButton) {
   const btn = i === undefined ? undefined : pad.buttons[i]
   const digital = !!btn && (btn.pressed || btn.value > 0.5)
   if (digital || !DIRECTIONS.has(b)) return digital
-  const [x = 0, y = 0] = pad.axes
+  // Stick only steps left/right; its vertical axis scrolls (see onScroll)
+  const [x = 0] = pad.axes
   if (b === 'left') return x < -STICK
   if (b === 'right') return x > STICK
-  if (b === 'up') return y < -STICK
-  return y > STICK
+  return false
 }
 
-export function useGamepad(onPress: (b: PadButton) => void) {
+const DEADZONE = 0.2
+const MAX_SCROLL_PX_PER_FRAME = 22
+
+/**
+ * onPress: digital buttons and D-pad (plus stick left/right).
+ * onScroll: left stick up/down, in pixels for this frame (eased, with a deadzone).
+ */
+export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: number) => void) {
   const [state, setState] = useState<{ connected: boolean; kind: PadKind }>({ connected: false, kind: 'generic' })
   const handler = useRef(onPress)
   handler.current = onPress
+  const scroller = useRef(onScroll)
+  scroller.current = onScroll
 
   useEffect(() => {
     if (typeof navigator === 'undefined' || !('getGamepads' in navigator)) return
@@ -88,6 +97,11 @@ export function useGamepad(onPress: (b: PadButton) => void) {
         } else if (!down && next !== undefined) {
           held.delete(b)
         }
+      }
+      const y = pad.axes[1] ?? 0
+      if (Math.abs(y) > DEADZONE && scroller.current) {
+        const t = (Math.abs(y) - DEADZONE) / (1 - DEADZONE)
+        scroller.current(Math.sign(y) * t ** 1.5 * MAX_SCROLL_PX_PER_FRAME)
       }
       raf = requestAnimationFrame(loop)
     }

@@ -71,6 +71,46 @@ const SECTION_LABEL: Record<Section, string> = {
   watch: 'Watch',
 }
 
+const canScroll = (el: Element, dy: number) =>
+  dy > 0 ? el.scrollTop + el.clientHeight < el.scrollHeight - 1 : el.scrollTop > 0
+
+/** A same-origin iframe (our HTML cards) can be scrolled from here; YouTube can't. */
+function scrollFrame(frame: HTMLIFrameElement | null, dy: number) {
+  try {
+    const win = frame?.contentWindow
+    if (!frame || !win || !frame.src.startsWith(window.location.origin)) return false
+    const doc = win.document.scrollingElement
+    if (!doc || !canScroll(doc, dy)) return false
+    doc.scrollTop += dy
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** Left stick: scroll what's in focus — open card, then the section panel, then the page. */
+function stickScroll(dy: number) {
+  if (window.__kxBootActive) return
+  const dialog = document.querySelector('[role=dialog][aria-modal]')
+  if (dialog) {
+    if (scrollFrame(dialog.querySelector('iframe'), dy)) return
+    const box = Array.from(dialog.querySelectorAll('*')).find((el) => canScroll(el, dy) && getComputedStyle(el).overflowY !== 'visible')
+    if (box) box.scrollTop += dy
+    return
+  }
+  const panel = document.querySelector('.ps5 [role=tabpanel]')
+  if (panel) {
+    if (scrollFrame(panel.querySelector('iframe'), dy)) return
+    if (canScroll(panel, dy)) {
+      panel.scrollTop += dy
+      return
+    }
+  }
+  const page = document.scrollingElement
+  // 'instant' bypasses the page's CSS smooth scrolling, which would lag a per-frame scroll
+  if (page && canScroll(page, dy)) window.scrollBy({ top: dy, behavior: 'instant' })
+}
+
 function StoryHub() {
   const { story, videos } = Route.useLoaderData()
   const navigate = useNavigate()
@@ -173,7 +213,7 @@ function StoryHub() {
       setMuted(next)
       if (!next) sfx('nav')
     }
-  })
+  }, stickScroll)
 
   // Controller-style keyboard shortcuts
   const keyState = useRef({ step, sections, tab, modal, cycleTab, pickSection, stepSection, primary })
@@ -816,6 +856,7 @@ function BottomBar({
         <>
           <Hint keys={['◀', '▶']} label="Navigate" />
           {tab === 'stories' && <Hint keys={['▲', '▼']} label="Section" className="lg:inline-flex" />}
+          <Hint keys={[pad.kind === 'playstation' ? 'L' : 'LS']} label="Scroll" className="xl:inline-flex" />
           <Hint keys={[l.a]} label={tab === 'youtube' ? 'Play' : 'Open'} />
           <Hint keys={[l.b]} label="Back" />
           <Hint keys={[l.lb, l.rb]} label="Tabs" />
