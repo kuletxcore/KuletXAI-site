@@ -291,6 +291,29 @@ function StoryHub() {
     navigate({ to: '/' })
   }
 
+  // Phones: a horizontal swipe on the tile row moves the selection (like the D-pad)
+  const swipeFrom = useRef<{ x: number; y: number; t: number } | null>(null)
+  const swipe = {
+    start: (e: React.TouchEvent) => {
+      const t = e.touches[0]
+      swipeFrom.current = e.touches.length === 1 ? { x: t.clientX, y: t.clientY, t: performance.now() } : null
+    },
+    end: (e: React.TouchEvent) => {
+      const from = swipeFrom.current
+      swipeFrom.current = null
+      const t = e.changedTouches[0]
+      if (!from || !t) return
+      const dx = t.clientX - from.x
+      const dy = t.clientY - from.y
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.3 && performance.now() - from.t < 700) {
+        step(dx < 0 ? 1 : -1)
+      }
+    },
+    cancel: () => {
+      swipeFrom.current = null
+    },
+  }
+
   // Controller
   const pad = useGamepad((b: PadButton) => {
     const fire = (key: string) => window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
@@ -421,7 +444,7 @@ function StoryHub() {
         )}
 
         {/* Tile ribbon */}
-        <div className="ps5-ribbon mt-3 md:mt-5">
+        <div className="ps5-ribbon mt-3 md:mt-5" onTouchStart={swipe.start} onTouchEnd={swipe.end} onTouchCancel={swipe.cancel}>
           <div className="flex w-max items-start gap-3 md:gap-4" role="list">
             {tab === 'stories'
               ? STORIES.map((s) => (

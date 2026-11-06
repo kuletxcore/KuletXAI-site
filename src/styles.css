@@ -738,3 +738,11 @@ html.kx-boot body::before {
 @media (prefers-reduced-motion: reduce) {
   .kx-trophy { transition: none; }
 }
+
+/* Phones: the tile row is swiped item by item (handled in the hub), not free-scrolled */
+@media (pointer: coarse) {
+  .ps5-ribbon {
+    touch-action: pan-y;
+    scroll-snap-type: none;
+  }
+}

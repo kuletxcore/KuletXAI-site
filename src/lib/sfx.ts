@@ -22,21 +22,30 @@ const FILES: Partial<Record<Sfx, string>> = {
 }
 const VOLUME: Partial<Record<Sfx, number>> = { nav: 0.7, enter: 0.85, back: 0.8, tab: 0.8 }
 const buffers: Partial<Record<Sfx, AudioBuffer>> = {}
+const decoding: Partial<Record<Sfx, Promise<AudioBuffer | null>>> = {}
+// Start downloading the sound files as soon as the page loads, so the very
+// first tap already has the real sound (decoding waits for the AudioContext).
+const bytes: Partial<Record<Sfx, Promise<ArrayBuffer | null>>> = {}
+if (typeof window !== 'undefined') {
+  for (const [name, url] of Object.entries(FILES) as [Sfx, string][]) {
+    bytes[name] = fetch(url)
+      .then((r) => (r.ok ? r.arrayBuffer() : null))
+      .catch(() => null)
+  }
+}
 let loading = false
 
 function loadSamples(c: AudioContext) {
   if (loading) return
   loading = true
-  for (const [name, url] of Object.entries(FILES) as [Sfx, string][]) {
-    fetch(url)
-      .then((r) => r.arrayBuffer())
-      .then((b) => c.decodeAudioData(b))
+  for (const name of Object.keys(FILES) as Sfx[]) {
+    decoding[name] = (bytes[name] ?? Promise.resolve(null))
+      .then((b) => (b ? c.decodeAudioData(b) : null))
       .then((buf) => {
-        buffers[name] = buf
+        if (buf) buffers[name] = buf
+        return buf
       })
-      .catch(() => {
-        /* keep the synth fallback */
-      })
+      .catch(() => null)
   }
 }
 
@@ -144,8 +153,34 @@ function withEcho(c: AudioContext, delay = 0.11, feedback = 0.28, life = 2) {
 export function play(name: Sfx) {
   if (muted) return
   const c = audio()
-  if (!c || !master || c.state !== 'running') return
-  if (playSample(c, name)) return
+  if (!c || !master) return
+  const asked = performance.now()
+  const go = () => {
+    if (performance.now() - asked > 700) return // too late to be the sound for that tap
+    if (playSample(c, name)) return
+    const pending = decoding[name]
+    if (!pending) return synth(c, name)
+    // The file is still decoding: wait briefly for it rather than playing a different sound
+    let settled = false
+    const fallback = window.setTimeout(() => {
+      settled = true
+      synth(c, name)
+    }, 400)
+    void pending.then((buf) => {
+      if (settled) return
+      settled = true
+      clearTimeout(fallback)
+      if (!buf || !playSample(c, name)) synth(c, name)
+    })
+  }
+  // The first tap unlocks audio asynchronously; play as soon as it's running
+  if (c.state === 'running') go()
+  else void c.resume().then(go, () => {})
+}
+
+/** Generated stand-ins (and the start-up swell, which has no file). */
+function synth(c: AudioContext, name: Sfx) {
+  if (!master || muted) return
   switch (name) {
     case 'nav':
       tone(c, master, { type: 'sine', from: 1760, to: 1480, dur: 0.07, gain: 0.16 })
