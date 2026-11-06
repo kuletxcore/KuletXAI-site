@@ -137,23 +137,54 @@ function Stories() {
               </Link>
             </li>
           ))}
-          <li className="sm:col-span-2 lg:col-span-1">
+          <li>
             <a
-              href={LINKS.trimz}
+              href={LINKS.isekaiProfile}
               target="_blank"
               rel="noreferrer"
-              className="group flex h-full min-h-64 flex-col justify-between border border-dashed border-line p-6 hover:border-neon"
+              onClick={() => sfx('enter')}
+              className="group flex h-full flex-col border border-dashed border-line bg-panel hover:border-solid hover:border-neon"
             >
-              <span className="font-gamer text-xs text-mute">NEXT_WORLD.LOADING</span>
-              <span>
-                <span className="pixel block font-pixel text-3xl text-ink group-hover:text-neon">
-                  More worlds in the works
-                </span>
-                <span className="mt-3 block text-sm text-mute">
-                  New storylines show up as series on Trimz. Catch the episodes while you wait.
-                </span>
-              </span>
-              <span className="font-gamer text-xs text-neon">WATCH ON TRIMZ →</span>
+              {/* Cover slot: the five worlds tiled, dimmed, with the loading line on top */}
+              <div className="cover relative aspect-[3/4] overflow-hidden border-b border-line">
+                <div className="grid h-full grid-cols-2 grid-rows-3 gap-px bg-line" aria-hidden>
+                  {STORIES.map((s, i) => (
+                    <img
+                      key={s.slug}
+                      src={s.cover}
+                      alt=""
+                      loading="lazy"
+                      className={`h-full w-full object-cover opacity-35 grayscale transition duration-500 group-hover:opacity-60 group-hover:grayscale-0 ${i === 0 ? 'row-span-2' : ''}`}
+                    />
+                  ))}
+                </div>
+                <div className="absolute inset-0 grid place-items-center bg-void/55 transition-colors group-hover:bg-void/35">
+                  <span className="text-center">
+                    <span className="pixel block font-pixel text-5xl text-neon glow">+</span>
+                    <span className="mt-2 block font-gamer text-xs text-ink">
+                      NEXT_WORLD.LOADING<span className="cursor text-neon" />
+                    </span>
+                  </span>
+                </div>
+                <span className="absolute top-3 left-3 bg-ink px-2 py-1 font-gamer text-xs text-void">CREATOR</span>
+              </div>
+              <div className="flex flex-1 flex-col p-5">
+                <h3 className="font-mono text-lg font-bold leading-snug text-ink group-hover:text-neon">More worlds in the works</h3>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-mute">
+                  Every KuletX storyline lives on IsekaiZero. Follow the creator page to catch new worlds the day they go live.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {['AllWorlds', 'NewDrops', 'Follow'].map((t) => (
+                    <span key={t} className="border border-line px-2 py-0.5 text-xs text-mute">
+                      #{t}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-5 flex items-center justify-between border-t border-line pt-4 font-gamer text-xs">
+                  <span className="text-mute">@kuletxcore · {STORIES.length} live</span>
+                  <span className="text-neon">PROFILE →</span>
+                </div>
+              </div>
             </a>
           </li>
         </ul>
