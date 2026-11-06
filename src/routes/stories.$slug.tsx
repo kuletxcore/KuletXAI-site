@@ -5,6 +5,7 @@ import { LINKS, STORIES, TRIMZ, isekaiStoryUrl, trimzSeriesUrl } from '#/data/co
 import type { Story } from '#/data/content'
 import { ISK } from '#/data/isk'
 import { BOOT_HEAD_SCRIPT, BootScreen } from '#/components/boot-screen'
+import { Logo } from '#/components/site'
 import { MotionConfig } from 'motion/react'
 import type { IskCast, IskMedia } from '#/data/isk'
 
@@ -17,6 +18,7 @@ export const Route = createFileRoute('/stories/$slug')({
   head: ({ loaderData }) => ({
     scripts: [{ children: BOOT_HEAD_SCRIPT }],
     links: [
+      { rel: 'preload', href: '/brand/kuletx-ai-1200.webp', as: 'image' },
       { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
       { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
       {
@@ -255,8 +257,8 @@ function TopBar({ tab, setTab }: { tab: HubTab; setTab: (t: HubTab) => void }) {
           <ChevronLeft /> Back
         </Link>
         <div className="flex items-center gap-5">
-          <Link to="/" className="font-pixel text-lg text-white/90 hover:text-white">
-            KULETX<span className="text-neon">_AI</span>
+          <Link to="/" aria-label="KuletX AI home" className="shrink-0 transition-transform hover:scale-[1.03]">
+            <Logo className="h-8 md:h-9" />
           </Link>
           <Clock />
         </div>

@@ -465,9 +465,10 @@ html.kx-boot body::before {
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.85);
 }
 .kx-boot-logo {
+  display: block;
   position: relative;
   z-index: 1;
-  width: min(78vw, 560px);
+  width: min(84vw, 640px);
   height: auto;
   filter: drop-shadow(0 6px 30px rgba(0, 0, 0, 0.8));
 }

@@ -142,7 +142,7 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
               animate={sceneVisible ? { opacity: 1, scale: 1, filter: 'blur(0px)' } : { opacity: 0 }}
               transition={{ duration: sceneVisible ? FADE_IN : outDur, ease: EASE, delay: sceneVisible ? 0.35 : 0 }}
             >
-              {wordmark}
+              <img src="/brand/kuletx-ai-1200.webp" alt={wordmark} className="kx-boot-logo" width={1200} height={412} />
             </motion.h1>
             <motion.p
               className="kx-boot-hint"

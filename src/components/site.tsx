@@ -1,12 +1,16 @@
 import { Link } from '@tanstack/react-router'
 import { LINKS } from '#/data/content'
 
+export function Logo({ className = 'h-8' }: { className?: string }) {
+  return <img src="/brand/kuletx-ai-480.webp" srcSet="/brand/kuletx-ai-480.webp 480w, /brand/kuletx-ai-1200.webp 1200w" sizes="240px" alt="KuletX AI" width={480} height={165} className={`w-auto ${className}`} />
+}
+
 export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-void/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <Link to="/" className="pixel font-pixel text-xl text-neon glow">
-          KULETX<span className="text-ink">_AI</span>
+        <Link to="/" aria-label="KuletX AI home" className="shrink-0 transition-transform hover:scale-[1.03]">
+          <Logo className="h-9 sm:h-10" />
         </Link>
         <nav className="flex items-center gap-4 font-gamer text-xs uppercase sm:gap-6 sm:text-sm">
           <Link to="/" hash="stories" className="text-mute hover:text-neon">
@@ -47,7 +51,7 @@ export function Footer() {
     <footer className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="pixel font-pixel text-2xl text-neon">KULETX_AI</p>
+          <Logo className="h-12" />
           <p className="mt-2 text-sm text-mute">AI storytelling. © {new Date().getFullYear()} KuletX.</p>
         </div>
         <nav className="flex flex-wrap gap-4 font-gamer text-xs">
