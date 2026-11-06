@@ -232,8 +232,8 @@ const CHANNELS = [
     name: 'IsekaiZero',
     verb: 'Play',
     body: 'Step into the stories yourself. Every storyline is a world you can talk to.',
-    href: LINKS.isekai,
-    handle: 'isekaizero.ai',
+    href: LINKS.isekaiProfile,
+    handle: 'isekaizero.ai/creator/kuletxcore',
   },
   {
     key: 'trimz',
