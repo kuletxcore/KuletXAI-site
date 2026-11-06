@@ -16,6 +16,8 @@ export type TrimzSeries = {
   title: string
   summary: string
   poster: string
+  /** Looping cover video for the hub backdrop (optional) */
+  video?: string
   episodes: number
   views: number
 }
@@ -28,6 +30,7 @@ export const TRIMZ: TrimzSeries[] = [
     summary:
       'Maid café waitresses by day, unkillable black-ops agents by night, and nobody on the block knows.',
     poster: '/trimz/acolytes.webp',
+    video: '/trimz/acolytes.mp4',
     episodes: 4,
     views: 157,
   },

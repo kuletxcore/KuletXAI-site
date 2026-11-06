@@ -280,7 +280,7 @@ function StoryHub() {
           <Backdrop key={s.slug} src={s.cover} video={ISK[s.slug]?.videoCover} active={tab === 'stories' && s.slug === story.slug} />
         ))}
         {TRIMZ.map((t, i) => (
-          <Backdrop key={t.slug} src={t.poster} active={tab === 'series' && i === seriesIdx} />
+          <Backdrop key={t.slug} src={t.poster} video={t.video} active={tab === 'series' && i === seriesIdx} />
         ))}
         {videos.map((v, i) => (
           <Backdrop key={v.id} src={ytThumb(v.id, 'maxresdefault')} blurSrc={ytThumb(v.id)} active={tab === 'youtube' && i === ytIdx} />
