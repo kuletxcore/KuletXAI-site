@@ -1,12 +1,12 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { play as sfx } from '#/lib/sfx'
+import { isMuted } from '#/lib/sfx'
 import { holdMusic } from '#/lib/music'
 
 /**
- * Console-style start screen: black curtain, aurora + particles fade in with the
- * wordmark, holds, then fades out to reveal the hub. Plays once per browser
- * session, never on a reload, and any key or click skips it.
+ * Console-style start screen: black curtain, the PS5 WebGL scene and wordmark
+ * fade in together with the startup sound, hold, then fade out to the hub.
+ * Plays once per browser session, never on a reload, and any key or click skips it.
  */
 
 const SESSION_KEY = 'kx_boot_seen'
@@ -27,6 +27,12 @@ declare global {
   interface Window {
     __kxBoot?: boolean
     __kxBootActive?: boolean
+    UnicornStudio?: {
+      isInitialized?: boolean
+      init?: () => Promise<unknown>
+      unbindEvents?: () => void
+    }
+    __kxUnicorn?: Promise<unknown>
   }
 }
 
@@ -82,23 +88,36 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
     }
   }, [phase])
 
-  // Startup swell as the scene fades in (plays if the browser allows audio yet)
-  const swellAt = useRef(0)
+  // Authentic startup sound. It keeps playing through the fade; a skip cuts it.
+  const startup = useRef<HTMLAudioElement | null>(null)
   useEffect(() => {
-    if (phase === 'playing') {
-      swellAt.current = performance.now()
-      sfx('boot')
-    }
+    if (phase !== 'playing' || isMuted() || startup.current) return
+    const audio = new Audio('/sfx/ps5-startup.mp3')
+    audio.volume = 0.85
+    startup.current = audio
+    void audio.play().catch(() => {})
   }, [phase])
+  useEffect(() => () => {
+    startup.current?.pause()
+  }, [])
 
-  // Background music waits for the start screen, then for the swell to ring out
-  const SWELL_MS = 4600
+  // Hub music waits until the start screen is gone, and until the startup sound ends
   useEffect(() => {
-    if (phase === 'curtain') holdMusic(true)
-    if (phase === 'off') holdMusic(false, swellAt.current ? Math.max(0, SWELL_MS - (performance.now() - swellAt.current)) : 0)
+    if (phase !== 'off') {
+      holdMusic(true)
+      return
+    }
+    const audio = startup.current
+    if (audio && !audio.paused && !audio.ended) {
+      const release = () => holdMusic(false)
+      audio.addEventListener('ended', release, { once: true })
+      return () => audio.removeEventListener('ended', release)
+    }
+    holdMusic(false)
   }, [phase])
 
   const skip = useCallback(() => {
+    startup.current?.pause()
     setFast(true)
     setPhase((p) => (p === 'curtain' || p === 'playing' ? 'leaving' : p))
   }, [])
@@ -162,7 +181,7 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
               if (phase === 'leaving') setPhase('lifting')
             }}
           >
-            <Aurora still={!!reduce} />
+            {!reduce && <UnicornStage />}
             <motion.h1
               className="kx-boot-title"
               initial={{ opacity: 0, scale: 0.96, filter: 'blur(6px)' }}
@@ -177,7 +196,7 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
               animate={{ opacity: sceneVisible ? 0.8 : 0 }}
               transition={{ duration: 0.6, delay: sceneVisible ? 1.2 : 0 }}
             >
-              {typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches ? 'Tap anywhere to skip' : 'Press any key or click to skip'}
+              Press any key or click to skip
             </motion.p>
           </motion.div>
         )}
@@ -186,89 +205,66 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
   )
 }
 
-/** Soft drifting light ribbons + twinkling dust, drawn on a 2D canvas. */
-function Aurora({ still }: { still: boolean }) {
-  const ref = useRef<HTMLCanvasElement>(null)
+const UNICORN_SRC = 'https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v1.4.30/dist/unicornStudio.umd.js'
 
+function loadUnicorn() {
+  if (typeof window === 'undefined') return Promise.resolve(null)
+  if (window.__kxUnicorn) return window.__kxUnicorn
+  window.__kxUnicorn = new Promise((resolve) => {
+    const finish = () => {
+      const us = window.UnicornStudio
+      if (!us?.init || us.isInitialized) {
+        resolve(null)
+        return
+      }
+      us.init()
+        .then((scenes) => {
+          us.isInitialized = true
+          resolve(scenes)
+        })
+        .catch(() => resolve(null))
+    }
+    if (window.UnicornStudio?.init) {
+      finish()
+      return
+    }
+    const script = document.createElement('script')
+    script.src = UNICORN_SRC
+    script.onload = () => finish()
+    script.onerror = () => resolve(null)
+    document.head.appendChild(script)
+  })
+  return window.__kxUnicorn
+}
+
+/** WebGL startup scene from the PS5 boot (Unicorn Studio). Fades with the wordmark. */
+function UnicornStage() {
+  const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    const canvas = ref.current
-    const ctx = canvas?.getContext('2d')
-    if (!canvas || !ctx) return
-
-    let w = 0
-    let h = 0
-    let raf = 0
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
-    const resize = () => {
-      w = canvas.clientWidth
-      h = canvas.clientHeight
-      canvas.width = Math.round(w * dpr)
-      canvas.height = Math.round(h * dpr)
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    }
-    resize()
-    window.addEventListener('resize', resize)
-
-    const count = w < 600 ? 40 : 80
-    const dust = Array.from({ length: count }, () => ({
-      x: Math.random(),
-      y: Math.random(),
-      r: Math.random() * 1.4 + 0.4,
-      speed: Math.random() * 0.006 + 0.002,
-      phase: Math.random() * Math.PI * 2,
-      twinkle: Math.random() * 1.5 + 0.5,
-    }))
-
-    // Each ribbon is a wide, blurred band following a slow sine path
-    const ribbons = [
-      { y: 0.42, amp: 0.12, freq: 1.3, speed: 0.05, width: 0.16, alpha: 0.13, hue: '200,215,255' },
-      { y: 0.55, amp: 0.09, freq: 0.9, speed: -0.035, width: 0.1, alpha: 0.1, hue: '255,255,255' },
-      { y: 0.3, amp: 0.07, freq: 1.8, speed: 0.025, width: 0.07, alpha: 0.07, hue: '120,170,255' },
-    ]
-
-    const start = performance.now()
-    const draw = (now: number) => {
-      const t = (now - start) / 1000
-      ctx.clearRect(0, 0, w, h)
-      ctx.fillStyle = '#030508'
-      ctx.fillRect(0, 0, w, h)
-
-      ctx.save()
-      ctx.filter = `blur(${Math.round(Math.max(w, h) * 0.035)}px)`
-      ctx.globalCompositeOperation = 'lighter'
-      for (const rb of ribbons) {
-        ctx.beginPath()
-        const steps = 40
-        for (let i = 0; i <= steps; i++) {
-          const px = (i / steps) * (w * 1.2) - w * 0.1
-          const py = (rb.y + Math.sin((i / steps) * Math.PI * rb.freq + t * rb.speed * 6) * rb.amp + Math.sin(t * 0.2 + i * 0.05) * 0.02) * h
-          if (i === 0) ctx.moveTo(px, py)
-          else ctx.lineTo(px, py)
-        }
-        ctx.strokeStyle = `rgba(${rb.hue},${rb.alpha})`
-        ctx.lineWidth = rb.width * h
-        ctx.lineCap = 'round'
-        ctx.stroke()
-      }
-      ctx.restore()
-
-      for (const p of dust) {
-        const y = (((p.y - t * p.speed) % 1) + 1) % 1
-        const a = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(t * p.twinkle + p.phase))
-        ctx.beginPath()
-        ctx.arc(p.x * w, y * h, p.r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`
-        ctx.fill()
-      }
-
-      if (!still) raf = requestAnimationFrame(draw)
-    }
-    raf = requestAnimationFrame(draw)
-    return () => {
-      cancelAnimationFrame(raf)
-      window.removeEventListener('resize', resize)
-    }
-  }, [still])
-
-  return <canvas ref={ref} className="kx-boot-canvas" />
+    const project = ref.current
+    if (!project) return
+    const mobile = window.matchMedia('(max-width: 880px)').matches
+    project.setAttribute('data-us-dpi', mobile ? '0.8' : '1')
+    project.setAttribute('data-us-fps', mobile ? '30' : '35')
+    project.setAttribute('data-us-disablemobile', 'false')
+    void loadUnicorn()
+  }, [])
+  return (
+    <div className="kx-boot-stage" aria-hidden>
+      <div className="kx-boot-studio">
+        <div
+          ref={ref}
+          data-us-project="N9XzvQXu7fA5SY2ewADJ"
+          data-us-dpi="1"
+          data-us-fps="35"
+          data-us-scale="1"
+          data-us-production="true"
+          data-us-lazyload="false"
+          data-us-disablemouse="true"
+          data-us-disablemobile="false"
+        />
+      </div>
+      <div className="kx-boot-noise" />
+    </div>
+  )
 }
