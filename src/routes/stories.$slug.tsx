@@ -10,6 +10,7 @@ import { isMuted, play as sfx, setMuted, useMuted } from '#/lib/sfx'
 import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
 import { playOst, setMusic, setMusicVolume, stopOst, useMusicVolume, useOstState } from '#/lib/music'
 import { OSTS } from '#/data/ost'
+import { TROPHIES } from '#/data/trophies'
 import { SERIES_MUSIC, STORY_MUSIC } from '#/data/music'
 import type { Track } from '#/data/music'
 import type { PadButton, PadKind } from '#/lib/gamepad'
@@ -64,13 +65,14 @@ export const Route = createFileRoute('/stories/$slug')({
 type HubTab = 'stories' | 'series' | 'youtube'
 const TAB_ORDER: HubTab[] = ['stories', 'series', 'youtube']
 const TAB_LABEL: Record<HubTab, string> = { stories: 'Storylines', series: 'Trimz Series', youtube: 'YouTube' }
-type Section = 'overview' | 'intro' | 'cast' | 'gallery' | 'ost' | 'world' | 'watch'
+type Section = 'overview' | 'intro' | 'cast' | 'gallery' | 'ost' | 'trophies' | 'world' | 'watch'
 
 const SECTION_LABEL: Record<Section, string> = {
   overview: 'Overview',
   intro: 'Intro',
   gallery: 'Gallery',
   ost: 'OST',
+  trophies: 'Trophies',
   world: 'World',
   cast: 'Cast',
   watch: 'Watch',
@@ -134,6 +136,7 @@ function StoryHub() {
     'cast',
     ...(isk?.gallery.length ? (['gallery'] as const) : []),
     ...(OSTS[story.slug]?.tracks.length ? (['ost'] as const) : []),
+    ...(TROPHIES[story.slug] ? (['trophies'] as const) : []),
     'world',
     ...(series.length ? (['watch'] as const) : []),
   ]
@@ -178,7 +181,7 @@ function StoryHub() {
     el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
   }, [subIdx, modal])
   const seriesHasStory = tab === 'series' && STORIES.some((s) => s.trimz?.includes(TRIMZ[seriesIdx].slug))
-  const canEnter = (tab === 'stories' && ['intro', 'cast', 'gallery', 'ost', 'watch'].includes(section)) || seriesHasStory
+  const canEnter = (tab === 'stories' && ['intro', 'cast', 'gallery', 'ost', 'trophies', 'watch'].includes(section)) || seriesHasStory
   const enterSection = () => {
     if (!canEnter) return
     const isk = ISK[story.slug]
@@ -244,6 +247,7 @@ function StoryHub() {
     if (window.__kxBootActive) return fire('Enter') // any button skips the start screen
     if (modal) {
       if (b === 'b') fire('Escape')
+      else if (b === 'x') window.dispatchEvent(new Event('kx-toggle-redaction'))
       else if (b === 'left') fire('ArrowLeft')
       else if (b === 'right') fire('ArrowRight')
       return
@@ -331,7 +335,7 @@ function StoryHub() {
         k.cycleTab(-1)
       } else if (e.key === 'e' || e.key === 'E' || e.key === 'm' || e.key === 'M') {
         k.cycleTab(1)
-      } else if (k.tab === 'stories' && /^[1-7]$/.test(e.key)) {
+      } else if (k.tab === 'stories' && /^[1-8]$/.test(e.key)) {
         const s = k.sections[Number(e.key) - 1]
         if (s) k.pickSection(s)
       }
@@ -427,7 +431,15 @@ function StoryHub() {
           {tab === 'stories' ? (
             <StoryDetails story={story} section={section} setSection={pickSection} sections={sections} series={series} openModal={openModal} />
           ) : tab === 'series' ? (
-            <SeriesDetails idx={seriesIdx} />
+            <SeriesDetails
+              idx={seriesIdx}
+              onOpenStory={(slug) => {
+                sfx('enter')
+                setTab('stories')
+                setSection('overview')
+                if (slug !== story.slug) navigate({ to: '/stories/$slug', params: { slug }, resetScroll: false })
+              }}
+            />
           ) : (
             <VideoDetails video={activeVideo} />
           )}
@@ -723,12 +735,11 @@ function StoryDetails({
         )}
         {section === 'intro' && isk?.introCard && (
           <div className="flex h-full flex-col gap-3">
-            <iframe
+            <CardFrame
               src={isk.introCard}
               title={`${story.title} intro card`}
-              loading="lazy"
-              sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-              className="h-[22vh] w-full rounded-xl border border-white/10 bg-[#0d0f14] md:h-[19vh]"
+              lazy
+              frameClassName="h-[22vh] w-full rounded-xl border border-white/10 bg-[#0d0f14] md:h-[19vh]"
             />
             <button type="button" data-sub-item className="ps5-pill self-start" onClick={() => openModal({ kind: 'card', title: story.title, src: isk.introCard!, image: story.cover })}>
               Open full intro card ↗
@@ -785,6 +796,7 @@ function StoryDetails({
           </ul>
         )}
         {section === 'ost' && OSTS[story.slug] && <OstPanel slug={story.slug} />}
+        {section === 'trophies' && TROPHIES[story.slug] && <TrophiesPanel slug={story.slug} />}
         {section === 'watch' && (
           <ul className="flex gap-4">
             {series.map((t) => (
@@ -805,7 +817,7 @@ function StoryDetails({
   )
 }
 
-function SeriesDetails({ idx }: { idx: number }) {
+function SeriesDetails({ idx, onOpenStory }: { idx: number; onOpenStory: (slug: string) => void }) {
   const t = TRIMZ[idx]
   const related = STORIES.find((s) => s.trimz?.includes(t.slug))
   return (
@@ -815,20 +827,21 @@ function SeriesDetails({ idx }: { idx: number }) {
       <p className="ps5-shadow max-w-[560px] text-sm leading-relaxed text-white/85 md:text-[15px]">{t.summary}</p>
       {related && (
         <a
-          href={isekaiStoryUrl(related.id)}
-          target="_blank"
-          rel="noreferrer"
+          href={`/stories/${related.slug}`}
           data-sub-item
-          onClick={() => sfx('enter')}
+          onClick={(e) => {
+            e.preventDefault()
+            onOpenStory(related.slug)
+          }}
           className="ps5-glass group flex items-center gap-4 px-4 py-3 transition-colors hover:!bg-white/15 focus-visible:outline-2 focus-visible:outline-white"
-          aria-label={`Play the storyline ${related.title} on IsekaiZero`}
+          aria-label={`Open the storyline ${related.title}`}
         >
           <img src={related.tile ?? related.cover} alt="" className="size-12 shrink-0 rounded-lg object-cover" />
           <p className="min-w-0 flex-1 text-sm text-white/80">
-            Based on the storyline <span className="font-bold text-white">{related.title}</span>. Play it on IsekaiZero.
+            Based on the storyline <span className="font-bold text-white">{related.title}</span>. Open it in Storylines.
           </p>
           <span className="shrink-0 text-white/60 transition-transform group-hover:translate-x-0.5 group-hover:text-white" aria-hidden>
-            ↗
+            →
           </span>
         </a>
       )}
@@ -906,6 +919,39 @@ function OstPanel({ slug }: { slug: string }) {
           )
         })}
       </ol>
+    </div>
+  )
+}
+
+const GRADE_COLOR = { platinum: '#9cc8f0', gold: '#f2c14e', silver: '#c9ced6', bronze: '#d08a5c' } as const
+
+function TrophiesPanel({ slug }: { slug: string }) {
+  const set = TROPHIES[slug]
+  const count = (g: keyof typeof GRADE_COLOR) => set.trophies.filter((t) => t.grade === g).length
+  const preview = set.trophies.filter((t) => !t.hidden).slice(0, 3)
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
+        <span className="font-bold text-white">{set.trophies.length} trophies</span>
+        {(['platinum', 'gold', 'silver', 'bronze'] as const).map((g) => (
+          <span key={g} className="flex items-center gap-1.5 text-white/75">
+            <span className="size-2.5 rounded-full" style={{ background: GRADE_COLOR[g] }} aria-hidden />
+            {count(g)} {g[0].toUpperCase() + g.slice(1)}
+          </span>
+        ))}
+      </div>
+      <ul className="space-y-1.5">
+        {preview.map((t) => (
+          <li key={t.id} className="flex items-baseline gap-2 text-sm">
+            <span className="size-2 shrink-0 translate-y-[-1px] rounded-full" style={{ background: GRADE_COLOR[t.grade] }} aria-hidden />
+            <span className="shrink-0 font-semibold whitespace-nowrap text-white">{t.title}</span>
+            <span className="truncate text-white/55">{t.description}</span>
+          </li>
+        ))}
+      </ul>
+      <Link to="/stories/$slug/trophies" params={{ slug }} data-sub-item onClick={() => sfx('enter')} className="ps5-pill self-start !px-4 !py-1.5 !text-[13px]">
+        View all {set.trophies.length} trophies →
+      </Link>
     </div>
   )
 }
@@ -1017,6 +1063,89 @@ function tidyCaption(c: string) {
   return t ? t[0].toUpperCase() + t.slice(1) : ''
 }
 
+const REDACT_CSS = `[data-kx-redacted]{transition:color .45s ease,background-color .45s ease,box-shadow .45s ease}
+html.kx-unredacted [data-kx-redacted]{color:#f8fafc!important;background-color:rgba(248,113,113,.22)!important;box-shadow:inset 0 -1px 0 rgba(248,113,113,.75)}`
+
+/**
+ * One of the story's HTML cards (same-origin, sandboxed: no scripts). Cards
+ * "redact" words by matching text colour to its background; when any are found,
+ * an Unredact button appears. X on a controller toggles it in the card viewer.
+ */
+function CardFrame({ src, title, frameClassName, lazy, listenForToggle }: { src: string; title: string; frameClassName: string; lazy?: boolean; listenForToggle?: boolean }) {
+  const ref = useRef<HTMLIFrameElement>(null)
+  const [count, setCount] = useState(0)
+  const [open, setOpen] = useState(false)
+
+  const scan = () => {
+    const doc = ref.current?.contentDocument
+    const win = doc?.defaultView
+    if (!doc || !win) return
+    let n = 0
+    doc.querySelectorAll<HTMLElement>('body *').forEach((el) => {
+      const cs = win.getComputedStyle(el)
+      if (cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.color === cs.backgroundColor && el.textContent?.trim()) {
+        el.setAttribute('data-kx-redacted', '')
+        n++
+      }
+    })
+    if (n && !doc.getElementById('kx-redact-style')) {
+      const style = doc.createElement('style')
+      style.id = 'kx-redact-style'
+      style.textContent = REDACT_CSS
+      doc.head.appendChild(style)
+    }
+    setCount(n)
+    setOpen(false)
+  }
+  const toggle = () => {
+    if (!count) return
+    sfx(open ? 'back' : 'enter')
+    setOpen((o) => !o)
+  }
+
+  useEffect(() => {
+    ref.current?.contentDocument?.documentElement.classList.toggle('kx-unredacted', open)
+  }, [open, count])
+  useEffect(() => {
+    if (!listenForToggle) return
+    const onToggle = () => toggle()
+    window.addEventListener('kx-toggle-redaction', onToggle)
+    return () => window.removeEventListener('kx-toggle-redaction', onToggle)
+  })
+
+  return (
+    <div className="relative">
+      <iframe
+        ref={ref}
+        src={src}
+        title={title}
+        loading={lazy ? 'lazy' : undefined}
+        sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+        onLoad={scan}
+        className={frameClassName}
+      />
+      {count > 0 && (
+        <button
+          type="button"
+          onClick={toggle}
+          aria-pressed={open}
+          className="absolute top-2 right-3 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur hover:bg-black/85"
+        >
+          <LockIcon open={open} />
+          {open ? 'Redact' : 'Unredact'} <span className="text-white/55">({count})</span>
+        </button>
+      )}
+    </div>
+  )
+}
+
+const LockIcon = ({ open }: { open: boolean }) => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
+    <rect x="5" y="11" width="14" height="10" rx="2" />
+    <path d={open ? 'M8 11V7a4 4 0 017.5-2' : 'M8 11V7a4 4 0 018 0v4'} />
+  </svg>
+)
+
 function ModalView({ modal, setModal }: { modal: Modal; setModal: (m: Modal | null) => void }) {
   const closeRef = useRef<HTMLButtonElement>(null)
   const close = () => {
@@ -1108,11 +1237,11 @@ function ModalView({ modal, setModal }: { modal: Modal; setModal: (m: Modal | nu
                 </div>
               )}
               {(modal.kind === 'card' ? modal.src : modal.kind === 'cast' ? modal.cast.card : undefined) ? (
-                <iframe
-                  src={modal.kind === 'card' ? modal.src : modal.kind === 'cast' ? modal.cast.card : undefined}
+                <CardFrame
+                  src={(modal.kind === 'card' ? modal.src : modal.kind === 'cast' ? modal.cast.card : undefined)!}
                   title={`${title} card`}
-                  sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-                  className="h-[68vh] w-full bg-[#0d0f14] md:h-[72vh]"
+                  listenForToggle
+                  frameClassName="h-[68vh] w-full bg-[#0d0f14] md:h-[72vh]"
                 />
               ) : (
                 <p className="p-5 text-sm text-white/70">No card for this character yet.</p>

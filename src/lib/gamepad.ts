@@ -78,11 +78,21 @@ export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: numb
 
     const firstPad = () => Array.from(navigator.getGamepads()).find((p): p is Gamepad => !!p && p.connected) ?? null
 
+    // Buttons already held when this page starts listening belong to the previous
+    // page (e.g. the B that navigated here). Ignore them until they're released.
+    let primed = false
+
     const loop = (now: number) => {
       const pad = firstPad()
       if (!pad) {
         raf = 0
         held.clear()
+        return
+      }
+      if (!primed) {
+        primed = true
+        for (const b of buttons) if (pressed(pad, b)) held.set(b, Infinity)
+        raf = requestAnimationFrame(loop)
         return
       }
       for (const b of buttons) {

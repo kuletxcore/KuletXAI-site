@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiOstRouteImport } from './routes/api.ost'
 import { Route as StoriesSlugRouteImport } from './routes/stories.$slug'
+import { Route as StoriesSlugTrophiesRouteImport } from './routes/stories_.$slug.trophies'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,49 @@ const StoriesSlugRoute = StoriesSlugRouteImport.update({
   path: '/stories/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StoriesSlugTrophiesRoute = StoriesSlugTrophiesRouteImport.update({
+  id: '/stories_/$slug/trophies',
+  path: '/stories/$slug/trophies',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/ost': typeof ApiOstRoute
   '/stories/$slug': typeof StoriesSlugRoute
+  '/stories/$slug/trophies': typeof StoriesSlugTrophiesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/ost': typeof ApiOstRoute
   '/stories/$slug': typeof StoriesSlugRoute
+  '/stories/$slug/trophies': typeof StoriesSlugTrophiesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/ost': typeof ApiOstRoute
   '/stories/$slug': typeof StoriesSlugRoute
+  '/stories_/$slug/trophies': typeof StoriesSlugTrophiesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/ost' | '/stories/$slug'
+  fullPaths: '/' | '/api/ost' | '/stories/$slug' | '/stories/$slug/trophies'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/ost' | '/stories/$slug'
-  id: '__root__' | '/' | '/api/ost' | '/stories/$slug'
+  to: '/' | '/api/ost' | '/stories/$slug' | '/stories/$slug/trophies'
+  id:
+    | '__root__'
+    | '/'
+    | '/api/ost'
+    | '/stories/$slug'
+    | '/stories_/$slug/trophies'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiOstRoute: typeof ApiOstRoute
   StoriesSlugRoute: typeof StoriesSlugRoute
+  StoriesSlugTrophiesRoute: typeof StoriesSlugTrophiesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +97,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoriesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/stories_/$slug/trophies': {
+      id: '/stories_/$slug/trophies'
+      path: '/stories/$slug/trophies'
+      fullPath: '/stories/$slug/trophies'
+      preLoaderRoute: typeof StoriesSlugTrophiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +111,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiOstRoute: ApiOstRoute,
   StoriesSlugRoute: StoriesSlugRoute,
+  StoriesSlugTrophiesRoute: StoriesSlugTrophiesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
