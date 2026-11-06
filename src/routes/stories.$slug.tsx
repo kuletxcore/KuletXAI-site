@@ -291,28 +291,19 @@ function StoryHub() {
     navigate({ to: '/' })
   }
 
-  // Phones: a horizontal swipe on the tile row moves the selection (like the D-pad)
-  const swipeFrom = useRef<{ x: number; y: number; t: number } | null>(null)
-  const swipe = {
-    start: (e: React.TouchEvent) => {
-      const t = e.touches[0]
-      swipeFrom.current = e.touches.length === 1 ? { x: t.clientX, y: t.clientY, t: performance.now() } : null
-    },
-    end: (e: React.TouchEvent) => {
-      const from = swipeFrom.current
-      swipeFrom.current = null
-      const t = e.changedTouches[0]
-      if (!from || !t) return
-      const dx = t.clientX - from.x
-      const dy = t.clientY - from.y
-      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.3 && performance.now() - from.t < 700) {
-        step(dx < 0 ? 1 : -1)
-      }
-    },
-    cancel: () => {
-      swipeFrom.current = null
-    },
-  }
+  // Phones: the tile row scrolls under your finger and the selection follows the
+  // tile in the first slot, then glides into place when you let go
+  const ribbonRef = useRef<HTMLDivElement>(null)
+  const reelIdx = tab === 'stories' ? storyIdx : tab === 'series' ? seriesIdx : ytIdx
+  const reelCount = tab === 'stories' ? STORIES.length : tab === 'series' ? TRIMZ.length : videos.length
+  const reel = useTouchReel(ribbonRef, reelIdx, reelCount, tab, (i, first) => {
+    sfx('nav')
+    if (tab === 'stories') {
+      // One history entry per swipe, not one per tile it passes
+      navigate({ to: '/stories/$slug', params: { slug: STORIES[i].slug }, resetScroll: false, replace: !first })
+    } else if (tab === 'series') setSeriesIdx(i)
+    else setYtIdx(i)
+  })
 
   // Controller
   const pad = useGamepad((b: PadButton) => {
@@ -362,8 +353,20 @@ function StoryHub() {
     tab === 'stories' ? (STORY_MUSIC[story.slug] ?? null) : tab === 'series' ? (SERIES_MUSIC[activeSeries.slug] ?? null) : null
   useEffect(() => setMusic(nowPlaying?.src ?? null), [nowPlaying?.src])
   useEffect(() => () => setMusic(null), [])
-  // The OST player belongs to one story: leaving it (or the tab) hands back to the background music
-  useEffect(() => () => stopOst(), [story.slug, tab])
+  // The OST player belongs to one story: leaving it (or the tab) hands back to the
+  // background music. Opening that story's trophy list keeps the soundtrack going.
+  useEffect(() => {
+    const key = `${story.slug}|${tab}`
+    const trophies = `/stories/${story.slug}/trophies`
+    ostScope = key
+    return () => {
+      ostScope = null
+      window.setTimeout(() => {
+        if (ostScope === key) return // remounted on the same story and tab
+        if (window.location.pathname.replace(/\/$/, '') !== trophies) stopOst()
+      }, 0)
+    }
+  }, [story.slug, tab])
   const ostState = useOstState()
   const album = OSTS[story.slug]
   const ostTrack = album?.tracks.find((t) => t.src === ostState.src)
@@ -444,7 +447,7 @@ function StoryHub() {
         )}
 
         {/* Tile ribbon */}
-        <div className="ps5-ribbon mt-3 md:mt-5" onTouchStart={swipe.start} onTouchEnd={swipe.end} onTouchCancel={swipe.cancel}>
+        <div ref={ribbonRef} className="ps5-ribbon mt-3 md:mt-5" {...reel}>
           <div className="flex w-max items-start gap-3 md:gap-4" role="list">
             {tab === 'stories'
               ? STORIES.map((s) => (
@@ -496,6 +499,7 @@ function StoryHub() {
                     </button>
                   </Tile>
                 ))}
+            <div className="ps5-reel-end" aria-hidden />
           </div>
         </div>
 
@@ -652,6 +656,166 @@ function Backdrop({ src, blurSrc, video, active }: { src: string; blurSrc?: stri
   )
 }
 
+const COARSE = '(pointer: coarse)'
+// Which story/tab owns the OST player right now (null while the hub isn't mounted)
+let ostScope: string | null = null
+
+/**
+ * Touch screens: a "fixed-focus reel". The row scrolls natively; whichever tile
+ * sits in the first slot becomes the selection (with a nav tick), and when the
+ * row comes to rest it glides so that tile lines up exactly. Selection changes
+ * from taps, the D-pad or the address glide the row the same way.
+ * `pick(i, first)` gets first=true for the first change in a gesture.
+ */
+function useTouchReel(
+  ref: React.RefObject<HTMLDivElement | null>,
+  index: number,
+  count: number,
+  scope: string,
+  pick: (i: number, first: boolean) => void,
+) {
+  const st = useRef({ touching: false, gliding: false, raf: 0, timer: 0, glideEnd: 0, target: 0, picked: index, fromScroll: -1, picksThisGesture: 0 })
+  const pickRef = useRef(pick)
+  pickRef.current = pick
+  const countRef = useRef(count)
+  countRef.current = count
+
+  const coarse = () => typeof window !== 'undefined' && window.matchMedia(COARSE).matches
+  const list = () => ref.current?.firstElementChild as HTMLElement | null | undefined
+  // Width of one small tile plus the gap: tile i is in the first slot at scrollLeft = i * step
+  const stepPx = () => {
+    const l = list()
+    if (!l) return 0
+    const slots = Array.from(l.querySelectorAll<HTMLElement>(':scope > .ps5-tile-slot'))
+    if (!slots.length) return 0
+    const small = Math.min(...slots.map((el) => el.offsetWidth))
+    return small + (parseFloat(getComputedStyle(l).columnGap) || 0)
+  }
+  // Room after the last tile, so every tile can reach the first slot
+  const sizeSpacer = () => {
+    const row = ref.current
+    const end = list()?.querySelector<HTMLElement>(':scope > .ps5-reel-end')
+    if (!row || !end) return
+    if (!coarse()) {
+      end.style.width = '0px'
+      return
+    }
+    const cs = getComputedStyle(row)
+    const inner = row.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+    const l = list()
+    const gap = l ? parseFloat(getComputedStyle(l).columnGap) || 0 : 0
+    const small = stepPx() - gap
+    // the selected tile is drawn 1.45× (see .ps5-tile.is-active)
+    end.style.width = `${Math.max(0, Math.ceil(inner - small * 1.45 - gap) + 1)}px`
+  }
+
+  const stopGlide = () => {
+    const s = st.current
+    if (s.raf) cancelAnimationFrame(s.raf)
+    s.raf = 0
+    s.gliding = false
+    clearTimeout(s.glideEnd)
+  }
+  const glideTo = (i: number, instant = false) => {
+    const row = ref.current
+    const s = st.current
+    if (!row) return
+    sizeSpacer()
+    s.target = i * stepPx()
+    s.gliding = true
+    clearTimeout(s.glideEnd)
+    const done = () => {
+      s.raf = 0
+      // the browser fires one more scroll event for the last write
+      s.glideEnd = window.setTimeout(() => (s.gliding = false), 120)
+    }
+    if (instant || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      if (s.raf) cancelAnimationFrame(s.raf)
+      row.scrollLeft = s.target
+      done()
+      return
+    }
+    if (s.raf) return // already gliding: just move the destination
+    const tick = () => {
+      const target = Math.min(s.target, row.scrollWidth - row.clientWidth)
+      const cur = row.scrollLeft
+      const d = target - cur
+      if (Math.abs(d) < 0.5) {
+        row.scrollLeft = target
+        return done()
+      }
+      row.scrollLeft = cur + d * 0.28
+      if (row.scrollLeft === cur) return done() // clamped by the browser
+      s.raf = requestAnimationFrame(tick)
+    }
+    s.raf = requestAnimationFrame(tick)
+  }
+  const settleSoon = (ms: number) => {
+    const s = st.current
+    clearTimeout(s.timer)
+    s.timer = window.setTimeout(() => {
+      if (!s.touching) glideTo(s.picked)
+    }, ms)
+  }
+
+  // Selection changed by anything other than this row's own scrolling: glide to it
+  const first = useRef(true)
+  useEffect(() => {
+    const s = st.current
+    s.picked = index
+    if (!coarse()) return
+    if (index === s.fromScroll) {
+      s.fromScroll = -1
+      return
+    }
+    if (s.touching) return
+    glideTo(index, first.current)
+    first.current = false
+  }, [index, scope, count])
+
+  useEffect(() => {
+    const onResize = () => coarse() && glideTo(st.current.picked, true)
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('resize', onResize)
+      stopGlide()
+      clearTimeout(st.current.timer)
+    }
+  }, [])
+
+  return {
+    onScroll: () => {
+      const row = ref.current
+      const s = st.current
+      if (!row || !coarse() || s.gliding) return
+      const step = stepPx()
+      if (step <= 0) return
+      const i = Math.min(countRef.current - 1, Math.max(0, Math.round(row.scrollLeft / step)))
+      if (i !== s.picked) {
+        s.picked = i
+        s.fromScroll = i
+        pickRef.current(i, s.picksThisGesture++ === 0)
+      }
+      if (!s.touching) settleSoon(140)
+    },
+    onTouchStart: () => {
+      const s = st.current
+      s.touching = true
+      s.picksThisGesture = 0
+      stopGlide()
+      clearTimeout(s.timer)
+    },
+    onTouchEnd: () => {
+      st.current.touching = false
+      settleSoon(150)
+    },
+    onTouchCancel: () => {
+      st.current.touching = false
+      settleSoon(150)
+    },
+  }
+}
+
 function Tile({ active, label, children }: { active: boolean; label: string; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
   const labelRef = useRef<HTMLSpanElement>(null)
@@ -659,7 +823,8 @@ function Tile({ active, label, children }: { active: boolean; label: string; chi
   const [alignEnd, setAlignEnd] = useState(false)
   useEffect(() => {
     if (!active) return
-    ref.current?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
+    // Touch screens: the row's position is driven by useTouchReel instead
+    if (!window.matchMedia(COARSE).matches) ref.current?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
     const measure = () => {
       const label = labelRef.current
       const row = ref.current?.closest('.ps5-ribbon')

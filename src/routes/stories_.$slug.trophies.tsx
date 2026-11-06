@@ -7,7 +7,7 @@ import { TROPHIES } from '#/data/trophies'
 import type { Trophy, TrophyGrade } from '#/data/trophies'
 import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
 import type { PadButton } from '#/lib/gamepad'
-import { setMusic } from '#/lib/music'
+import { setMusic, stopOst } from '#/lib/music'
 import { isMuted, play as sfx, setMuted } from '#/lib/sfx'
 
 export const Route = createFileRoute('/stories_/$slug/trophies')({
@@ -68,10 +68,19 @@ function TrophyPage() {
     return c
   }, [set])
 
-  // Keep the story's music playing on its trophy list
+  // Keep the story's music playing on its trophy list. A soundtrack track started
+  // in the hub keeps playing here (the background music stays quiet under it);
+  // it stops only if you leave for somewhere other than this story's hub.
   useEffect(() => {
     setMusic(STORY_MUSIC[story.slug]?.src ?? null)
-    return () => setMusic(null)
+    const hub = `/stories/${story.slug}`
+    return () => {
+      setMusic(null)
+      window.setTimeout(() => {
+        const at = window.location.pathname.replace(/\/$/, '')
+        if (at !== hub && at !== `${hub}/trophies`) stopOst()
+      }, 0)
+    }
   }, [story.slug])
 
   const toggleReveal = (t: Trophy) => {
