@@ -144,6 +144,17 @@ def main():
         entry = {'cast': [], 'gallery': []}
 
         vc = (d.get('videoCover') or {}).get('url')
+        # Prefer the raw upload: the generated cover is an upscaled, low-bitrate copy
+        if vc:
+            m_orig = re.search(r'/videos/covers/([0-9a-f-]{36})_cover\.mp4', vc)
+            if m_orig:
+                vc_orig = vc.replace(m_orig.group(0), f'/videos/{m_orig.group(1)}_original.mp4')
+                try:
+                    fetch_head = urllib.request.urlopen(urllib.request.Request(vc_orig, method='HEAD'), timeout=20)
+                    if fetch_head.status == 200:
+                        vc = vc_orig
+                except Exception:
+                    pass
         if vc and save_file(vc, os.path.join(PUB, slug, 'cover.mp4'), MAX_VIDEO):
             entry['videoCover'] = f'/isk/{slug}/cover.mp4'
 
@@ -184,8 +195,8 @@ def main():
                         'type': 'image', 'src': f'/isk/{slug}/gallery/{mid}.webp',
                         'thumb': f'/isk/{slug}/gallery/thumbs/{mid}.webp', 'w': w, 'h': h, 'caption': cap,
                     })
-                elif m['type'] == 'video' and m.get('url'):
-                    if save_file(m['url'], os.path.join(PUB, slug, 'gallery', f'{mid}.mp4'), MAX_VIDEO):
+                elif m['type'] == 'video' and (m.get('originalUrl') or m.get('url')):
+                    if save_file(m.get('originalUrl') or m['url'], os.path.join(PUB, slug, 'gallery', f'{mid}.mp4'), MAX_VIDEO):
                         entry['gallery'].append({
                             'type': 'video', 'src': f'/isk/{slug}/gallery/{mid}.mp4',
                             'w': int(m.get('width') or 0), 'h': int(m.get('height') or 0), 'caption': cap,
