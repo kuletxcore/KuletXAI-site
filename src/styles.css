@@ -245,8 +245,9 @@ a:focus-visible {
 .ps5-tile {
   position: relative;
   flex-shrink: 0;
-  width: clamp(72px, 5.8vw, 88px);
-  height: clamp(72px, 5.8vw, 88px);
+  --ps-tile: clamp(62px, 5vw, 80px);
+  width: var(--ps-tile);
+  height: var(--ps-tile);
   border-radius: 14px;
   overflow: hidden;
   border: 2px solid transparent;
@@ -254,7 +255,7 @@ a:focus-visible {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
   opacity: 0.72;
   scroll-snap-align: start;
-  transition: transform 0.22s var(--ps-spring), opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.22s ease;
+  transition: width 0.28s var(--ps-ease), height 0.28s var(--ps-ease), transform 0.22s var(--ps-spring), opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.22s ease;
 }
 .ps5-tile img {
   width: 100%;
@@ -267,9 +268,16 @@ a:focus-visible {
   transform: translateY(-2px) scale(1.02);
   border-color: rgba(255, 255, 255, 0.25);
 }
+.ps5-tile-slot {
+  position: relative;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+}
 .ps5-tile.is-active {
   opacity: 1;
-  transform: translateY(-4px) scale(1.08);
+  width: calc(var(--ps-tile) * 1.45);
+  height: calc(var(--ps-tile) * 1.45);
+  transform: none;
   border-color: #fff;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5), 0 12px 26px rgba(0, 0, 0, 0.38);
   z-index: 2;
@@ -485,4 +493,27 @@ html.kx-boot body::before {
   letter-spacing: 0.05em;
   color: rgba(255, 255, 255, 0.45);
   pointer-events: none;
+}
+
+/* Name under the highlighted tile, like the console home screen */
+.ps5-tile-label {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 2px;
+  max-width: min(60vw, 420px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+  animation: psFadeUp 0.3s var(--ps-ease) both;
+  pointer-events: none;
+}
+
+.ps5-range {
+  accent-color: #fff;
+  height: 20px;
+  cursor: pointer;
 }

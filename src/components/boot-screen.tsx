@@ -1,6 +1,7 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { play as sfx } from '#/lib/sfx'
+import { holdMusic } from '#/lib/music'
 
 /**
  * Console-style start screen: black curtain, aurora + particles fade in with the
@@ -82,8 +83,19 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
   }, [phase])
 
   // Startup swell as the scene fades in (plays if the browser allows audio yet)
+  const swellAt = useRef(0)
   useEffect(() => {
-    if (phase === 'playing') sfx('boot')
+    if (phase === 'playing') {
+      swellAt.current = performance.now()
+      sfx('boot')
+    }
+  }, [phase])
+
+  // Background music waits for the start screen, then for the swell to ring out
+  const SWELL_MS = 4600
+  useEffect(() => {
+    if (phase === 'curtain') holdMusic(true)
+    if (phase === 'off') holdMusic(false, swellAt.current ? Math.max(0, SWELL_MS - (performance.now() - swellAt.current)) : 0)
   }, [phase])
 
   const skip = useCallback(() => {

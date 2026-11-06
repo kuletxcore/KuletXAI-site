@@ -183,6 +183,19 @@ export function isMuted() {
   return muted
 }
 
+/** Shared AudioContext (created/resumed lazily; null on the server or before support). */
+export function audioContext() {
+  return audio()
+}
+
+/** Run cb whenever mute changes. Returns an unsubscribe function. */
+export function onMutedChange(cb: () => void) {
+  listeners.add(cb)
+  return () => {
+    listeners.delete(cb)
+  }
+}
+
 export function setMuted(next: boolean) {
   muted = next
   try {

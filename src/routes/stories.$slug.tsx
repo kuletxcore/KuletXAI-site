@@ -8,6 +8,9 @@ import { BOOT_HEAD_SCRIPT, BootScreen } from '#/components/boot-screen'
 import { Logo } from '#/components/site'
 import { isMuted, play as sfx, setMuted, useMuted } from '#/lib/sfx'
 import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
+import { setMusic, setMusicVolume, useMusicVolume } from '#/lib/music'
+import { SERIES_MUSIC, STORY_MUSIC } from '#/data/music'
+import type { Track } from '#/data/music'
 import type { PadButton, PadKind } from '#/lib/gamepad'
 import { YT_CHANNEL_URL, loadYoutubeVideos, ytEmbedUrl, ytThumb, ytWatchUrl } from '#/data/youtube'
 import type { YtVideo } from '#/data/youtube'
@@ -215,6 +218,21 @@ function StoryHub() {
     }
   }, stickScroll)
 
+  // Background music for whatever is highlighted; the YouTube tab stays quiet for the videos
+  const nowPlaying: Track | null =
+    tab === 'stories' ? (STORY_MUSIC[story.slug] ?? null) : tab === 'series' ? (SERIES_MUSIC[activeSeries.slug] ?? null) : null
+  useEffect(() => setMusic(nowPlaying?.src ?? null), [nowPlaying?.src])
+  useEffect(() => () => setMusic(null), [])
+
+  // Console-style notice when a controller connects
+  const [padToast, setPadToast] = useState<string | null>(null)
+  useEffect(() => {
+    if (!pad.connected) return
+    setPadToast(pad.kind === 'playstation' ? 'PlayStation controller connected' : pad.kind === 'xbox' ? 'Xbox controller connected' : 'Controller connected')
+    const id = window.setTimeout(() => setPadToast(null), 2600)
+    return () => clearTimeout(id)
+  }, [pad.connected, pad.kind])
+
   // Controller-style keyboard shortcuts
   const keyState = useRef({ step, sections, tab, modal, cycleTab, pickSection, stepSection, primary })
   keyState.current = { step, sections, tab, modal, cycleTab, pickSection, stepSection, primary }
@@ -271,11 +289,16 @@ function StoryHub() {
       </div>
 
       <div className="ps5-app">
-        <TopBar tab={tab} setTab={switchTab} pad={pad} />
+        <TopBar tab={tab} setTab={switchTab} pad={pad} nowPlaying={nowPlaying} />
+        {padToast && (
+          <div role="status" className="ps5-glass fixed top-5 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 px-4 py-2.5 text-sm font-semibold">
+            <PadIcon /> {padToast}
+          </div>
+        )}
 
         {/* Tile ribbon */}
         <div className="ps5-ribbon mt-3 md:mt-5">
-          <div className="flex w-max items-center gap-3 md:gap-4" role="list">
+          <div className="flex w-max items-start gap-3 md:gap-4" role="list">
             {tab === 'stories'
               ? STORIES.map((s) => (
                   <Tile key={s.slug} active={s.slug === story.slug} label={s.title}>
@@ -398,13 +421,20 @@ function Tile({ active, label, children }: { active: boolean; label: string; chi
     if (active) ref.current?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
   }, [active])
   return (
-    <div ref={ref} role="listitem" title={label} className={`ps5-tile ${active ? 'is-active' : ''}`}>
-      {children}
+    <div ref={ref} role="listitem" className="ps5-tile-slot">
+      <div title={label} className={`ps5-tile ${active ? 'is-active' : ''}`}>
+        {children}
+      </div>
+      {active && (
+        <span key={label} className="ps5-tile-label" aria-hidden>
+          {label}
+        </span>
+      )}
     </div>
   )
 }
 
-function TopBar({ tab, setTab, pad }: { tab: HubTab; setTab: (t: HubTab) => void; pad: { connected: boolean; kind: PadKind } }) {
+function TopBar({ tab, setTab, pad, nowPlaying }: { tab: HubTab; setTab: (t: HubTab) => void; pad: { connected: boolean; kind: PadKind }; nowPlaying: Track | null }) {
   const labels = PAD_LABEL[pad.kind]
   return (
     <header className="flex flex-col-reverse gap-4 md:flex-row md:items-center md:justify-between">
@@ -424,7 +454,7 @@ function TopBar({ tab, setTab, pad }: { tab: HubTab; setTab: (t: HubTab) => void
           <ChevronLeft /> Back
         </Link>
         <div className="flex items-center gap-4 md:gap-5">
-          <SoundToggle />
+          <SoundMenu nowPlaying={nowPlaying} />
           <Link to="/" aria-label="KuletX AI home" className="shrink-0 transition-transform hover:scale-[1.03]">
             <Logo className="h-8 md:h-9" />
           </Link>
@@ -491,6 +521,14 @@ function StoryDetails({
             <p className="pt-1 text-xs font-semibold text-white/55">
               ♥ {story.likes} likes · {story.chats} chats on IsekaiZero
             </p>
+            {STORY_MUSIC[story.slug]?.ost && (
+              <p className="text-xs text-white/55">
+                ♪ Soundtrack:{' '}
+                <a href={STORY_MUSIC[story.slug].ost!.url} target="_blank" rel="noreferrer" className="font-semibold text-white/85 hover:text-white hover:underline">
+                  {STORY_MUSIC[story.slug].ost!.title}
+                </a>
+              </p>
+            )}
           </div>
         )}
         {section === 'world' && (
@@ -607,6 +645,14 @@ function SeriesDetails({ idx }: { idx: number }) {
             . Play it on IsekaiZero.
           </p>
         </div>
+      )}
+      {SERIES_MUSIC[t.slug] && (
+        <p className="ps5-shadow text-xs text-white/60">
+          ♪ Now playing:{' '}
+          <a href={SERIES_MUSIC[t.slug].trackUrl} target="_blank" rel="noreferrer" className="font-semibold text-white/85 hover:text-white hover:underline">
+            {SERIES_MUSIC[t.slug].title}
+          </a>
+        </p>
       )}
     </>
   )
@@ -889,32 +935,110 @@ function BottomBar({
   )
 }
 
-function SoundToggle() {
+function SoundMenu({ nowPlaying }: { nowPlaying: Track | null }) {
   const muted = useMuted()
+  const volume = useMusicVolume()
+  const [open, setOpen] = useState(false)
+  const box = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: PointerEvent) => {
+      if (box.current && !box.current.contains(e.target as Node)) setOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    window.addEventListener('pointerdown', onDown)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('pointerdown', onDown)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
   return (
-    <button
-      type="button"
-      onClick={() => {
-        setMuted(!muted)
-        if (muted) window.setTimeout(() => sfx('nav'), 30)
-      }}
-      className="grid size-9 place-items-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
-      aria-label={muted ? 'Turn sound on' : 'Mute sound'}
-      aria-pressed={muted}
-      title={muted ? 'Sound: off' : 'Sound: on'}
-    >
-      {muted ? (
-        <svg {...iconProps}>
-          <path d="M11 5L6 9H2v6h4l5 4z" />
-          <path d="M23 9l-6 6M17 9l6 6" />
-        </svg>
-      ) : (
-        <svg {...iconProps}>
-          <path d="M11 5L6 9H2v6h4l5 4z" />
-          <path d="M15.5 8.5a5 5 0 010 7M19 5a10 10 0 010 14" />
-        </svg>
+    <div ref={box} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="grid size-9 place-items-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+        aria-label="Sound settings"
+        aria-expanded={open}
+        title={muted ? 'Sound: off' : 'Sound: on'}
+      >
+        {muted ? (
+          <svg {...iconProps}>
+            <path d="M11 5L6 9H2v6h4l5 4z" />
+            <path d="M23 9l-6 6M17 9l6 6" />
+          </svg>
+        ) : (
+          <svg {...iconProps}>
+            <path d="M11 5L6 9H2v6h4l5 4z" />
+            <path d="M15.5 8.5a5 5 0 010 7M19 5a10 10 0 010 14" />
+          </svg>
+        )}
+      </button>
+      {open && (
+        <div className="ps5-glass fixed inset-x-4 top-16 z-50 !bg-[#0b0d12]/90 p-4 text-sm md:absolute md:inset-x-auto md:top-11 md:right-0 md:w-72" role="dialog" aria-label="Sound settings">
+          <label className="flex items-center justify-between gap-3">
+            <span className="font-semibold">Sound</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={!muted}
+              onClick={() => {
+                setMuted(!muted)
+                if (muted) window.setTimeout(() => sfx('nav'), 30)
+              }}
+              className={`relative h-6 w-11 rounded-full transition-colors ${muted ? 'bg-white/20' : 'bg-white'}`}
+            >
+              <span className={`absolute top-0.5 size-5 rounded-full transition-all ${muted ? 'left-0.5 bg-white/70' : 'left-[22px] bg-black'}`} />
+            </button>
+          </label>
+          <div className={`mt-4 ${muted ? 'opacity-40' : ''}`}>
+            <div className="flex items-center justify-between">
+              <label htmlFor="kx-music-volume" className="font-semibold">
+                Music volume
+              </label>
+              <span className="text-xs tabular-nums text-white/60">{Math.round(volume * 100)}%</span>
+            </div>
+            <input
+              id="kx-music-volume"
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={Math.round(volume * 100)}
+              onChange={(e) => setMusicVolume(Number(e.target.value) / 100)}
+              disabled={muted}
+              className="ps5-range mt-2 w-full"
+            />
+          </div>
+          <div className="mt-4 border-t border-white/10 pt-3 text-xs text-white/60">
+            {nowPlaying ? (
+              <>
+                <p>
+                  Now playing:{' '}
+                  <a href={nowPlaying.trackUrl} target="_blank" rel="noreferrer" className="font-semibold text-white hover:underline">
+                    {nowPlaying.title}
+                  </a>
+                </p>
+                {nowPlaying.ost && (
+                  <p className="mt-1">
+                    From{' '}
+                    <a href={nowPlaying.ost.url} target="_blank" rel="noreferrer" className="font-semibold text-white hover:underline">
+                      {nowPlaying.ost.title}
+                    </a>
+                  </p>
+                )}
+              </>
+            ) : (
+              <p>No background music here.</p>
+            )}
+          </div>
+        </div>
       )}
-    </button>
+    </div>
   )
 }
 
@@ -977,6 +1101,12 @@ const YtIcon = () => (
   <svg {...iconProps}>
     <rect x="2" y="5" width="20" height="14" rx="4" />
     <path d="M10 9l5 3-5 3z" fill="currentColor" />
+  </svg>
+)
+const PadIcon = () => (
+  <svg {...iconProps}>
+    <path d="M6 9h4M8 7v4M15 10h.01M18 8h.01" />
+    <path d="M17.3 5H6.7a4 4 0 00-3.95 3.4l-.9 6.1A3 3 0 004.8 18c.9 0 1.7-.5 2.2-1.2L8 15h8l1 1.8c.5.7 1.3 1.2 2.2 1.2a3 3 0 002.95-3.5l-.9-6.1A4 4 0 0017.3 5z" />
   </svg>
 )
 const HomeIcon = () => (
