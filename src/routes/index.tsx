@@ -2,8 +2,10 @@ import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({ component: Home })
 
+const ISEKAI_REF = '?referralCode=95OBGFQX'
+
 const LINKS = {
-  isekai: 'https://www.isekaizero.ai',
+  isekai: `https://www.isekaizero.ai/${ISEKAI_REF}`,
   trimz: 'https://trimz.tv/u/kuletxcore',
   youtube: 'https://youtube.com/@kuletxai',
 }
@@ -199,7 +201,7 @@ function Stories() {
           {STORIES.map((s, i) => (
             <li key={s.id}>
               <a
-                href={`${LINKS.isekai}/storylines/${s.id}`}
+                href={`https://www.isekaizero.ai/storylines/${s.id}${ISEKAI_REF}`}
                 target="_blank"
                 rel="noreferrer"
                 className="group flex h-full flex-col border border-line bg-panel hover:border-neon"
