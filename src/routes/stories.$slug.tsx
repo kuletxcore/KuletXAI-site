@@ -1,20 +1,25 @@
 import { Link, createFileRoute, notFound, useNavigate } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { LINKS, STORIES, TRIMZ, isekaiStoryUrl, trimzSeriesUrl } from '#/data/content'
+import { STORIES, TRIMZ, isekaiStoryUrl, trimzSeriesUrl } from '#/data/content'
 import type { Story } from '#/data/content'
 import { ISK } from '#/data/isk'
 import { BOOT_HEAD_SCRIPT, BootScreen } from '#/components/boot-screen'
 import { Logo } from '#/components/site'
-import { play as sfx, setMuted, useMuted } from '#/lib/sfx'
+import { isMuted, play as sfx, setMuted, useMuted } from '#/lib/sfx'
+import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
+import type { PadButton, PadKind } from '#/lib/gamepad'
+import { YT_CHANNEL_URL, loadYoutubeVideos, ytEmbedUrl, ytThumb, ytWatchUrl } from '#/data/youtube'
+import type { YtVideo } from '#/data/youtube'
 import { MotionConfig } from 'motion/react'
 import type { IskCast, IskMedia } from '#/data/isk'
 
 export const Route = createFileRoute('/stories/$slug')({
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
     const story = STORIES.find((s) => s.slug === params.slug)
     if (!story) throw notFound()
-    return story
+    const videos = await loadYoutubeVideos()
+    return { story, videos }
   },
   head: ({ loaderData }) => ({
     scripts: [{ children: BOOT_HEAD_SCRIPT }],
@@ -29,11 +34,11 @@ export const Route = createFileRoute('/stories/$slug')({
     ],
     meta: loaderData
       ? [
-          { title: `${loaderData.title} | KuletX AI` },
-          { name: 'description', content: loaderData.logline },
-          { property: 'og:title', content: loaderData.title },
-          { property: 'og:description', content: loaderData.logline },
-          { property: 'og:image', content: loaderData.cover },
+          { title: `${loaderData.story.title} | KuletX AI` },
+          { name: 'description', content: loaderData.story.logline },
+          { property: 'og:title', content: loaderData.story.title },
+          { property: 'og:description', content: loaderData.story.logline },
+          { property: 'og:image', content: loaderData.story.cover },
           { name: 'theme-color', content: '#030508' },
         ]
       : [],
@@ -52,7 +57,9 @@ export const Route = createFileRoute('/stories/$slug')({
   ),
 })
 
-type HubTab = 'stories' | 'series'
+type HubTab = 'stories' | 'series' | 'youtube'
+const TAB_ORDER: HubTab[] = ['stories', 'series', 'youtube']
+const TAB_LABEL: Record<HubTab, string> = { stories: 'Storylines', series: 'Trimz Series', youtube: 'YouTube' }
 type Section = 'overview' | 'intro' | 'cast' | 'gallery' | 'world' | 'watch'
 
 const SECTION_LABEL: Record<Section, string> = {
@@ -65,11 +72,13 @@ const SECTION_LABEL: Record<Section, string> = {
 }
 
 function StoryHub() {
-  const story = Route.useLoaderData()
+  const { story, videos } = Route.useLoaderData()
   const navigate = useNavigate()
   const [tab, setTab] = useState<HubTab>('stories')
   const [section, setSection] = useState<Section>('overview')
   const [seriesIdx, setSeriesIdx] = useState(0)
+  const [ytIdx, setYtIdx] = useState(0)
+  const activeVideo: YtVideo | undefined = videos[ytIdx]
 
   const storyIdx = STORIES.findIndex((s) => s.slug === story.slug)
   const series = TRIMZ.filter((t) => story.trimz?.includes(t.slug))
@@ -85,7 +94,7 @@ function StoryHub() {
   const [modal, setModal] = useState<Modal | null>(null)
   const play = isekaiStoryUrl(story.id)
   const activeSeries = TRIMZ[seriesIdx]
-  const primaryHref = tab === 'stories' ? play : trimzSeriesUrl(activeSeries.slug)
+  const primaryHref = tab === 'stories' ? play : tab === 'series' ? trimzSeriesUrl(activeSeries.slug) : activeVideo ? ytWatchUrl(activeVideo) : YT_CHANNEL_URL
 
   // New story: start on its overview
   useEffect(() => setSection('overview'), [story.slug])
@@ -95,30 +104,80 @@ function StoryHub() {
     if (tab === 'stories') {
       const next = STORIES[(storyIdx + dir + STORIES.length) % STORIES.length]
       navigate({ to: '/stories/$slug', params: { slug: next.slug }, resetScroll: false })
-    } else {
+    } else if (tab === 'series') {
       setSeriesIdx((i) => (i + dir + TRIMZ.length) % TRIMZ.length)
+    } else if (videos.length) {
+      setYtIdx((i) => (i + dir + videos.length) % videos.length)
     }
   }
 
-  const switchTab = (next?: HubTab) => {
-    const target = next ?? (tab === 'stories' ? 'series' : 'stories')
-    if (target === tab) return
+  const switchTab = (next: HubTab) => {
+    if (next === tab) return
     sfx('tab')
-    setTab(target)
+    setTab(next)
   }
+  const cycleTab = (dir: 1 | -1) => switchTab(TAB_ORDER[(TAB_ORDER.indexOf(tab) + dir + TAB_ORDER.length) % TAB_ORDER.length])
   const pickSection = (s: Section) => {
     if (s === section) return
     sfx('nav')
     setSection(s)
   }
+  const stepSection = (dir: 1 | -1) => {
+    if (tab !== 'stories') return
+    const i = sections.indexOf(section)
+    const next = sections[i + dir]
+    if (next) pickSection(next)
+  }
   const openModal = (m: Modal) => {
     sfx('enter')
     setModal(m)
   }
+  const openExternal = (url: string) => {
+    sfx('enter')
+    const w = window.open(url, '_blank')
+    if (w) w.opener = null
+    else window.location.assign(url) // popup blocked (e.g. controller input)
+  }
+  // A / Enter / the big white button
+  const primary = () => {
+    if (tab === 'youtube') {
+      if (activeVideo) openModal({ kind: 'video', video: activeVideo })
+      else openExternal(YT_CHANNEL_URL)
+    } else openExternal(primaryHref)
+  }
+  const goHome = () => {
+    sfx('back')
+    navigate({ to: '/' })
+  }
+
+  // Controller
+  const pad = useGamepad((b: PadButton) => {
+    const fire = (key: string) => window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
+    if (window.__kxBootActive) return fire('Enter') // any button skips the start screen
+    if (modal) {
+      if (b === 'b') fire('Escape')
+      else if (b === 'left') fire('ArrowLeft')
+      else if (b === 'right') fire('ArrowRight')
+      return
+    }
+    if (b === 'lb') cycleTab(-1)
+    else if (b === 'rb') cycleTab(1)
+    else if (b === 'left') step(-1)
+    else if (b === 'right') step(1)
+    else if (b === 'up') stepSection(-1)
+    else if (b === 'down') stepSection(1)
+    else if (b === 'a' || b === 'start') primary()
+    else if (b === 'b') goHome()
+    else if (b === 'y') {
+      const next = !isMuted()
+      setMuted(next)
+      if (!next) sfx('nav')
+    }
+  })
 
   // Controller-style keyboard shortcuts
-  const keyState = useRef({ step, sections, primaryHref, tab, modal, switchTab, pickSection })
-  keyState.current = { step, sections, primaryHref, tab, modal, switchTab, pickSection }
+  const keyState = useRef({ step, sections, tab, modal, cycleTab, pickSection, stepSection, primary })
+  keyState.current = { step, sections, tab, modal, cycleTab, pickSection, stepSection, primary }
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
@@ -132,11 +191,18 @@ function StoryHub() {
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault()
         k.step(-1)
+      } else if (e.key === 'ArrowUp' && k.tab === 'stories') {
+        e.preventDefault()
+        k.stepSection(-1)
+      } else if (e.key === 'ArrowDown' && k.tab === 'stories') {
+        e.preventDefault()
+        k.stepSection(1)
       } else if (e.key === 'Enter' && (!el || el === document.body)) {
-        sfx('enter')
-        window.open(k.primaryHref, '_blank', 'noopener')
-      } else if (e.key === 'm' || e.key === 'M') {
-        k.switchTab()
+        k.primary()
+      } else if (e.key === 'q' || e.key === 'Q') {
+        k.cycleTab(-1)
+      } else if (e.key === 'e' || e.key === 'E' || e.key === 'm' || e.key === 'M') {
+        k.cycleTab(1)
       } else if (k.tab === 'stories' && /^[1-6]$/.test(e.key)) {
         const s = k.sections[Number(e.key) - 1]
         if (s) k.pickSection(s)
@@ -158,11 +224,14 @@ function StoryHub() {
         {TRIMZ.map((t, i) => (
           <Backdrop key={t.slug} src={t.poster} active={tab === 'series' && i === seriesIdx} />
         ))}
+        {videos.map((v, i) => (
+          <Backdrop key={v.id} src={ytThumb(v.id, 'maxresdefault')} blurSrc={ytThumb(v.id)} active={tab === 'youtube' && i === ytIdx} />
+        ))}
         <div className="ps5-vignette" />
       </div>
 
       <div className="ps5-app">
-        <TopBar tab={tab} setTab={switchTab} />
+        <TopBar tab={tab} setTab={switchTab} pad={pad} />
 
         {/* Tile ribbon */}
         <div className="ps5-ribbon mt-3 md:mt-5">
@@ -183,7 +252,25 @@ function StoryHub() {
                     </Link>
                   </Tile>
                 ))
-              : TRIMZ.map((t, i) => (
+              : tab === 'youtube'
+                ? videos.map((v, i) => (
+                    <Tile key={v.id} active={i === ytIdx} label={v.title}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (i !== ytIdx) sfx('nav')
+                          setYtIdx(i)
+                        }}
+                        aria-pressed={i === ytIdx}
+                        aria-label={v.title}
+                        className="relative block h-full w-full"
+                      >
+                        <img src={ytThumb(v.id)} alt="" loading="lazy" />
+                        {v.short && <span className="absolute right-1 bottom-1 rounded bg-black/75 px-1 text-[9px] font-bold tracking-wide">SHORT</span>}
+                      </button>
+                    </Tile>
+                  ))
+                : TRIMZ.map((t, i) => (
                   <Tile key={t.slug} active={i === seriesIdx} label={t.title}>
                     <button
                       type="button"
@@ -206,15 +293,31 @@ function StoryHub() {
         <section className="mt-auto flex flex-col gap-3 pt-24 pb-4 md:max-w-[680px] md:pt-6">
           {tab === 'stories' ? (
             <StoryDetails story={story} section={section} setSection={pickSection} sections={sections} series={series} openModal={openModal} />
-          ) : (
+          ) : tab === 'series' ? (
             <SeriesDetails idx={seriesIdx} />
+          ) : (
+            <VideoDetails video={activeVideo} />
           )}
 
           <div className="mt-2 flex items-center gap-3">
-            <a href={primaryHref} target="_blank" rel="noreferrer" className="ps5-cta grow sm:grow-0" onClick={() => sfx('enter')}>
+            <a
+              href={primaryHref}
+              target="_blank"
+              rel="noreferrer"
+              className="ps5-cta grow sm:grow-0"
+              onClick={(e) => {
+                e.preventDefault()
+                primary()
+              }}
+            >
               <PlayIcon />
-              {tab === 'stories' ? 'Play on IsekaiZero' : 'Watch on Trimz'}
+              {tab === 'stories' ? 'Play on IsekaiZero' : tab === 'series' ? 'Watch on Trimz' : activeVideo ? (activeVideo.short ? 'Play Short' : 'Play video') : 'Open channel'}
             </a>
+            {tab === 'youtube' && activeVideo && (
+              <a href={ytWatchUrl(activeVideo)} target="_blank" rel="noreferrer" className="ps5-round" aria-label="Open on YouTube" title="Open on YouTube" onClick={() => sfx('enter')}>
+                <YtIcon />
+              </a>
+            )}
             {tab === 'stories' && series[0] && (
               <a href={trimzSeriesUrl(series[0].slug)} target="_blank" rel="noreferrer" className="ps5-round" aria-label="Watch the series on Trimz" title="Watch on Trimz" onClick={() => sfx('enter')}>
                 <TvIcon />
@@ -229,17 +332,17 @@ function StoryHub() {
 
         {modal && <ModalView modal={modal} setModal={setModal} />}
 
-        <BottomBar onPrev={() => step(-1)} onNext={() => step(1)} primaryHref={primaryHref} toggleTab={() => switchTab()} />
+        <BottomBar onPrev={() => step(-1)} onNext={() => step(1)} onPrimary={primary} toggleTab={() => cycleTab(1)} pad={pad} tab={tab} />
       </div>
     </div>
     </MotionConfig>
   )
 }
 
-function Backdrop({ src, video, active }: { src: string; video?: string; active: boolean }) {
+function Backdrop({ src, blurSrc, video, active }: { src: string; blurSrc?: string; video?: string; active: boolean }) {
   return (
     <div className={`ps5-layer ${active ? 'is-active' : ''}`}>
-      <img className="ps5-layer-blur" src={src} alt="" loading={active ? 'eager' : 'lazy'} />
+      <img className="ps5-layer-blur" src={blurSrc ?? src} alt="" loading={active ? 'eager' : 'lazy'} />
       {video && active ? (
         <video className="ps5-layer-art ps5-motion" src={video} poster={src} autoPlay muted loop playsInline />
       ) : (
@@ -261,20 +364,21 @@ function Tile({ active, label, children }: { active: boolean; label: string; chi
   )
 }
 
-function TopBar({ tab, setTab }: { tab: HubTab; setTab: (t: HubTab) => void }) {
+function TopBar({ tab, setTab, pad }: { tab: HubTab; setTab: (t: HubTab) => void; pad: { connected: boolean; kind: PadKind } }) {
+  const labels = PAD_LABEL[pad.kind]
   return (
     <header className="flex flex-col-reverse gap-4 md:flex-row md:items-center md:justify-between">
-      <nav className="flex gap-6 overflow-x-auto md:gap-8" role="tablist" aria-label="Hub">
-        <button type="button" role="tab" aria-selected={tab === 'stories'} className={`ps5-tab ${tab === 'stories' ? 'is-active' : ''}`} onClick={() => setTab('stories')}>
-          Storylines
-        </button>
-        <button type="button" role="tab" aria-selected={tab === 'series'} className={`ps5-tab ${tab === 'series' ? 'is-active' : ''}`} onClick={() => setTab('series')}>
-          Trimz Series
-        </button>
-        <a href={LINKS.youtube} target="_blank" rel="noreferrer" className="ps5-tab">
-          YouTube
-        </a>
-      </nav>
+      <div className="flex items-center gap-3 md:gap-4">
+        <ShoulderHint label={pad.connected ? labels.lb : 'Q'} />
+        <nav className="flex gap-6 overflow-x-auto md:gap-8" role="tablist" aria-label="Hub">
+          {TAB_ORDER.map((t) => (
+            <button key={t} type="button" role="tab" aria-selected={tab === t} className={`ps5-tab ${tab === t ? 'is-active' : ''}`} onClick={() => setTab(t)}>
+              {TAB_LABEL[t]}
+            </button>
+          ))}
+        </nav>
+        <ShoulderHint label={pad.connected ? labels.rb : 'E'} />
+      </div>
       <div className="flex items-center justify-between gap-5 md:justify-end">
         <Link to="/" onClick={() => sfx('back')} className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur hover:bg-white/20 md:hidden">
           <ChevronLeft /> Back
@@ -288,6 +392,14 @@ function TopBar({ tab, setTab }: { tab: HubTab; setTab: (t: HubTab) => void }) {
         </div>
       </div>
     </header>
+  )
+}
+
+function ShoulderHint({ label }: { label: string }) {
+  return (
+    <span className="hidden shrink-0 md:inline-flex" aria-hidden>
+      <span className="ps5-key !h-6 !min-w-8 !rounded-md text-[11px] opacity-70">{label}</span>
+    </span>
   )
 }
 
@@ -460,6 +572,78 @@ function SeriesDetails({ idx }: { idx: number }) {
   )
 }
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const fmtDate = (iso: string) => {
+  const [y, m, d] = iso.split('-').map(Number)
+  return y && m && d ? `${MONTHS[m - 1]} ${d}, ${y}` : iso
+}
+
+function VideoDetails({ video }: { video?: YtVideo }) {
+  const [playing, setPlaying] = useState<string | null>(null)
+  useEffect(() => setPlaying(null), [video?.id])
+  if (!video) {
+    return (
+      <>
+        <Badge pill="YouTube" meta={['@kuletxai']} />
+        <h1 className="ps5-title">No videos yet</h1>
+        <p className="ps5-shadow text-sm text-white/85">New uploads on the channel show up here automatically.</p>
+      </>
+    )
+  }
+  const related = STORIES.find((s) => video.title.toLowerCase().startsWith(s.title.split(':')[0].toLowerCase()))
+  return (
+    <>
+      <Badge pill="YouTube" meta={[video.short ? 'Short' : 'Episode', fmtDate(video.published), `${video.views.toLocaleString('en-US')} views`]} />
+      <h1 key={video.id} className="ps5-title">
+        {video.title}
+      </h1>
+      <p className="ps5-shadow max-w-[560px] text-sm leading-relaxed text-white/85 md:text-[15px]">
+        From @kuletxai: outslopping the competition.
+        {related && (
+          <>
+            {' '}
+            Part of{' '}
+            <Link to="/stories/$slug" params={{ slug: related.slug }} className="font-bold text-white underline-offset-2 hover:underline">
+              {related.title}
+            </Link>
+            .
+          </>
+        )}
+      </p>
+      <div className="ps5-glass flex items-center justify-center p-3">
+        <div className={`relative overflow-hidden rounded-xl bg-black ${video.short ? 'aspect-[9/16] h-[26vh]' : 'aspect-video h-[26vh] max-w-full'}`}>
+          {playing === video.id ? (
+            <iframe
+              src={ytEmbedUrl(video.id)}
+              title={video.title}
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+              allowFullScreen
+              className="absolute inset-0 h-full w-full"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                sfx('enter')
+                setPlaying(video.id)
+              }}
+              className="group absolute inset-0"
+              aria-label={`Play ${video.title} here`}
+            >
+              <img src={ytThumb(video.id)} alt="" className="h-full w-full object-cover" />
+              <span className="absolute inset-0 grid place-items-center bg-black/25 transition-colors group-hover:bg-black/10">
+                <span className="grid size-14 place-items-center rounded-full bg-white text-black shadow-lg transition-transform group-hover:scale-110">
+                  <PlayIcon />
+                </span>
+              </span>
+            </button>
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
+
 function Badge({ pill, meta }: { pill: string; meta: string[] }) {
   return (
     <div className="ps5-shadow flex flex-wrap items-center gap-2 text-[13px] text-white/75">
@@ -478,6 +662,7 @@ type Modal =
   | { kind: 'card'; title: string; src: string; image?: string }
   | { kind: 'cast'; cast: IskCast }
   | { kind: 'gallery'; items: IskMedia[]; index: number }
+  | { kind: 'video'; video: YtVideo }
 
 function tidyCaption(c: string) {
   const t = c.replace(/\.\s*use for[\s\S]*$/i, '').trim()
@@ -511,7 +696,14 @@ function ModalView({ modal, setModal }: { modal: Modal; setModal: (m: Modal | nu
     return () => window.removeEventListener('keydown', onKey)
   })
 
-  const title = modal.kind === 'cast' ? modal.cast.name : modal.kind === 'card' ? modal.title : tidyCaption(modal.items[modal.index].caption) || 'Gallery'
+  const title =
+    modal.kind === 'cast'
+      ? modal.cast.name
+      : modal.kind === 'card'
+        ? modal.title
+        : modal.kind === 'video'
+          ? modal.video.title
+          : tidyCaption(modal.items[modal.index].caption) || 'Gallery'
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 backdrop-blur-md md:p-8" role="dialog" aria-modal="true" aria-label={title} onClick={close}>
@@ -523,7 +715,19 @@ function ModalView({ modal, setModal }: { modal: Modal; setModal: (m: Modal | nu
           </button>
         </div>
 
-        {modal.kind === 'gallery' ? (
+        {modal.kind === 'video' ? (
+          <div className="flex min-h-0 flex-1 items-center justify-center bg-black p-2 md:p-4">
+            <div className={modal.video.short ? 'aspect-[9/16] h-[78vh] max-w-full' : 'aspect-video w-full max-h-[78vh]'}>
+              <iframe
+                src={ytEmbedUrl(modal.video.id)}
+                title={modal.video.title}
+                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                allowFullScreen
+                className="h-full w-full rounded-lg"
+              />
+            </div>
+          </div>
+        ) : modal.kind === 'gallery' ? (
           <div className="relative flex min-h-0 flex-1 flex-col items-center gap-3 p-4">
             {(() => {
               const m = modal.items[modal.index]
@@ -543,9 +747,9 @@ function ModalView({ modal, setModal }: { modal: Modal; setModal: (m: Modal | nu
           </div>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-            {(modal.kind === 'cast' ? modal.cast.portrait : modal.image) && (
+            {(modal.kind === 'cast' ? modal.cast.portrait : modal.kind === 'card' ? modal.image : undefined) && (
               <div className="hidden shrink-0 md:block md:w-[34%]">
-                <img src={modal.kind === 'cast' ? modal.cast.portrait : modal.image} alt="" className="h-full max-h-[78vh] w-full object-cover" />
+                <img src={modal.kind === 'cast' ? modal.cast.portrait : modal.kind === 'card' ? modal.image : undefined} alt="" className="h-full max-h-[78vh] w-full object-cover" />
               </div>
             )}
             <div className="flex min-h-0 flex-1 flex-col">
@@ -555,9 +759,9 @@ function ModalView({ modal, setModal }: { modal: Modal; setModal: (m: Modal | nu
                   <p className="text-sm leading-relaxed text-white/80">{modal.cast.summary}</p>
                 </div>
               )}
-              {(modal.kind === 'card' ? modal.src : modal.cast.card) ? (
+              {(modal.kind === 'card' ? modal.src : modal.kind === 'cast' ? modal.cast.card : undefined) ? (
                 <iframe
-                  src={modal.kind === 'card' ? modal.src : modal.cast.card}
+                  src={modal.kind === 'card' ? modal.src : modal.kind === 'cast' ? modal.cast.card : undefined}
                   title={`${title} card`}
                   sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
                   className="h-[68vh] w-full bg-[#0d0f14] md:h-[72vh]"
@@ -573,35 +777,58 @@ function ModalView({ modal, setModal }: { modal: Modal; setModal: (m: Modal | nu
   )
 }
 
+function Hint({ keys, label, className = 'md:inline-flex' }: { keys: string[]; label: string; className?: string }) {
+  return (
+    <span className={`hidden items-center gap-1.5 ${className}`}>
+      {keys.map((k, i) => (
+        <span key={k} className="flex items-center gap-1.5">
+          {i > 0 && '/'}
+          <span className="ps5-key">{k}</span>
+        </span>
+      ))}{' '}
+      {label}
+    </span>
+  )
+}
+
 function BottomBar({
   onPrev,
   onNext,
-  primaryHref,
+  onPrimary,
   toggleTab,
+  pad,
+  tab,
 }: {
   onPrev: () => void
   onNext: () => void
-  primaryHref: string
+  onPrimary: () => void
   toggleTab: () => void
+  pad: { connected: boolean; kind: PadKind }
+  tab: HubTab
 }) {
+  const l = PAD_LABEL[pad.kind]
   return (
     <footer className="flex items-center justify-between gap-3 border-t border-white/10 pt-3 text-[13px] text-white/75 md:justify-start md:gap-6">
       <Link to="/" onClick={() => sfx('back')} className="hidden items-center gap-1.5 rounded-full border border-white/20 px-3.5 py-1.5 font-semibold text-white hover:bg-white/10 md:inline-flex">
         <ChevronLeft /> Back
       </Link>
-      {/* Desktop: keyboard hints */}
-      <span className="hidden items-center gap-1.5 md:inline-flex">
-        <span className="ps5-key">←</span>/<span className="ps5-key">→</span> Navigate
-      </span>
-      <span className="hidden items-center gap-1.5 md:inline-flex">
-        <span className="ps5-key">Enter</span> Play
-      </span>
-      <span className="hidden items-center gap-1.5 lg:inline-flex">
-        <span className="ps5-key">1</span>–<span className="ps5-key">{6}</span> Section
-      </span>
-      <span className="hidden items-center gap-1.5 md:inline-flex">
-        <span className="ps5-key">M</span> Switch tab
-      </span>
+      {pad.connected ? (
+        <>
+          <Hint keys={['◀', '▶']} label="Navigate" />
+          {tab === 'stories' && <Hint keys={['▲', '▼']} label="Section" className="lg:inline-flex" />}
+          <Hint keys={[l.a]} label={tab === 'youtube' ? 'Play' : 'Open'} />
+          <Hint keys={[l.b]} label="Back" />
+          <Hint keys={[l.lb, l.rb]} label="Tabs" />
+          <Hint keys={[l.y]} label="Sound" className="lg:inline-flex" />
+        </>
+      ) : (
+        <>
+          <Hint keys={['←', '→']} label="Navigate" />
+          {tab === 'stories' && <Hint keys={['↑', '↓']} label="Section" className="lg:inline-flex" />}
+          <Hint keys={['Enter']} label="Play" />
+          <Hint keys={['Q', 'E']} label="Tabs" />
+        </>
+      )}
       {/* Touch: real buttons */}
       <div className="flex gap-2 md:hidden">
         <button type="button" onClick={onPrev} className="ps5-round !size-11 !rounded-xl" aria-label="Previous">
@@ -611,9 +838,9 @@ function BottomBar({
           →
         </button>
       </div>
-      <a href={primaryHref} target="_blank" rel="noreferrer" onClick={() => sfx('enter')} className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 font-semibold text-white md:hidden">
+      <button type="button" onClick={onPrimary} className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 font-semibold text-white md:hidden">
         Enter
-      </a>
+      </button>
       <button type="button" onClick={toggleTab} className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 font-semibold text-white md:hidden">
         Switch Tab
       </button>
@@ -703,6 +930,12 @@ const ShareIcon = () => (
   <svg {...iconProps}>
     <path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7" />
     <path d="M12 3v12M7 8l5-5 5 5" />
+  </svg>
+)
+const YtIcon = () => (
+  <svg {...iconProps}>
+    <rect x="2" y="5" width="20" height="14" rx="4" />
+    <path d="M10 9l5 3-5 3z" fill="currentColor" />
   </svg>
 )
 const HomeIcon = () => (

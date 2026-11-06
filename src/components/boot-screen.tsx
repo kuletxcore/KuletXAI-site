@@ -25,6 +25,7 @@ export const BOOT_HEAD_SCRIPT = `try{if(typeof window.__kxBoot!=='boolean'){var 
 declare global {
   interface Window {
     __kxBoot?: boolean
+    __kxBootActive?: boolean
   }
 }
 
@@ -71,6 +72,14 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
       timers.current = []
     }
   }, [])
+
+  // Lets other input (the gamepad) know the start screen is up
+  useEffect(() => {
+    window.__kxBootActive = phase === 'curtain' || phase === 'playing' || phase === 'leaving'
+    return () => {
+      window.__kxBootActive = false
+    }
+  }, [phase])
 
   // Startup swell as the scene fades in (plays if the browser allows audio yet)
   useEffect(() => {
