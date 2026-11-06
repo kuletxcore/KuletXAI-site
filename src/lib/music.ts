@@ -74,7 +74,7 @@ function apply() {
   }
   if (ctx.state !== 'running') return // starts on the first tap/click/key
 
-  const target = held || isMuted() || ost.active ? null : wanted
+  const target = held || isMuted() || ost.active || mediaHolds.size > 0 ? null : wanted
   if (current && current.src === target) {
     if (current.el.paused) void current.el.play().catch(() => {})
     ramp(current, gainFor(), FADE_IN)
@@ -218,6 +218,36 @@ export function useOstState() {
     () => ostSnapshot,
     () => ostSnapshot,
   )
+}
+
+/* ── Other media on the page (e.g. a video inside a story card) ──
+ * While any of it plays with sound, the background music fades out and an
+ * OST track pauses; both come back when it stops. */
+const mediaHolds = new Set<object>()
+let ostPausedForMedia = false
+
+export function holdForMedia(token: object, playing: boolean) {
+  if (typeof window === 'undefined') return
+  const had = mediaHolds.size > 0
+  if (playing) mediaHolds.add(token)
+  else mediaHolds.delete(token)
+  const has = mediaHolds.size > 0
+  if (has === had) return
+  const el = ost.el
+  if (has && el && !el.paused) {
+    ostPausedForMedia = true
+    if (ost.gain) rampGain(ost.gain, 0, 0.3)
+    window.setTimeout(() => {
+      if (mediaHolds.size > 0) el.pause()
+    }, 320)
+  } else if (!has && ostPausedForMedia) {
+    ostPausedForMedia = false
+    if (el && ost.active && ost.src && !isMuted()) {
+      void el.play().catch(() => {})
+      ostFadeIn(0.8)
+    }
+  }
+  apply()
 }
 
 let releaseTimer = 0

@@ -8,7 +8,7 @@ import { BOOT_HEAD_SCRIPT, BootScreen } from '#/components/boot-screen'
 import { Logo } from '#/components/site'
 import { isMuted, play as sfx, setMuted, useMuted } from '#/lib/sfx'
 import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
-import { playOst, setMusic, setMusicVolume, stopOst, useMusicVolume, useOstState } from '#/lib/music'
+import { holdForMedia, playOst, setMusic, setMusicVolume, stopOst, useMusicVolume, useOstState } from '#/lib/music'
 import { OSTS } from '#/data/ost'
 import { TROPHIES } from '#/data/trophies'
 import { SERIES_MUSIC, STORY_MUSIC } from '#/data/music'
@@ -1075,11 +1075,28 @@ function CardFrame({ src, title, frameClassName, lazy, listenForToggle }: { src:
   const ref = useRef<HTMLIFrameElement>(null)
   const [count, setCount] = useState(0)
   const [open, setOpen] = useState(false)
+  const media = useRef<HTMLMediaElement[]>([])
+
+  // Release any music hold if the card goes away mid-video
+  useEffect(
+    () => () => {
+      media.current.forEach((m) => holdForMedia(m, false))
+      media.current = []
+    },
+    [src],
+  )
 
   const scan = () => {
     const doc = ref.current?.contentDocument
     const win = doc?.defaultView
     if (!doc || !win) return
+    // A video/audio inside the card pauses the site's music while it plays with sound
+    media.current.forEach((m) => holdForMedia(m, false))
+    media.current = Array.from(doc.querySelectorAll<HTMLMediaElement>('video, audio'))
+    for (const m of media.current) {
+      const sync = () => holdForMedia(m, !m.paused && !m.ended && !m.muted && m.volume > 0)
+      for (const ev of ['play', 'playing', 'pause', 'ended', 'volumechange', 'emptied']) m.addEventListener(ev, sync)
+    }
     let n = 0
     doc.querySelectorAll<HTMLElement>('body *').forEach((el) => {
       const cs = win.getComputedStyle(el)
@@ -1209,7 +1226,24 @@ function ModalView({ modal, setModal }: { modal: Modal; setModal: (m: Modal | nu
             {(() => {
               const m = modal.items[modal.index]
               return m.type === 'video' ? (
-                <video key={m.src} src={m.src} controls autoPlay muted loop playsInline className="max-h-[70vh] w-auto max-w-full rounded-xl" />
+                <video
+                  key={m.src}
+                  src={m.src}
+                  controls
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="max-h-[70vh] w-auto max-w-full rounded-xl"
+                  onPlay={(e) => holdForMedia(e.currentTarget, !e.currentTarget.muted)}
+                  onVolumeChange={(e) => holdForMedia(e.currentTarget, !e.currentTarget.paused && !e.currentTarget.muted)}
+                  onPause={(e) => holdForMedia(e.currentTarget, false)}
+                  onEmptied={(e) => holdForMedia(e.currentTarget, false)}
+                  ref={(el) => {
+                    if (!el) return
+                    return () => holdForMedia(el, false) // closing the lightbox releases the music
+                  }}
+                />
               ) : (
                 <img key={m.src} src={m.src} alt={tidyCaption(m.caption)} className="max-h-[70vh] w-auto max-w-full rounded-xl object-contain" />
               )
