@@ -1,87 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { Link, createFileRoute } from '@tanstack/react-router'
+import { Footer, Header, SectionHead } from '#/components/site'
+import { LINKS, STORIES, TRIMZ, totalChats, totalLikes, trimzSeriesUrl } from '#/data/content'
 
 export const Route = createFileRoute('/')({ component: Home })
-
-const ISEKAI_REF = '?referralCode=95OBGFQX'
-
-const LINKS = {
-  isekai: `https://www.isekaizero.ai/${ISEKAI_REF}`,
-  trimz: 'https://trimz.tv/u/kuletxcore',
-  youtube: 'https://youtube.com/@kuletxai',
-}
-
-type Story = {
-  id: string
-  title: string
-  summary: string
-  cover: string
-  rating: 'SFW' | '17+'
-  tags: string[]
-  likes: number
-  chats: number
-}
-
-// Public storylines from the kuletxcore account on IsekaiZero (Nov 2026)
-const STORIES: Story[] = [
-  {
-    id: '6aa78f6bd17fe984ab332064',
-    title: 'Acolytes: Maid for your Protection',
-    summary:
-      'By day, you serve tea and cake. By night, you lead an elite black-ops unit no government will admit exists.',
-    cover: '/covers/1.webp',
-    rating: '17+',
-    tags: ['Spy', 'Thriller', 'Undercover'],
-    likes: 156,
-    chats: 129,
-  },
-  {
-    id: '6aa4a2ce523ccdd47ab9b80d',
-    title: 'Colossus Protocol',
-    summary:
-      'You can grow from human height to 300 meters. When kaiju rise from the coastal rifts, you are the only one who can meet them at their own scale.',
-    cover: '/covers/3.webp',
-    rating: '17+',
-    tags: ['Kaiju', 'Giantess', 'Apocalypse'],
-    likes: 32,
-    chats: 38,
-  },
-  {
-    id: '6a9ae1c5a66365ba9f1523f1',
-    title: 'Acknowledge Me: Become the Queen Bee',
-    summary:
-      'You arrived as a nobody. Climb the social hierarchy until the entire school has to acknowledge you.',
-    cover: '/covers/5.webp',
-    rating: 'SFW',
-    tags: ['High School', 'Rivals', 'Slow Burn'],
-    likes: 14,
-    chats: 20,
-  },
-  {
-    id: '6a9504a149fd840d6d383b33',
-    title: 'The Problem Spawner',
-    summary:
-      "Cursed with a power you can't control, you spawn random fragments of other worlds into reality. Survive the chaos.",
-    cover: '/covers/4.webp',
-    rating: 'SFW',
-    tags: ['Academy', 'Superpower', 'Comedy'],
-    likes: 11,
-    chats: 10,
-  },
-  {
-    id: '6a9d1ba30b414546e54a59aa',
-    title: 'I AM THE TABLE!!!',
-    summary:
-      'You become The Table™, an unbreakable, sentient table in a fantasy world. Chaos, comedy and furniture-based destiny follow.',
-    cover: '/covers/2.webp',
-    rating: 'SFW',
-    tags: ['Fantasy', 'Comedy', 'Transmigration'],
-    likes: 5,
-    chats: 9,
-  },
-]
-
-const totalLikes = STORIES.reduce((n, s) => n + s.likes, 0)
-const totalChats = STORIES.reduce((n, s) => n + s.chats, 0)
 
 function Home() {
   return (
@@ -90,38 +11,11 @@ function Home() {
       <main>
         <Hero />
         <Stories />
+        <Trimz />
         <Channels />
       </main>
       <Footer />
     </div>
-  )
-}
-
-function Header() {
-  return (
-    <header className="sticky top-0 z-40 border-b border-line bg-void/85 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <a href="#top" className="pixel font-pixel text-xl text-neon glow">
-          KULETX<span className="text-ink">_AI</span>
-        </a>
-        <nav className="flex items-center gap-4 font-gamer text-xs uppercase sm:gap-6 sm:text-sm">
-          <a href="#stories" className="text-mute hover:text-neon">
-            Stories
-          </a>
-          <a href="#watch" className="text-mute hover:text-neon">
-            Watch
-          </a>
-          <a
-            href={LINKS.youtube}
-            target="_blank"
-            rel="noreferrer"
-            className="hidden border border-neon px-3 py-1.5 text-neon hover:bg-neon hover:text-void sm:inline-block"
-          >
-            Subscribe
-          </a>
-        </nav>
-      </div>
-    </header>
   )
 }
 
@@ -145,19 +39,14 @@ function Hero() {
             breaks it all down on YouTube.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a
-              href="#stories"
-              className="pixel bg-neon px-5 py-3 font-gamer text-sm uppercase text-void hover:bg-ink"
-            >
+            <a href="#stories" className="pixel bg-neon px-5 py-3 font-gamer text-sm uppercase text-void hover:bg-ink">
               ▶ Play a story
             </a>
             <a
-              href={LINKS.youtube}
-              target="_blank"
-              rel="noreferrer"
+              href="#trimz"
               className="pixel border border-line px-5 py-3 font-gamer text-sm uppercase text-ink hover:border-neon hover:text-neon"
             >
-              Watch on YouTube
+              Binge on Trimz
             </a>
           </div>
         </div>
@@ -171,6 +60,7 @@ function Hero() {
             <Stat label="public storylines" value={STORIES.length} />
             <Stat label="player likes" value={totalLikes} />
             <Stat label="chats started" value={totalChats} />
+            <Stat label="trimz series" value={TRIMZ.length} />
             <Stat label="motto" value="outslopping the competition" small />
           </dl>
         </div>
@@ -190,20 +80,19 @@ function Stat({ label, value, small }: { label: string; value: string | number; 
 
 function Stories() {
   return (
-    <section id="stories" className="border-b border-line">
+    <section id="stories" className="scroll-mt-16 border-b border-line">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
         <SectionHead
           kicker="01 // IsekaiZero"
           title="Pick a world"
-          body="Interactive AI storylines. You make the choices, the storyteller keeps up."
+          body="Interactive AI storylines. You make the choices, the storyteller keeps up. Open a world to see its cast and lore."
         />
         <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {STORIES.map((s, i) => (
             <li key={s.id}>
-              <a
-                href={`https://www.isekaizero.ai/storylines/${s.id}${ISEKAI_REF}`}
-                target="_blank"
-                rel="noreferrer"
+              <Link
+                to="/stories/$slug"
+                params={{ slug: s.slug }}
                 className="group flex h-full flex-col border border-line bg-panel hover:border-neon"
               >
                 <div className="cover relative aspect-[3/4] overflow-hidden border-b border-line">
@@ -214,18 +103,21 @@ function Stories() {
                     className="h-full w-full object-cover"
                   />
                   <span
-                    className={`absolute top-3 left-3 px-2 py-1 font-gamer text-xs ${
-                      s.rating === 'SFW' ? 'bg-neon text-void' : 'bg-warn text-void'
+                    className={`absolute top-3 left-3 px-2 py-1 font-gamer text-xs text-void ${
+                      s.rating === 'SFW' ? 'bg-neon' : 'bg-warn'
                     }`}
                   >
                     {s.rating}
                   </span>
+                  {s.trimz && (
+                    <span className="absolute bottom-3 left-3 bg-void/85 px-2 py-1 font-gamer text-xs text-ink">
+                      ▶ ON TRIMZ
+                    </span>
+                  )}
                 </div>
                 <div className="flex flex-1 flex-col p-5">
-                  <h3 className="font-mono text-lg font-bold leading-snug text-ink group-hover:text-neon">
-                    {s.title}
-                  </h3>
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-mute">{s.summary}</p>
+                  <h3 className="font-mono text-lg font-bold leading-snug text-ink group-hover:text-neon">{s.title}</h3>
+                  <p className="mt-2 flex-1 text-sm leading-relaxed text-mute">{s.logline}</p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     {s.tags.map((t) => (
                       <span key={t} className="border border-line px-2 py-0.5 text-xs text-mute">
@@ -237,10 +129,10 @@ function Stories() {
                     <span className="text-mute">
                       ♥ {s.likes} · ✉ {s.chats}
                     </span>
-                    <span className="text-neon">PLAY →</span>
+                    <span className="text-neon">ENTER →</span>
                   </div>
                 </div>
-              </a>
+              </Link>
             </li>
           ))}
           <li className="sm:col-span-2 lg:col-span-1">
@@ -256,12 +148,76 @@ function Stories() {
                   More worlds in the works
                 </span>
                 <span className="mt-3 block text-sm text-mute">
-                  New storylines drop as series on Trimz first. Catch the episodes while you wait.
+                  New storylines show up as series on Trimz. Catch the episodes while you wait.
                 </span>
               </span>
               <span className="font-gamer text-xs text-neon">WATCH ON TRIMZ →</span>
             </a>
           </li>
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+function Trimz() {
+  return (
+    <section id="trimz" className="scroll-mt-16 border-b border-line bg-panel/40">
+      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <SectionHead
+            kicker="02 // Trimz"
+            title="Now streaming"
+            body="AI anime series cut from the stories. Short episodes, made to binge."
+          />
+          <a
+            href={LINKS.trimz}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 self-start border border-neon px-4 py-2 font-gamer text-xs uppercase text-neon hover:bg-neon hover:text-void sm:self-auto"
+          >
+            Follow on Trimz →
+          </a>
+        </div>
+        <ul className="mt-12 grid gap-6 sm:grid-cols-2">
+          {TRIMZ.map((t) => (
+            <li key={t.slug}>
+              <a
+                href={trimzSeriesUrl(t.slug)}
+                target="_blank"
+                rel="noreferrer"
+                className="group grid h-full grid-cols-[2fr_3fr] border border-line bg-void hover:border-neon"
+              >
+                <div className="cover relative overflow-hidden border-r border-line">
+                  <img
+                    src={t.poster}
+                    alt={`Poster for ${t.title}`}
+                    loading="lazy"
+                    className="aspect-[2/3] h-full w-full object-cover"
+                  />
+                  <span
+                    aria-hidden
+                    className="absolute inset-0 grid place-items-center bg-void/30 opacity-0 transition-opacity group-hover:opacity-100"
+                  >
+                    <span className="grid size-14 place-items-center bg-neon font-gamer text-xl text-void">▶</span>
+                  </span>
+                </div>
+                <div className="flex flex-col p-5">
+                  <span className="font-gamer text-xs text-neon">SERIES</span>
+                  <h3 className="mt-2 font-mono text-lg font-bold leading-snug text-ink group-hover:text-neon">
+                    {t.title}
+                  </h3>
+                  <p className="mt-2 flex-1 text-sm leading-relaxed text-mute">{t.summary}</p>
+                  <div className="mt-5 flex items-center justify-between border-t border-line pt-4 font-gamer text-xs">
+                    <span className="text-mute">
+                      {t.episodes} EP · {t.views} VIEWS
+                    </span>
+                    <span className="text-neon">WATCH →</span>
+                  </div>
+                </div>
+              </a>
+            </li>
+          ))}
         </ul>
       </div>
     </section>
@@ -297,75 +253,23 @@ const CHANNELS = [
 
 function Channels() {
   return (
-    <section id="watch" className="border-b border-line">
+    <section id="watch" className="scroll-mt-16 border-b border-line">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <SectionHead
-          kicker="02 // Channels"
-          title="Three ways in"
-          body="Same universe, different screens."
-        />
+        <SectionHead kicker="03 // Channels" title="Three ways in" body="Same universe, different screens." />
         <ul className="mt-12 grid gap-px overflow-hidden border border-line bg-line md:grid-cols-3">
           {CHANNELS.map((c, i) => (
             <li key={c.key} className="bg-void">
-              <a
-                href={c.href}
-                target="_blank"
-                rel="noreferrer"
-                className="group flex h-full flex-col p-6 hover:bg-panel sm:p-8"
-              >
+              <a href={c.href} target="_blank" rel="noreferrer" className="group flex h-full flex-col p-6 hover:bg-panel sm:p-8">
                 <span className="font-gamer text-xs text-mute">0{i + 1}</span>
                 <span className="pixel mt-4 font-pixel text-4xl text-neon glow">{c.verb}</span>
                 <span className="mt-1 font-mono text-lg font-bold text-ink">on {c.name}</span>
                 <p className="mt-4 flex-1 text-sm leading-relaxed text-mute">{c.body}</p>
-                <span className="mt-6 font-gamer text-xs text-ink group-hover:text-neon">
-                  {c.handle} →
-                </span>
+                <span className="mt-6 font-gamer text-xs text-ink group-hover:text-neon">{c.handle} →</span>
               </a>
             </li>
           ))}
         </ul>
       </div>
     </section>
-  )
-}
-
-function SectionHead({ kicker, title, body }: { kicker: string; title: string; body: string }) {
-  return (
-    <div className="max-w-2xl">
-      <p className="font-gamer text-sm text-neon">{kicker}</p>
-      <h2 className="pixel mt-3 font-pixel text-4xl text-ink sm:text-5xl">{title}</h2>
-      <p className="mt-4 text-mute">{body}</p>
-    </div>
-  )
-}
-
-function Footer() {
-  return (
-    <footer className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="pixel font-pixel text-2xl text-neon">KULETX_AI</p>
-          <p className="mt-2 text-sm text-mute">AI storytelling. © {new Date().getFullYear()} KuletX.</p>
-        </div>
-        <nav className="flex flex-wrap gap-4 font-gamer text-xs">
-          <a href={LINKS.isekai} target="_blank" rel="noreferrer" className="text-mute hover:text-neon">
-            IsekaiZero
-          </a>
-          <a href={LINKS.trimz} target="_blank" rel="noreferrer" className="text-mute hover:text-neon">
-            Trimz
-          </a>
-          <a href={LINKS.youtube} target="_blank" rel="noreferrer" className="text-mute hover:text-neon">
-            YouTube
-          </a>
-        </nav>
-      </div>
-      <p className="mt-8 text-xs text-mute/70">
-        Fonts: pixel faces by 00ff (hicchicc) and Obel Mono by Typographic Systems, under the{' '}
-        <a href="/fonts/OFL-00ff.txt" className="underline hover:text-neon">
-          SIL Open Font License
-        </a>
-        .
-      </p>
-    </footer>
   )
 }
