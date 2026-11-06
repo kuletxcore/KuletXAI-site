@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiOstRouteImport } from './routes/api.ost'
 import { Route as StoriesSlugRouteImport } from './routes/stories.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOstRoute = ApiOstRouteImport.update({
+  id: '/api/ost',
+  path: '/api/ost',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StoriesSlugRoute = StoriesSlugRouteImport.update({
@@ -25,27 +31,31 @@ const StoriesSlugRoute = StoriesSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/ost': typeof ApiOstRoute
   '/stories/$slug': typeof StoriesSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/ost': typeof ApiOstRoute
   '/stories/$slug': typeof StoriesSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/ost': typeof ApiOstRoute
   '/stories/$slug': typeof StoriesSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/stories/$slug'
+  fullPaths: '/' | '/api/ost' | '/stories/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/stories/$slug'
-  id: '__root__' | '/' | '/stories/$slug'
+  to: '/' | '/api/ost' | '/stories/$slug'
+  id: '__root__' | '/' | '/api/ost' | '/stories/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiOstRoute: typeof ApiOstRoute
   StoriesSlugRoute: typeof StoriesSlugRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ost': {
+      id: '/api/ost'
+      path: '/api/ost'
+      fullPath: '/api/ost'
+      preLoaderRoute: typeof ApiOstRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stories/$slug': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiOstRoute: ApiOstRoute,
   StoriesSlugRoute: StoriesSlugRoute,
 }
 export const routeTree = rootRouteImport

@@ -96,15 +96,25 @@ export function setMusic(src: string | null) {
 }
 
 /* ── Soundtrack player (OST tab) ──
- * OST tracks stream from IsekaiZero's CDN, which doesn't allow cross-origin
- * Web Audio, so they play through a plain <audio> element. While one plays,
- * the background music fades out; it fades back when the OST stops. */
-const ost = { el: null as HTMLAudioElement | null, src: null as string | null, active: false, playing: false, onEnded: null as null | (() => void) }
+ * OST tracks live on IsekaiZero's CDN, which sends no CORS headers, so they
+ * stream through this site's /api/ost pass-through. That keeps them
+ * same-origin, so they run through Web Audio like the background music:
+ * same volume slider, fades and mute (iOS included). While one plays, the
+ * background music fades out; it fades back when the OST stops. */
+const ost = { el: null as HTMLAudioElement | null, gain: null as GainNode | null, src: null as string | null, active: false, playing: false, onEnded: null as null | (() => void) }
 const ostListeners = new Set<() => void>()
 let ostSnapshot = { src: null as string | null, playing: false }
 const ostEmit = () => {
   ostSnapshot = { src: ost.src, playing: ost.playing }
   ostListeners.forEach((l) => l())
+}
+const proxied = (src: string) => `/api/ost?u=${encodeURIComponent(src)}`
+
+function rampGain(g: GainNode, to: number, secs: number) {
+  const now = g.context.currentTime
+  g.gain.cancelScheduledValues(now)
+  g.gain.setValueAtTime(g.gain.value, now)
+  g.gain.linearRampToValueAtTime(to, now + secs)
 }
 
 function ostElement() {
@@ -120,13 +130,23 @@ function ostElement() {
       ostEmit()
     })
     el.addEventListener('ended', () => ost.onEnded?.())
+    const ctx = audioContext()
+    if (ctx) {
+      ost.gain = ctx.createGain()
+      ost.gain.gain.value = 0
+      ctx.createMediaElementSource(el).connect(ost.gain).connect(ctx.destination)
+    }
     onMutedChange(() => {
       if (isMuted()) el.pause()
     })
     ost.el = el
   }
-  ost.el.volume = level
   return ost.el
+}
+
+function ostFadeIn(secs: number) {
+  if (ost.gain) rampGain(ost.gain, gainFor(), secs)
+  else if (ost.el) ost.el.volume = level // no Web Audio: best effort
 }
 
 /** Play an OST track (or toggle pause if it's already the current one). onEnded runs when it finishes. */
@@ -135,22 +155,37 @@ export function playOst(src: string, onEnded?: () => void) {
   const el = ostElement()
   ost.onEnded = onEnded ?? null
   if (ost.src === src) {
-    if (el.paused) void el.play().catch(() => {})
-    else el.pause()
+    if (el.paused) {
+      void el.play().catch(() => {})
+      ostFadeIn(0.4)
+    } else {
+      // short fade so pausing doesn't click
+      if (ost.gain) rampGain(ost.gain, 0, 0.25)
+      ost.playing = false
+      ostEmit()
+      window.setTimeout(() => el.pause(), 260)
+    }
     return
   }
   ost.src = src
   ost.active = true
-  el.src = src
+  if (ost.gain) rampGain(ost.gain, 0, 0.01)
+  el.src = proxied(src)
   void el.play().catch(() => {})
+  ostFadeIn(FADE_IN)
   ostEmit()
   apply()
 }
 
-/** Stop the OST and bring the background music back. */
+/** Stop the OST (fading out) and bring the background music back. */
 export function stopOst() {
   if (!ost.active) return
-  ost.el?.pause()
+  const el = ost.el
+  const stopping = ost.src
+  if (ost.gain) rampGain(ost.gain, 0, FADE_OUT)
+  window.setTimeout(() => {
+    if (el && ost.src === null && stopping) el.pause()
+  }, FADE_OUT * 1000 + 80)
   ost.src = null
   ost.active = false
   ost.onEnded = null
@@ -195,7 +230,8 @@ export function setMusicVolume(v: number) {
     /* not persisted */
   }
   if (current) ramp(current, gainFor(), 0.12)
-  if (ost.el) ost.el.volume = level
+  if (ost.gain && ost.playing) rampGain(ost.gain, gainFor(), 0.12)
+  else if (ost.el && !ost.gain) ost.el.volume = level
   volumeListeners.forEach((l) => l())
 }
 

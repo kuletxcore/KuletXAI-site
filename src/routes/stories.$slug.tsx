@@ -432,6 +432,15 @@ function loadPlan(): LoadPlan {
 function Backdrop({ src, blurSrc, video, active }: { src: string; blurSrc?: string; video?: string; active: boolean }) {
   const [plan, setPlan] = useState<LoadPlan | null>(null)
   const [stage, setStage] = useState(0) // 0 still, 1 preview, 2 full
+  // The top layer has finished fading in. Layers under it are then hidden:
+  // the art fades out at its edges, so stacked layers would show through each
+  // other there and look like a ghost (still + preview + full slightly out of step).
+  const [settled, setSettled] = useState(0)
+  useEffect(() => {
+    if (stage === 0) return
+    const id = window.setTimeout(() => setSettled(stage), 650)
+    return () => clearTimeout(id)
+  }, [stage])
   const previewRef = useRef<HTMLVideoElement>(null)
   const fullRef = useRef<HTMLVideoElement>(null)
   const synced = useRef(false)
@@ -461,11 +470,11 @@ function Backdrop({ src, blurSrc, video, active }: { src: string; blurSrc?: stri
   return (
     <div className={`ps5-layer ${active ? 'is-active' : ''}`}>
       <img className="ps5-layer-blur" src={blurSrc ?? src} alt="" loading={active ? 'eager' : 'lazy'} />
-      <img className="ps5-layer-art" src={src} alt="" loading={active ? 'eager' : 'lazy'} />
+      <img className={`ps5-layer-art ${settled >= 1 ? 'invisible' : ''}`} src={src} alt="" loading={active ? 'eager' : 'lazy'} />
       {plan?.preview && webm && (
         <video
           ref={previewRef}
-          className={`ps5-layer-art ps5-fade ${stage >= 1 ? 'opacity-100' : 'opacity-0'}`}
+          className={`ps5-layer-art ps5-fade ${stage >= 1 ? 'opacity-100' : 'opacity-0'} ${settled >= 2 ? 'invisible' : ''}`}
           src={webm}
           muted
           loop
