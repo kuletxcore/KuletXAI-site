@@ -165,8 +165,8 @@ function StoryHub() {
   const cycleTab = (dir: 1 | -1) => switchTab(TAB_ORDER[(TAB_ORDER.indexOf(tab) + dir + TAB_ORDER.length) % TAB_ORDER.length])
   // X / Square: "enter" the highlighted section and move between its items
   const [subIdx, setSubIdx] = useState<number | null>(null)
-  const subItems = () => Array.from(document.querySelectorAll<HTMLElement>('.ps5 [role=tabpanel] [data-sub-item]'))
-  useEffect(() => setSubIdx(null), [story.slug, tab, section])
+  const subItems = () => Array.from(document.querySelectorAll<HTMLElement>('.ps5 [data-sub-scope] [data-sub-item]'))
+  useEffect(() => setSubIdx(null), [story.slug, tab, section, seriesIdx])
   useEffect(() => {
     const items = subItems()
     items.forEach((el) => el.removeAttribute('data-sub-active'))
@@ -177,11 +177,12 @@ function StoryHub() {
     el.focus({ preventScroll: true })
     el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
   }, [subIdx, modal])
-  const canEnter = tab === 'stories' && ['intro', 'cast', 'gallery', 'ost', 'watch'].includes(section)
+  const seriesHasStory = tab === 'series' && STORIES.some((s) => s.trimz?.includes(TRIMZ[seriesIdx].slug))
+  const canEnter = (tab === 'stories' && ['intro', 'cast', 'gallery', 'ost', 'watch'].includes(section)) || seriesHasStory
   const enterSection = () => {
     if (!canEnter) return
     const isk = ISK[story.slug]
-    if (section === 'intro' && isk?.introCard) {
+    if (tab === 'stories' && section === 'intro' && isk?.introCard) {
       openModal({ kind: 'card', title: story.title, src: isk.introCard, image: story.cover })
       return
     }
@@ -251,7 +252,11 @@ function StoryHub() {
       // Inside a section: D-pad picks an item, A opens/plays it, B or X steps back out
       if (b === 'left' || b === 'up') moveSub(-1)
       else if (b === 'right' || b === 'down') moveSub(1)
-      else if (b === 'a') subItems()[subIdx]?.click()
+      else if (b === 'a') {
+        const el = subItems()[subIdx]
+        if (el instanceof HTMLAnchorElement && el.target === '_blank') openExternal(el.href)
+        else el?.click()
+      }
       else if (b === 'b' || b === 'x') leaveSub()
       else if (b === 'lb' || b === 'rb') {
         setSubIdx(null)
@@ -418,7 +423,7 @@ function StoryHub() {
         </div>
 
         {/* Details */}
-        <section className="mt-auto flex flex-col gap-3 pt-24 pb-4 md:max-w-[680px] md:pt-6">
+        <section data-sub-scope className="mt-auto flex flex-col gap-3 pt-24 pb-4 md:max-w-[680px] md:pt-6">
           {tab === 'stories' ? (
             <StoryDetails story={story} section={section} setSection={pickSection} sections={sections} series={series} openModal={openModal} />
           ) : tab === 'series' ? (
@@ -607,7 +612,7 @@ function TopBar({ tab, setTab, pad, nowPlaying }: { tab: HubTab; setTab: (t: Hub
     <header className="flex flex-col-reverse gap-4 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-3 md:gap-4">
         <ShoulderHint label={pad.connected ? labels.lb : 'Q'} />
-        <nav className="flex gap-6 overflow-x-auto md:gap-8" role="tablist" aria-label="Hub">
+        <nav className="ps5-tabs flex gap-6 md:gap-8" role="tablist" aria-label="Hub">
           {TAB_ORDER.map((t) => (
             <button key={t} type="button" role="tab" aria-selected={tab === t} className={`ps5-tab ${tab === t ? 'is-active' : ''}`} onClick={() => setTab(t)}>
               {TAB_LABEL[t]}
@@ -809,16 +814,23 @@ function SeriesDetails({ idx }: { idx: number }) {
       <TitleLogo key={t.slug} title={t.title} logo={t.logo} />
       <p className="ps5-shadow max-w-[560px] text-sm leading-relaxed text-white/85 md:text-[15px]">{t.summary}</p>
       {related && (
-        <div className="ps5-glass flex items-center gap-4 px-4 py-3">
-          <img src={related.cover} alt="" className="size-12 rounded-lg object-cover" />
-          <p className="text-sm text-white/80">
-            Based on the storyline{' '}
-            <Link to="/stories/$slug" params={{ slug: related.slug }} className="font-bold text-white underline-offset-2 hover:underline">
-              {related.title}
-            </Link>
-            . Play it on IsekaiZero.
+        <a
+          href={isekaiStoryUrl(related.id)}
+          target="_blank"
+          rel="noreferrer"
+          data-sub-item
+          onClick={() => sfx('enter')}
+          className="ps5-glass group flex items-center gap-4 px-4 py-3 transition-colors hover:!bg-white/15 focus-visible:outline-2 focus-visible:outline-white"
+          aria-label={`Play the storyline ${related.title} on IsekaiZero`}
+        >
+          <img src={related.tile ?? related.cover} alt="" className="size-12 shrink-0 rounded-lg object-cover" />
+          <p className="min-w-0 flex-1 text-sm text-white/80">
+            Based on the storyline <span className="font-bold text-white">{related.title}</span>. Play it on IsekaiZero.
           </p>
-        </div>
+          <span className="shrink-0 text-white/60 transition-transform group-hover:translate-x-0.5 group-hover:text-white" aria-hidden>
+            ↗
+          </span>
+        </a>
       )}
       {SERIES_MUSIC[t.slug] && (
         <p className="ps5-shadow text-xs text-white/60">
@@ -1162,7 +1174,7 @@ function BottomBar({
         </>
       ) : pad.connected ? (
         <>
-          {canEnter && <Hint keys={[l.x]} label={section === 'intro' ? 'Expand card' : `Enter ${SECTION_LABEL[section]}`} />}
+          {canEnter && <Hint keys={[l.x]} label={tab === 'series' ? 'Select storyline' : section === 'intro' ? 'Expand card' : `Enter ${SECTION_LABEL[section]}`} />}
           <Hint keys={['◀', '▶']} label="Navigate" />
           {tab === 'stories' && <Hint keys={['▲', '▼']} label="Section" className="lg:inline-flex" />}
           <Hint keys={[pad.kind === 'playstation' ? 'L' : 'LS']} label="Scroll" className="xl:inline-flex" />

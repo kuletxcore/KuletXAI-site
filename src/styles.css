@@ -400,7 +400,9 @@ a:focus-visible {
   scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
 
-@media (max-width: 767px) {
+/* Phones, and tall portrait screens of any width (e.g. "desktop mode" on a phone):
+   art fills the top and fades downward instead of hugging the right edge */
+@media (max-width: 767px), (max-aspect-ratio: 4/5) {
   .ps5-layer-art {
     max-width: none;
     width: 100%;
@@ -604,4 +606,23 @@ html.kx-boot body::before {
   .ps5-tile-label[data-align="end"] {
     right: calc(100% + 14px);
   }
+}
+
+/* Hub tab row: scrolls sideways on narrow screens without ever showing a scrollbar.
+   (overflow-x:auto forces overflow-y too, and the tab underline poked 2px below the
+   row, so browsers with classic scrollbars drew one over the last tab.) */
+.ps5-tabs {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.ps5-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* Story hub uses white focus rings (the neon green belongs to the homepage) */
+.ps5 a:focus-visible,
+.ps5 button:focus-visible {
+  outline-color: #fff;
 }
