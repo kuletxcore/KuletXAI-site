@@ -4,6 +4,8 @@ import type { ReactNode } from 'react'
 import { LINKS, STORIES, TRIMZ, isekaiStoryUrl, trimzSeriesUrl } from '#/data/content'
 import type { Story } from '#/data/content'
 import { ISK } from '#/data/isk'
+import { BOOT_HEAD_SCRIPT, BootScreen } from '#/components/boot-screen'
+import { MotionConfig } from 'motion/react'
 import type { IskCast, IskMedia } from '#/data/isk'
 
 export const Route = createFileRoute('/stories/$slug')({
@@ -13,6 +15,7 @@ export const Route = createFileRoute('/stories/$slug')({
     return story
   },
   head: ({ loaderData }) => ({
+    scripts: [{ children: BOOT_HEAD_SCRIPT }],
     links: [
       { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
       { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
@@ -123,6 +126,8 @@ function StoryHub() {
   }, [])
 
   return (
+    <MotionConfig reducedMotion="user">
+    <BootScreen />
     <div className="ps5">
       {/* Backdrops for every item, crossfaded by toggling is-active */}
       <div className="ps5-backdrop" aria-hidden>
@@ -202,6 +207,7 @@ function StoryHub() {
         <BottomBar onPrev={() => step(-1)} onNext={() => step(1)} primaryHref={primaryHref} toggleTab={() => setTab((t) => (t === 'stories' ? 'series' : 'stories'))} />
       </div>
     </div>
+    </MotionConfig>
   )
 }
 
