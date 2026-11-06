@@ -39,6 +39,7 @@ export const TRIMZ: TrimzSeries[] = [
     title: 'Acolytes: Maid for your Protection (Side B)',
     summary: 'Beneath a maid café, a new squad leader runs secret tactical missions.',
     poster: '/trimz/acolytes-side-b.webp',
+    video: '/trimz/acolytes-side-b.mp4',
     episodes: 1,
     views: 90,
   },

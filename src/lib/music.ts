@@ -22,8 +22,8 @@ try {
 }
 const volumeListeners = new Set<() => void>()
 const gainFor = () => MAX_GAIN * level
-const FADE_IN = 1.4
-const FADE_OUT = 1.0
+const FADE_IN = 2.5
+const FADE_OUT = 2.0
 
 type Channel = { src: string; el: HTMLAudioElement; gain: GainNode }
 
