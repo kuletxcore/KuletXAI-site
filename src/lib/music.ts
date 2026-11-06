@@ -136,8 +136,24 @@ function ostElement() {
       ost.gain.gain.value = 0
       ctx.createMediaElementSource(el).connect(ost.gain).connect(ctx.destination)
     }
+    // Mute pauses the OST; unmuting resumes it — but only if mute was what paused it
+    let pausedByMute = false
     onMutedChange(() => {
-      if (isMuted()) el.pause()
+      if (isMuted()) {
+        if (!el.paused) {
+          pausedByMute = true
+          el.pause()
+        }
+      } else if (pausedByMute) {
+        pausedByMute = false
+        if (ost.active && ost.src) {
+          void el.play().catch(() => {})
+          ostFadeIn(0.6)
+        }
+      }
+    })
+    el.addEventListener('play', () => {
+      pausedByMute = false
     })
     ost.el = el
   }
