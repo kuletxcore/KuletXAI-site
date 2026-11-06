@@ -71,6 +71,10 @@ export function Footer() {
         <a href="/fonts/OFL-00ff.txt" className="underline hover:text-neon">
           SIL Open Font License
         </a>
+        . UI sounds from{' '}
+        <a href="https://antislop.ai.id/install" target="_blank" rel="noreferrer" className="underline hover:text-neon">
+          antislop
+        </a>
         .
       </p>
     </footer>

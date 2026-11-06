@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Footer, Header, SectionHead } from '#/components/site'
+import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, totalChats, totalLikes, trimzSeriesUrl } from '#/data/content'
 
 export const Route = createFileRoute('/')({ component: Home })
@@ -93,6 +94,7 @@ function Stories() {
               <Link
                 to="/stories/$slug"
                 params={{ slug: s.slug }}
+                onClick={() => sfx('enter')}
                 className="group flex h-full flex-col border border-line bg-panel hover:border-neon"
               >
                 <div className="cover relative aspect-[3/4] overflow-hidden border-b border-line">

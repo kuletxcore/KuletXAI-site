@@ -6,6 +6,7 @@ import type { Story } from '#/data/content'
 import { ISK } from '#/data/isk'
 import { BOOT_HEAD_SCRIPT, BootScreen } from '#/components/boot-screen'
 import { Logo } from '#/components/site'
+import { play as sfx, setMuted, useMuted } from '#/lib/sfx'
 import { MotionConfig } from 'motion/react'
 import type { IskCast, IskMedia } from '#/data/isk'
 
@@ -90,6 +91,7 @@ function StoryHub() {
   useEffect(() => setSection('overview'), [story.slug])
 
   const step = (dir: 1 | -1) => {
+    sfx('nav')
     if (tab === 'stories') {
       const next = STORIES[(storyIdx + dir + STORIES.length) % STORIES.length]
       navigate({ to: '/stories/$slug', params: { slug: next.slug }, resetScroll: false })
@@ -98,9 +100,25 @@ function StoryHub() {
     }
   }
 
+  const switchTab = (next?: HubTab) => {
+    const target = next ?? (tab === 'stories' ? 'series' : 'stories')
+    if (target === tab) return
+    sfx('tab')
+    setTab(target)
+  }
+  const pickSection = (s: Section) => {
+    if (s === section) return
+    sfx('nav')
+    setSection(s)
+  }
+  const openModal = (m: Modal) => {
+    sfx('enter')
+    setModal(m)
+  }
+
   // Controller-style keyboard shortcuts
-  const keyState = useRef({ step, sections, primaryHref, tab, modal })
-  keyState.current = { step, sections, primaryHref, tab, modal }
+  const keyState = useRef({ step, sections, primaryHref, tab, modal, switchTab, pickSection })
+  keyState.current = { step, sections, primaryHref, tab, modal, switchTab, pickSection }
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
@@ -115,12 +133,13 @@ function StoryHub() {
         e.preventDefault()
         k.step(-1)
       } else if (e.key === 'Enter' && (!el || el === document.body)) {
+        sfx('enter')
         window.open(k.primaryHref, '_blank', 'noopener')
       } else if (e.key === 'm' || e.key === 'M') {
-        setTab((t) => (t === 'stories' ? 'series' : 'stories'))
+        k.switchTab()
       } else if (k.tab === 'stories' && /^[1-6]$/.test(e.key)) {
         const s = k.sections[Number(e.key) - 1]
-        if (s) setSection(s)
+        if (s) k.pickSection(s)
       }
     }
     window.addEventListener('keydown', onKey)
@@ -143,7 +162,7 @@ function StoryHub() {
       </div>
 
       <div className="ps5-app">
-        <TopBar tab={tab} setTab={setTab} />
+        <TopBar tab={tab} setTab={switchTab} />
 
         {/* Tile ribbon */}
         <div className="ps5-ribbon mt-3 md:mt-5">
@@ -156,6 +175,7 @@ function StoryHub() {
                       params={{ slug: s.slug }}
                       resetScroll={false}
                       aria-current={s.slug === story.slug ? 'page' : undefined}
+                      onClick={() => s.slug !== story.slug && sfx('nav')}
                       aria-label={s.title}
                       className="block h-full w-full"
                     >
@@ -167,7 +187,10 @@ function StoryHub() {
                   <Tile key={t.slug} active={i === seriesIdx} label={t.title}>
                     <button
                       type="button"
-                      onClick={() => setSeriesIdx(i)}
+                      onClick={() => {
+                        if (i !== seriesIdx) sfx('nav')
+                        setSeriesIdx(i)
+                      }}
                       aria-pressed={i === seriesIdx}
                       aria-label={t.title}
                       className="block h-full w-full"
@@ -182,23 +205,23 @@ function StoryHub() {
         {/* Details */}
         <section className="mt-auto flex flex-col gap-3 pt-24 pb-4 md:max-w-[680px] md:pt-6">
           {tab === 'stories' ? (
-            <StoryDetails story={story} section={section} setSection={setSection} sections={sections} series={series} openModal={setModal} />
+            <StoryDetails story={story} section={section} setSection={pickSection} sections={sections} series={series} openModal={openModal} />
           ) : (
             <SeriesDetails idx={seriesIdx} />
           )}
 
           <div className="mt-2 flex items-center gap-3">
-            <a href={primaryHref} target="_blank" rel="noreferrer" className="ps5-cta grow sm:grow-0">
+            <a href={primaryHref} target="_blank" rel="noreferrer" className="ps5-cta grow sm:grow-0" onClick={() => sfx('enter')}>
               <PlayIcon />
               {tab === 'stories' ? 'Play on IsekaiZero' : 'Watch on Trimz'}
             </a>
             {tab === 'stories' && series[0] && (
-              <a href={trimzSeriesUrl(series[0].slug)} target="_blank" rel="noreferrer" className="ps5-round" aria-label="Watch the series on Trimz" title="Watch on Trimz">
+              <a href={trimzSeriesUrl(series[0].slug)} target="_blank" rel="noreferrer" className="ps5-round" aria-label="Watch the series on Trimz" title="Watch on Trimz" onClick={() => sfx('enter')}>
                 <TvIcon />
               </a>
             )}
             <ShareButton />
-            <Link to="/" className="ps5-round" aria-label="KuletX AI home" title="Home">
+            <Link to="/" className="ps5-round" aria-label="KuletX AI home" title="Home" onClick={() => sfx('back')}>
               <HomeIcon />
             </Link>
           </div>
@@ -206,7 +229,7 @@ function StoryHub() {
 
         {modal && <ModalView modal={modal} setModal={setModal} />}
 
-        <BottomBar onPrev={() => step(-1)} onNext={() => step(1)} primaryHref={primaryHref} toggleTab={() => setTab((t) => (t === 'stories' ? 'series' : 'stories'))} />
+        <BottomBar onPrev={() => step(-1)} onNext={() => step(1)} primaryHref={primaryHref} toggleTab={() => switchTab()} />
       </div>
     </div>
     </MotionConfig>
@@ -253,10 +276,11 @@ function TopBar({ tab, setTab }: { tab: HubTab; setTab: (t: HubTab) => void }) {
         </a>
       </nav>
       <div className="flex items-center justify-between gap-5 md:justify-end">
-        <Link to="/" className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur hover:bg-white/20 md:hidden">
+        <Link to="/" onClick={() => sfx('back')} className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur hover:bg-white/20 md:hidden">
           <ChevronLeft /> Back
         </Link>
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-4 md:gap-5">
+          <SoundToggle />
           <Link to="/" aria-label="KuletX AI home" className="shrink-0 transition-transform hover:scale-[1.03]">
             <Logo className="h-8 md:h-9" />
           </Link>
@@ -462,10 +486,14 @@ function tidyCaption(c: string) {
 
 function ModalView({ modal, setModal }: { modal: Modal; setModal: (m: Modal | null) => void }) {
   const closeRef = useRef<HTMLButtonElement>(null)
-  const close = () => setModal(null)
+  const close = () => {
+    sfx('back')
+    setModal(null)
+  }
   const isGallery = modal.kind === 'gallery'
   const go = (d: number) => {
     if (modal.kind !== 'gallery') return
+    sfx('nav')
     setModal({ ...modal, index: (modal.index + d + modal.items.length) % modal.items.length })
   }
   useEffect(() => {
@@ -558,7 +586,7 @@ function BottomBar({
 }) {
   return (
     <footer className="flex items-center justify-between gap-3 border-t border-white/10 pt-3 text-[13px] text-white/75 md:justify-start md:gap-6">
-      <Link to="/" className="hidden items-center gap-1.5 rounded-full border border-white/20 px-3.5 py-1.5 font-semibold text-white hover:bg-white/10 md:inline-flex">
+      <Link to="/" onClick={() => sfx('back')} className="hidden items-center gap-1.5 rounded-full border border-white/20 px-3.5 py-1.5 font-semibold text-white hover:bg-white/10 md:inline-flex">
         <ChevronLeft /> Back
       </Link>
       {/* Desktop: keyboard hints */}
@@ -583,13 +611,42 @@ function BottomBar({
           →
         </button>
       </div>
-      <a href={primaryHref} target="_blank" rel="noreferrer" className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 font-semibold text-white md:hidden">
+      <a href={primaryHref} target="_blank" rel="noreferrer" onClick={() => sfx('enter')} className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 font-semibold text-white md:hidden">
         Enter
       </a>
       <button type="button" onClick={toggleTab} className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 font-semibold text-white md:hidden">
         Switch Tab
       </button>
     </footer>
+  )
+}
+
+function SoundToggle() {
+  const muted = useMuted()
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        setMuted(!muted)
+        if (muted) window.setTimeout(() => sfx('nav'), 30)
+      }}
+      className="grid size-9 place-items-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+      aria-label={muted ? 'Turn sound on' : 'Mute sound'}
+      aria-pressed={muted}
+      title={muted ? 'Sound: off' : 'Sound: on'}
+    >
+      {muted ? (
+        <svg {...iconProps}>
+          <path d="M11 5L6 9H2v6h4l5 4z" />
+          <path d="M23 9l-6 6M17 9l6 6" />
+        </svg>
+      ) : (
+        <svg {...iconProps}>
+          <path d="M11 5L6 9H2v6h4l5 4z" />
+          <path d="M15.5 8.5a5 5 0 010 7M19 5a10 10 0 010 14" />
+        </svg>
+      )}
+    </button>
   )
 }
 
