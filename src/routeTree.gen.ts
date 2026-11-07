@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiIskStatsRouteImport } from './routes/api.isk-stats'
 import { Route as ApiOstRouteImport } from './routes/api.ost'
 import { Route as StoriesSlugRouteImport } from './routes/stories.$slug'
 import { Route as StoriesSlugTrophiesRouteImport } from './routes/stories_.$slug.trophies'
@@ -17,6 +18,11 @@ import { Route as StoriesSlugTrophiesRouteImport } from './routes/stories_.$slug
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiIskStatsRoute = ApiIskStatsRouteImport.update({
+  id: '/api/isk-stats',
+  path: '/api/isk-stats',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiOstRoute = ApiOstRouteImport.update({
@@ -37,12 +43,14 @@ const StoriesSlugTrophiesRoute = StoriesSlugTrophiesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/isk-stats': typeof ApiIskStatsRoute
   '/api/ost': typeof ApiOstRoute
   '/stories/$slug': typeof StoriesSlugRoute
   '/stories/$slug/trophies': typeof StoriesSlugTrophiesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/isk-stats': typeof ApiIskStatsRoute
   '/api/ost': typeof ApiOstRoute
   '/stories/$slug': typeof StoriesSlugRoute
   '/stories/$slug/trophies': typeof StoriesSlugTrophiesRoute
@@ -50,18 +58,30 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/isk-stats': typeof ApiIskStatsRoute
   '/api/ost': typeof ApiOstRoute
   '/stories/$slug': typeof StoriesSlugRoute
   '/stories_/$slug/trophies': typeof StoriesSlugTrophiesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/ost' | '/stories/$slug' | '/stories/$slug/trophies'
+  fullPaths:
+    | '/'
+    | '/api/isk-stats'
+    | '/api/ost'
+    | '/stories/$slug'
+    | '/stories/$slug/trophies'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/ost' | '/stories/$slug' | '/stories/$slug/trophies'
+  to:
+    | '/'
+    | '/api/isk-stats'
+    | '/api/ost'
+    | '/stories/$slug'
+    | '/stories/$slug/trophies'
   id:
     | '__root__'
     | '/'
+    | '/api/isk-stats'
     | '/api/ost'
     | '/stories/$slug'
     | '/stories_/$slug/trophies'
@@ -69,6 +89,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiIskStatsRoute: typeof ApiIskStatsRoute
   ApiOstRoute: typeof ApiOstRoute
   StoriesSlugRoute: typeof StoriesSlugRoute
   StoriesSlugTrophiesRoute: typeof StoriesSlugTrophiesRoute
@@ -81,6 +102,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/isk-stats': {
+      id: '/api/isk-stats'
+      path: '/api/isk-stats'
+      fullPath: '/api/isk-stats'
+      preLoaderRoute: typeof ApiIskStatsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/ost': {
@@ -109,6 +137,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiIskStatsRoute: ApiIskStatsRoute,
   ApiOstRoute: ApiOstRoute,
   StoriesSlugRoute: StoriesSlugRoute,
   StoriesSlugTrophiesRoute: StoriesSlugTrophiesRoute,

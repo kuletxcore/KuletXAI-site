@@ -874,3 +874,25 @@ html.kx-boot body::before {
   transform: none;
   transition: none;
 }
+
+/* Live IsekaiZero counts (src/lib/isk-stats.ts): a small dot that breathes */
+.kx-live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 9999px;
+  background: #4ade80;
+  box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.55);
+  animation: kx-live 2.4s ease-out infinite;
+}
+@keyframes kx-live {
+  0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.55); }
+  70%, 100% { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
+}
+.kx-lite .kx-live-dot {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kx-live-dot { animation: none; }
+}

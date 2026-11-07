@@ -66,8 +66,10 @@ export type Story = {
   cover: string
   rating: 'SFW' | '17+'
   tags: string[]
+  /** IsekaiZero counts baked in at build time; useIskStats() swaps in live numbers */
   likes: number
   chats: number
+  messages: number
   /** Accent color for this story's mini-site */
   accent: string
   kicker: string
@@ -94,8 +96,9 @@ export const STORIES: Story[] = [
     cover: '/covers/1.webp',
     rating: '17+',
     tags: ['Spy', 'Thriller', 'Undercover'],
-    likes: 156,
-    chats: 129,
+    likes: 158,
+    chats: 132,
+    messages: 3104,
     accent: '#ff3b5c',
     kicker: 'Acolyte Consultancy · Agent 00 file',
     pitch: [
@@ -127,8 +130,9 @@ export const STORIES: Story[] = [
     cover: '/covers/3.webp',
     rating: '17+',
     tags: ['Kaiju', 'Giantess', 'Apocalypse'],
-    likes: 32,
+    likes: 33,
     chats: 38,
+    messages: 726,
     accent: '#38bdf8',
     kicker: 'Rift Response Division · Eyes only',
     pitch: [
@@ -158,6 +162,7 @@ export const STORIES: Story[] = [
     tags: ['High School', 'Rivals', 'Slow Burn'],
     likes: 14,
     chats: 20,
+    messages: 398,
     accent: '#f5b301',
     kicker: 'Kingsmere Academy · The vacant seat',
     pitch: [
@@ -193,6 +198,7 @@ export const STORIES: Story[] = [
     tags: ['Academy', 'Superpower', 'Comedy'],
     likes: 11,
     chats: 10,
+    messages: 1296,
     accent: '#a78bfa',
     kicker: 'Meridian · Rolling…',
     pitch: [
@@ -224,6 +230,7 @@ export const STORIES: Story[] = [
     tags: ['Fantasy', 'Comedy', 'Transmigration'],
     likes: 5,
     chats: 9,
+    messages: 110,
     accent: '#f59e0b',
     kicker: 'Alderfall · One soul, four legs, zero joints',
     pitch: [
@@ -247,3 +254,4 @@ export const STORIES: Story[] = [
 
 export const totalLikes = STORIES.reduce((n, s) => n + s.likes, 0)
 export const totalChats = STORIES.reduce((n, s) => n + s.chats, 0)
+export const totalMessages = STORIES.reduce((n, s) => n + s.messages, 0)

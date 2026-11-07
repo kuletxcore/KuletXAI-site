@@ -1,7 +1,10 @@
+import type { ReactNode } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Footer, Header, SectionHead } from '#/components/site'
 import { play as sfx } from '#/lib/sfx'
-import { LINKS, STORIES, TRIMZ, totalChats, totalLikes, trimzSeriesUrl } from '#/data/content'
+import { LINKS, STORIES, TRIMZ, trimzSeriesUrl } from '#/data/content'
+import { LiveCount, LiveDot } from '#/components/live-count'
+import { countOf, totalOf, useIskStats } from '#/lib/isk-stats'
 
 export const Route = createFileRoute('/')({ component: Home })
 
@@ -21,6 +24,7 @@ function Home() {
 }
 
 function Hero() {
+  const live = useIskStats()
   return (
     <section id="top" className="relative overflow-hidden border-b border-line">
       <div className="grid-bg absolute inset-0" aria-hidden />
@@ -59,8 +63,16 @@ function Hero() {
           </div>
           <dl className="mt-4 space-y-3">
             <Stat label="public storylines" value={STORIES.length} />
-            <Stat label="player likes" value={totalLikes} />
-            <Stat label="chats started" value={totalChats} />
+            <Stat
+              label={
+                <>
+                  messages sent <LiveDot className="ml-1" />
+                </>
+              }
+              value={<LiveCount value={totalOf(live, 'messages')} />}
+            />
+            <Stat label="player likes" value={<LiveCount value={totalOf(live, 'likes')} />} />
+            <Stat label="chats started" value={<LiveCount value={totalOf(live, 'chats')} />} />
             <Stat label="trimz series" value={TRIMZ.length} />
             <Stat label="motto" value="outslopping the competition" small />
           </dl>
@@ -70,16 +82,17 @@ function Hero() {
   )
 }
 
-function Stat({ label, value, small }: { label: string; value: string | number; small?: boolean }) {
+function Stat({ label, value, small }: { label: ReactNode; value: ReactNode; small?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
-      <dt className="text-mute">{label}</dt>
+      <dt className="flex items-center text-mute">{label}</dt>
       <dd className={small ? 'text-right text-warn' : 'pixel font-pixel text-2xl text-neon'}>{value}</dd>
     </div>
   )
 }
 
 function Stories() {
+  const live = useIskStats()
   return (
     <section id="stories" className="scroll-mt-16 border-b border-line">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
@@ -128,8 +141,9 @@ function Stories() {
                     ))}
                   </div>
                   <div className="mt-5 flex items-center justify-between border-t border-line pt-4 font-gamer text-xs">
-                    <span className="text-mute">
-                      ♥ {s.likes} · ✉ {s.chats}
+                    <span className="text-mute" title="Likes · chats · messages on IsekaiZero">
+                      ♥ <LiveCount value={countOf(live, s, 'likes')} /> · ✉ <LiveCount value={countOf(live, s, 'chats')} /> ·{' '}
+                      <LiveCount value={countOf(live, s, 'messages')} compact /> MSG
                     </span>
                     <span className="text-neon">ENTER →</span>
                   </div>

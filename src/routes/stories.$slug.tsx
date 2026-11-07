@@ -4,6 +4,8 @@ import type { ReactNode } from 'react'
 import { STORIES, TRIMZ, isekaiStoryUrl, trimzSeriesUrl } from '#/data/content'
 import type { Logo as TitleArt, Story } from '#/data/content'
 import { ISK } from '#/data/isk'
+import { LiveCount, LiveDot } from '#/components/live-count'
+import { countOf, useIskStats } from '#/lib/isk-stats'
 import { BOOT_HEAD_SCRIPT, BootScreen } from '#/components/boot-screen'
 import { Logo } from '#/components/site'
 import { isMuted, play as sfx, setMuted, useMuted } from '#/lib/sfx'
@@ -939,9 +941,19 @@ function StoryDetails({
   openModal: (m: Modal) => void
 }) {
   const isk = ISK[story.slug]
+  const live = useIskStats()
   return (
     <>
-      <Badge pill="IsekaiZero" meta={[story.rating, ...story.tags]} />
+      <Badge
+        pill="IsekaiZero"
+        meta={[story.rating, ...story.tags]}
+        extra={
+          <span className="flex items-center gap-1.5" title="Messages players have sent in this story on IsekaiZero">
+            <LiveDot />
+            <LiveCount value={countOf(live, story, 'messages')} /> messages
+          </span>
+        }
+      />
       <TitleLogo key={story.slug} title={story.title} logo={story.logo} />
       <p className="ps5-shadow max-w-[560px] text-sm leading-relaxed text-white/85 md:text-[15px]">{story.logline}</p>
 
@@ -967,7 +979,8 @@ function StoryDetails({
               <p key={p.slice(0, 24)}>{p}</p>
             ))}
             <p className="pt-1 text-xs font-semibold text-white/55">
-              ♥ {story.likes} likes · {story.chats} chats on IsekaiZero
+              ♥ <LiveCount value={countOf(live, story, 'likes')} /> likes · <LiveCount value={countOf(live, story, 'chats')} /> chats ·{' '}
+              <LiveCount value={countOf(live, story, 'messages')} /> messages on IsekaiZero
             </p>
             {STORY_MUSIC[story.slug]?.ost && (
               <p className="text-xs text-white/55">
@@ -1294,7 +1307,7 @@ function VideoDetails({ video }: { video?: YtVideo }) {
   )
 }
 
-function Badge({ pill, meta }: { pill: string; meta: string[] }) {
+function Badge({ pill, meta, extra }: { pill: string; meta: string[]; extra?: ReactNode }) {
   return (
     <div className="ps5-shadow flex flex-wrap items-center gap-2 text-[13px] text-white/75">
       <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-bold text-white backdrop-blur">{pill}</span>
@@ -1304,6 +1317,12 @@ function Badge({ pill, meta }: { pill: string; meta: string[] }) {
           {m}
         </span>
       ))}
+      {extra && (
+        <>
+          <span className="text-white/40">•</span>
+          {extra}
+        </>
+      )}
     </div>
   )
 }
