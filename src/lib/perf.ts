@@ -47,7 +47,7 @@ function apply() {
 }
 
 /** Old integrated GPUs and software renderers that struggle with video + blur. */
-const WEAK_GPU = /intel(\(r\))? hd graphics(?! [5-6]\d\d)|\bgma\b|mobile intel|swiftshader|llvmpipe|softpipe|software|basic render/i
+const WEAK_GPU = /intel(\(r\))? hd graphics|\bgma\b|mobile intel|swiftshader|llvmpipe|softpipe|\bsoftware\b|basic render/i
 
 function weakGpu() {
   try {
@@ -87,7 +87,7 @@ export function watchFrameRate() {
   let raf = 0
   let timer = window.setTimeout(function sample() {
     if (document.hidden || window.__kxBootActive) {
-      timer = window.setTimeout(sample, 2000)
+      timer = window.setTimeout(sample, 800)
       return
     }
     const gaps: number[] = []
@@ -96,17 +96,20 @@ export function watchFrameRate() {
     const frame = (now: number) => {
       if (last) gaps.push(now - last)
       last = now
-      if (document.hidden) return // tab hidden mid-sample: give up for this load
-      if (now - start < 2500) {
+      if (document.hidden) return
+      if (now - start < 1200) {
         raf = requestAnimationFrame(frame)
         return
       }
       gaps.sort((a, b) => a - b)
       const median = gaps[gaps.length >> 1] ?? 0
-      if (gaps.length > 10 && median > 34) markAutoLite() // under ~30 fps most of the time
+      // A 10-year-old Intel HD can miss the "enough frames" check by being
+      // too slow to deliver them. Few frames is the same answer as slow frames.
+      const fps = gaps.length / ((now - start) / 1000)
+      if (fps < 28 || median > 34) markAutoLite()
     }
     raf = requestAnimationFrame(frame)
-  }, 4000)
+  }, 1200)
   return () => {
     clearTimeout(timer)
     cancelAnimationFrame(raf)

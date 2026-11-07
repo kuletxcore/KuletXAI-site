@@ -803,9 +803,22 @@ html.kx-boot body::before {
 .kx-lite .kx-boot-logo {
   filter: none;
 }
+.kx-lite .ps5-layer-art {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
 .kx-lite .ps5-tile {
+  contain: paint;
+  box-shadow: none;
   transition: opacity 0.12s linear, border-color 0.12s linear;
 }
-.kx-lite .ps5-tile:hover {
+.kx-lite .ps5-tile:hover,
+.kx-lite .ps5-tile.is-active {
   transform: none;
+  box-shadow: none;
+}
+.kx-lite .cover img,
+.kx-lite .cover:hover img {
+  transform: none;
+  transition: none;
 }

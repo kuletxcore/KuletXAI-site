@@ -21,13 +21,14 @@ const EASE = [0.4, 0, 0.2, 1] as const
 
 type Phase = 'off' | 'curtain' | 'playing' | 'leaving' | 'lifting'
 
-/** Inline script for <head>: blacks out the page before first paint when the boot will run. */
-export const BOOT_HEAD_SCRIPT = `try{if(typeof window.__kxBoot!=='boolean'){var n=performance.getEntriesByType('navigation')[0];window.__kxBoot=!sessionStorage.getItem('${SESSION_KEY}')&&!(n&&n.type==='reload');if(window.__kxBoot)document.documentElement.classList.add('kx-boot')}}catch(e){}`
+/** Inline script for <head>: blacks out the page and starts the startup sound before first paint. */
+export const BOOT_HEAD_SCRIPT = `try{if(typeof window.__kxBoot!=='boolean'){var n=performance.getEntriesByType('navigation')[0];window.__kxBoot=!sessionStorage.getItem('${SESSION_KEY}')&&!(n&&n.type==='reload');if(window.__kxBoot){document.documentElement.classList.add('kx-boot');if(localStorage.getItem('kx_sound')!=='off'){var a=new Audio('/sfx/ps5-startup.mp3');a.preload='auto';a.volume=0.85;window.__kxBootAudio=a;var p=a.play();if(p&&p.catch)p.catch(function(){})}}}}catch(e){}`
 
 declare global {
   interface Window {
     __kxBoot?: boolean
     __kxBootActive?: boolean
+    __kxBootAudio?: HTMLAudioElement
     UnicornStudio?: {
       isInitialized?: boolean
       init?: () => Promise<unknown>
@@ -62,6 +63,26 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
   const lite = useLite()
   const timers = useRef<number[]>([])
   const decision = useRef<boolean | null>(null)
+  const startup = useRef<HTMLAudioElement | null>(null)
+  const armStartup = useCallback(() => {
+    if (isMuted()) {
+      window.__kxBootAudio?.pause()
+      return null
+    }
+    if (!startup.current) {
+      const early = window.__kxBootAudio
+      if (early) startup.current = early
+      else {
+        const audio = new Audio('/sfx/ps5-startup.mp3')
+        audio.preload = 'auto'
+        audio.volume = 0.85
+        startup.current = audio
+      }
+    }
+    const audio = startup.current
+    if (audio.paused) void audio.play().catch(() => {})
+    return audio
+  }, [])
 
   useIsoLayoutEffect(() => {
     if (decision.current === null) decision.current = decideBoot()
@@ -73,6 +94,7 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
       /* private mode: boot may replay, that's fine */
     }
     setPhase((p) => (p === 'off' ? 'curtain' : p))
+    armStartup()
     // Let the black curtain paint, then start the synced fade-in
     timers.current.push(window.setTimeout(() => setPhase('playing'), 250))
     timers.current.push(window.setTimeout(() => setPhase((p) => (p === 'playing' ? 'leaving' : p)), 250 + HOLD_UNTIL_MS))
@@ -81,7 +103,7 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
       ids.forEach(clearTimeout)
       timers.current = []
     }
-  }, [])
+  }, [armStartup])
 
   // Lets other input (the gamepad) know the start screen is up
   useEffect(() => {
@@ -90,19 +112,6 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
       window.__kxBootActive = false
     }
   }, [phase])
-
-  // Authentic startup sound. It keeps playing through the fade; a skip cuts it.
-  const startup = useRef<HTMLAudioElement | null>(null)
-  useEffect(() => {
-    if (phase !== 'playing' || isMuted() || startup.current) return
-    const audio = new Audio('/sfx/ps5-startup.mp3')
-    audio.volume = 0.85
-    startup.current = audio
-    void audio.play().catch(() => {})
-  }, [phase])
-  useEffect(() => () => {
-    startup.current?.pause()
-  }, [])
 
   // Hub music waits until the start screen is gone, and until the startup sound ends
   useEffect(() => {
@@ -120,7 +129,13 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
   }, [phase])
 
   const skip = useCallback(() => {
-    startup.current?.pause()
+    const audio = startup.current
+    // The browser blocked the sound: this press is the unlock, not a skip.
+    if (audio && audio.paused && audio.currentTime < 0.05) {
+      void audio.play().catch(() => {})
+      return
+    }
+    audio?.pause()
     setFast(true)
     setPhase((p) => (p === 'curtain' || p === 'playing' ? 'leaving' : p))
   }, [])
