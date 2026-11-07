@@ -271,7 +271,10 @@ function StoryHub() {
     if (tab !== 'stories') return
     const i = sections.indexOf(section)
     const next = sections[i + dir]
-    if (next) pickSection(next)
+    if (next) {
+      pickSection(next)
+      requestAnimationFrame(revealSections)
+    }
   }
   const openModal = (m: Modal) => {
     sfx('enter')
@@ -511,7 +514,7 @@ function StoryHub() {
         </div>
 
         {/* Details */}
-        <section data-sub-scope className="mt-auto flex flex-col gap-3 pt-24 pb-4 md:max-w-[680px] md:pt-6">
+        <section data-sub-scope className="ps5-details mt-auto flex flex-col gap-3 pt-24 pb-4 md:max-w-[680px] md:pt-6">
           {tab === 'stories' ? (
             <StoryDetails story={story} section={section} setSection={pickSection} sections={sections} series={series} openModal={openModal} />
           ) : tab === 'series' ? (
@@ -675,6 +678,24 @@ const Backdrop = memo(function Backdrop({ src, blurSrc, video: videoSrc, active 
 })
 
 const COARSE = '(pointer: coarse)'
+const SHORT_LANDSCAPE = '(orientation: landscape) and (max-height: 540px)'
+
+/**
+ * Short landscape screens scroll the page (see styles.css): after the D-pad or
+ * arrow keys change section, bring the section pills and panel into view.
+ */
+function revealSections() {
+  if (!window.matchMedia(SHORT_LANDSCAPE).matches) return
+  const pills = document.querySelector('.ps5 [aria-label="Story sections"]')
+  const panel = document.querySelector('.ps5 .ps5-panel')
+  if (!pills || !panel) return
+  const top = pills.getBoundingClientRect().top - 8
+  const bottom = panel.getBoundingClientRect().bottom + 8
+  let dy = 0
+  if (bottom > innerHeight) dy = Math.min(bottom - innerHeight, top) // keep the pills on screen
+  else if (top < 0) dy = top
+  if (Math.abs(dy) > 1) window.scrollBy({ top: dy, behavior: 'smooth' })
+}
 // Which story/tab owns the OST player right now (null while the hub isn't mounted)
 let ostScope: string | null = null
 
@@ -879,7 +900,7 @@ function Tile({ active, label, children }: { active: boolean; label: string; chi
 function TopBar({ tab, setTab, pad, nowPlaying }: { tab: HubTab; setTab: (t: HubTab) => void; pad: { connected: boolean; kind: PadKind }; nowPlaying: Track | null }) {
   const labels = PAD_LABEL[pad.kind]
   return (
-    <header className="flex flex-col-reverse gap-4 md:flex-row md:items-center md:justify-between">
+    <header className="ps5-top flex flex-col-reverse gap-4 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-3 md:gap-4">
         <ShoulderHint label={pad.connected ? labels.lb : 'Q'} />
         <nav className="ps5-tabs flex gap-6 md:gap-8" role="tablist" aria-label="Hub">
@@ -972,7 +993,7 @@ function StoryDetails({
         ))}
       </div>
 
-      <div className="ps5-glass ps5-scroll max-h-[34vh] overflow-y-auto px-5 py-4 md:max-h-[30vh]" role="tabpanel">
+      <div className="ps5-glass ps5-scroll ps5-panel max-h-[34vh] overflow-y-auto px-5 py-4 md:max-h-[30vh]" role="tabpanel">
         {section === 'overview' && (
           <div className="space-y-3 text-sm leading-relaxed text-white/85">
             {story.pitch.map((p) => (
@@ -1600,7 +1621,7 @@ function BottomBar({
 }) {
   const l = PAD_LABEL[pad.kind]
   return (
-    <footer className="flex items-center justify-between gap-3 border-t border-white/10 pt-3 text-[13px] text-white/75 md:justify-start md:gap-6">
+    <footer className="ps5-bottom flex items-center justify-between gap-3 border-t border-white/10 pt-3 text-[13px] text-white/75 md:justify-start md:gap-6">
       <Link to="/" onClick={() => sfx('back')} className="hidden items-center gap-1.5 rounded-full border border-white/20 px-3.5 py-1.5 font-semibold text-white hover:bg-white/10 md:inline-flex">
         <ChevronLeft /> Back
       </Link>
