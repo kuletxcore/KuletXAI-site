@@ -11,6 +11,7 @@ import { Logo } from '#/components/site'
 import { isMuted, play as sfx, setMuted, useMuted } from '#/lib/sfx'
 import { glideIntoView, glideTo, stopAllGlides } from '#/lib/smooth-scroll'
 import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
+import { PlatformChip, PlatformIcon, type Platform } from '#/components/platform'
 import { setPerfMode, useLite, usePerfMode, watchFrameRate } from '#/lib/perf'
 import { holdForMedia, playOst, setMusic, setMusicVolume, stopOst, useMusicVolume, useOstState } from '#/lib/music'
 import { OSTS } from '#/data/ost'
@@ -79,6 +80,7 @@ export const Route = createFileRoute('/stories/$slug')({
 type HubTab = 'stories' | 'series' | 'youtube'
 const TAB_ORDER: HubTab[] = ['stories', 'series', 'youtube']
 const TAB_LABEL: Record<HubTab, string> = { stories: 'Storylines', series: 'Trimz Series', youtube: 'YouTube' }
+const TAB_PLATFORM: Record<HubTab, Platform> = { stories: 'isk', series: 'trimz', youtube: 'youtube' }
 type Section = 'overview' | 'intro' | 'cast' | 'gallery' | 'ost' | 'trophies' | 'world' | 'watch'
 
 const SECTION_LABEL: Record<Section, string> = {
@@ -556,7 +558,7 @@ function StoryHub() {
             )}
             {tab === 'stories' && series[0] && (
               <a href={trimzSeriesUrl(series[0].slug)} target="_blank" rel="noreferrer" className="ps5-round" aria-label="Watch the series on Trimz" title="Watch on Trimz" onClick={() => sfx('enter')}>
-                <TvIcon />
+                <PlatformIcon platform="trimz" className="!h-[22px]" />
               </a>
             )}
             <ShareButton />
@@ -910,6 +912,7 @@ function TopBar({ tab, setTab, pad, nowPlaying }: { tab: HubTab; setTab: (t: Hub
         <nav className="ps5-tabs flex gap-6 md:gap-8" role="tablist" aria-label="Hub">
           {TAB_ORDER.map((t) => (
             <button key={t} type="button" role="tab" aria-selected={tab === t} className={`ps5-tab ${tab === t ? 'is-active' : ''}`} onClick={() => setTab(t)}>
+              <PlatformIcon platform={TAB_PLATFORM[t]} />
               {TAB_LABEL[t]}
             </button>
           ))}
@@ -970,7 +973,7 @@ function StoryDetails({
   return (
     <>
       <Badge
-        pill="IsekaiZero"
+        platform="isk"
         meta={[story.rating, ...story.tags]}
         extra={
           <span className="flex items-center gap-1.5" title="Messages players have sent in this story on IsekaiZero">
@@ -1056,8 +1059,9 @@ function StoryDetails({
                     <span className="mt-1.5 block text-xs leading-snug font-semibold text-white/90">{c.name}</span>
                     {c.role === 'persona' && <span className="block text-[10px] font-bold tracking-wide text-white/50 uppercase">You play</span>}
                     {castTrimz(c.id) && (
-                      <span className="mt-0.5 block text-[10px] font-bold tracking-wide text-[#ff7aa2] uppercase">
-                        ▶ Trimz{castTrimz(c.id)!.key === 'side-b' ? ' · Side B' : ''}
+                      <span className="mt-0.5 flex items-center gap-1 text-[10px] font-bold tracking-wide text-white/75 uppercase">
+                        <PlatformIcon platform="trimz" className="!h-3" />
+                        Trimz{castTrimz(c.id)!.key === 'side-b' ? ' · Side B' : ''}
                       </span>
                     )}
                   </button>
@@ -1121,7 +1125,7 @@ function SeriesDetails({ idx, onOpenStory }: { idx: number; onOpenStory: (slug: 
   const related = STORIES.find((s) => s.trimz?.includes(t.slug))
   return (
     <>
-      <Badge pill="Trimz" meta={[`${t.episodes} episode${t.episodes === 1 ? '' : 's'}`, `${t.views} views`]} />
+      <Badge platform="trimz" meta={[`${t.episodes} episode${t.episodes === 1 ? '' : 's'}`, `${t.views} views`]} />
       <TitleLogo key={t.slug} title={t.title} logo={t.logo} />
       <p className="ps5-shadow max-w-[560px] text-sm leading-relaxed text-white/85 md:text-[15px]">{t.summary}</p>
       {related && (
@@ -1277,7 +1281,7 @@ function VideoDetails({ video }: { video?: YtVideo }) {
   if (!video) {
     return (
       <>
-        <Badge pill="YouTube" meta={['@kuletxai']} />
+        <Badge platform="youtube" meta={['@kuletxai']} />
         <h1 className="ps5-title">No videos yet</h1>
         <p className="ps5-shadow text-sm text-white/85">New uploads on the channel show up here automatically.</p>
       </>
@@ -1286,7 +1290,7 @@ function VideoDetails({ video }: { video?: YtVideo }) {
   const related = STORIES.find((s) => video.title.toLowerCase().startsWith(s.title.split(':')[0].toLowerCase()))
   return (
     <>
-      <Badge pill="YouTube" meta={[video.short ? 'Short' : 'Episode', fmtDate(video.published), `${video.views.toLocaleString('en-US')} views`]} />
+      <Badge platform="youtube" meta={[video.short ? 'Short' : 'Episode', fmtDate(video.published), `${video.views.toLocaleString('en-US')} views`]} />
       <h1 key={video.id} className="ps5-title">
         {video.title}
       </h1>
@@ -1337,10 +1341,10 @@ function VideoDetails({ video }: { video?: YtVideo }) {
   )
 }
 
-function Badge({ pill, meta, extra }: { pill: string; meta: string[]; extra?: ReactNode }) {
+function Badge({ platform, meta, extra }: { platform: Platform; meta: string[]; extra?: ReactNode }) {
   return (
     <div className="ps5-shadow flex flex-wrap items-center gap-2 text-[13px] text-white/75">
-      <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-bold text-white backdrop-blur">{pill}</span>
+      <PlatformChip platform={platform} />
       {meta.map((m, i) => (
         <span key={m} className="flex items-center gap-2">
           {i > 0 && <span className="text-white/40">•</span>}
@@ -1581,11 +1585,13 @@ function ModalView({ modal, setModal, padLabel }: { modal: Modal; setModal: (m: 
                           href={trimzSeriesUrl(watch.slug)}
                           target="_blank"
                           rel="noreferrer"
-                          className="ps5-pill ml-auto shrink-0 whitespace-nowrap"
+                          className="ps5-pill ml-auto inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap"
                           title={`Watch ${watch.title} on Trimz`}
                           onClick={() => sfx('enter')}
                         >
-                          {padLabel && <span className="ps5-key mr-1.5">{padLabel}</span>}▶ {watch.key === 'side-b' ? 'Side B' : 'Watch'} on Trimz
+                          {padLabel && <span className="ps5-key">{padLabel}</span>}
+                          <PlatformIcon platform="trimz" />
+                          {watch.key === 'side-b' ? 'Side B' : 'Watch'} on Trimz
                         </a>
                       )
                     )
@@ -1885,12 +1891,6 @@ const iconProps = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', s
 const PlayIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
     <path d="M6 4l15 8-15 8z" />
-  </svg>
-)
-const TvIcon = () => (
-  <svg {...iconProps}>
-    <rect x="3" y="6" width="18" height="13" rx="2" />
-    <path d="M8 2l4 4 4-4" />
   </svg>
 )
 const ShareIcon = () => (
