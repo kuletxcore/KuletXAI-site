@@ -155,11 +155,15 @@ a:focus-visible {
   inset: 0;
   opacity: 0;
   transform: scale(1.03);
-  transition: opacity 0.5s var(--ps-ease), transform 0.9s var(--ps-ease);
+  /* hidden layers stop being drawn once they've faded out (one per story/video) */
+  visibility: hidden;
+  transition: opacity 0.5s var(--ps-ease), transform 0.9s var(--ps-ease), visibility 0s linear 0.5s;
 }
 .ps5-layer.is-active {
   opacity: 1;
   transform: scale(1);
+  visibility: visible;
+  transition: opacity 0.5s var(--ps-ease), transform 0.9s var(--ps-ease), visibility 0s;
 }
 .ps5-layer-blur {
   position: absolute;
@@ -766,4 +770,42 @@ html.kx-boot body::before {
     scroll-snap-type: none;
     overscroll-behavior-x: contain;
   }
+}
+
+/* ── Lite graphics (older PCs; see src/lib/perf.ts) ──
+   Still backgrounds (the hub renders no video), no blur of any kind, no
+   full-screen blend layers, and tiles that change size instantly. */
+.kx-lite *,
+.kx-lite *::before,
+.kx-lite *::after {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.kx-lite .ps5-glass {
+  background: rgba(14, 16, 22, 0.9);
+}
+.kx-lite .ps5-round {
+  background: rgba(22, 24, 32, 0.85);
+}
+.kx-lite .ps5-layer-blur,
+.kx-lite .kx-trophies-bg img,
+.kx-lite .kx-boot-noise {
+  display: none;
+}
+.kx-lite .ps5-layer {
+  transform: none;
+  transition: opacity 0.25s linear, visibility 0s linear 0.25s;
+}
+.kx-lite .ps5-layer.is-active {
+  transition: opacity 0.25s linear, visibility 0s;
+}
+.kx-lite .ps5-logo,
+.kx-lite .kx-boot-logo {
+  filter: none;
+}
+.kx-lite .ps5-tile {
+  transition: opacity 0.12s linear, border-color 0.12s linear;
+}
+.kx-lite .ps5-tile:hover {
+  transform: none;
 }

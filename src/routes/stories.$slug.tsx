@@ -8,6 +8,7 @@ import { BOOT_HEAD_SCRIPT, BootScreen } from '#/components/boot-screen'
 import { Logo } from '#/components/site'
 import { isMuted, play as sfx, setMuted, useMuted } from '#/lib/sfx'
 import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
+import { setPerfMode, useLite, usePerfMode, watchFrameRate } from '#/lib/perf'
 import { holdForMedia, playOst, setMusic, setMusicVolume, stopOst, useMusicVolume, useOstState } from '#/lib/music'
 import { OSTS } from '#/data/ost'
 import { TROPHIES } from '#/data/trophies'
@@ -353,6 +354,8 @@ function StoryHub() {
     tab === 'stories' ? (STORY_MUSIC[story.slug] ?? null) : tab === 'series' ? (SERIES_MUSIC[activeSeries.slug] ?? null) : null
   useEffect(() => setMusic(nowPlaying?.src ?? null), [nowPlaying?.src])
   useEffect(() => () => setMusic(null), [])
+  // Auto graphics: drop to Lite if this PC can't hold a decent frame rate
+  useEffect(() => watchFrameRate(), [])
   // The OST player belongs to one story: leaving it (or the tab) hands back to the
   // background music. Opening that story's trophy list keeps the soundtrack going.
   useEffect(() => {
@@ -577,7 +580,10 @@ function loadPlan(): LoadPlan {
  * Progressive backdrop: the still image paints first, a small WebM loop fades
  * in once it plays, then the original MP4 loads and takes over in sync.
  */
-function Backdrop({ src, blurSrc, video, active }: { src: string; blurSrc?: string; video?: string; active: boolean }) {
+function Backdrop({ src, blurSrc, video: videoSrc, active }: { src: string; blurSrc?: string; video?: string; active: boolean }) {
+  // Lite graphics: the still image only
+  const lite = useLite()
+  const video = lite ? undefined : videoSrc
   const [plan, setPlan] = useState<LoadPlan | null>(null)
   const [stage, setStage] = useState(0) // 0 still, 1 preview, 2 full
   // The top layer has finished fading in. Layers under it are then hidden:
@@ -592,6 +598,13 @@ function Backdrop({ src, blurSrc, video, active }: { src: string; blurSrc?: stri
   const previewRef = useRef<HTMLVideoElement>(null)
   const fullRef = useRef<HTMLVideoElement>(null)
   const synced = useRef(false)
+  // Lite graphics dropped the videos: start over from the still when they come back
+  useEffect(() => {
+    if (video) return
+    setStage(0)
+    setSettled(0)
+    synced.current = false
+  }, [video])
 
   // Only start loading video the first time this item is highlighted; keep it afterwards
   useEffect(() => {
@@ -610,15 +623,15 @@ function Backdrop({ src, blurSrc, video, active }: { src: string; blurSrc?: stri
       if (active) void full.play().catch(() => {})
       else full.pause()
     }
-  }, [active, stage, plan])
+  }, [active, stage, plan, video])
 
   const webm = video?.replace(/\.mp4$/, '.webm')
-  const loadFull = !!plan?.full && (stage >= 1 || !plan.preview)
+  const loadFull = !!video && !!plan?.full && (stage >= 1 || !plan.preview)
 
   return (
     <div className={`ps5-layer ${active ? 'is-active' : ''}`}>
       <img className="ps5-layer-blur" src={blurSrc ?? src} alt="" loading={active ? 'eager' : 'lazy'} />
-      <img className={`ps5-layer-art ${settled >= 1 ? 'invisible' : ''}`} src={src} alt="" loading={active ? 'eager' : 'lazy'} />
+      <img className={`ps5-layer-art ${settled >= 1 && video ? 'invisible' : ''}`} src={src} alt="" loading={active ? 'eager' : 'lazy'} />
       {plan?.preview && webm && (
         <video
           ref={previewRef}
@@ -1638,7 +1651,7 @@ function SoundMenu({ nowPlaying }: { nowPlaying: Track | null }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="grid size-9 place-items-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
-        aria-label="Sound settings"
+        aria-label="Sound and graphics settings"
         aria-expanded={open}
         title={muted ? 'Sound: off' : 'Sound: on'}
       >
@@ -1655,7 +1668,7 @@ function SoundMenu({ nowPlaying }: { nowPlaying: Track | null }) {
         )}
       </button>
       {open && (
-        <div className="ps5-glass fixed inset-x-4 top-16 z-50 !bg-[#0b0d12]/90 p-4 text-sm md:absolute md:inset-x-auto md:top-11 md:right-0 md:w-72" role="dialog" aria-label="Sound settings">
+        <div className="ps5-glass fixed inset-x-4 top-16 z-50 !bg-[#0b0d12]/90 p-4 text-sm md:absolute md:inset-x-auto md:top-11 md:right-0 md:w-72" role="dialog" aria-label="Sound and graphics settings">
           <label className="flex items-center justify-between gap-3">
             <span className="font-semibold">Sound</span>
             <button
@@ -1690,6 +1703,7 @@ function SoundMenu({ nowPlaying }: { nowPlaying: Track | null }) {
               className="ps5-range mt-2 w-full"
             />
           </div>
+          <GraphicsSwitch />
           <div className="mt-4 border-t border-white/10 pt-3 text-xs text-white/60">
             {nowPlaying ? (
               <>
@@ -1714,6 +1728,47 @@ function SoundMenu({ nowPlaying }: { nowPlaying: Track | null }) {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+function GraphicsSwitch() {
+  const lite = useLite()
+  const { mode, autoLite } = usePerfMode()
+  const note =
+    mode === 'auto' && autoLite
+      ? 'Turned on automatically for this PC.'
+      : lite
+        ? 'Still backgrounds, no blur or motion effects.'
+        : 'For older PCs: still backgrounds, no blur or motion effects.'
+  return (
+    <div className="mt-4 border-t border-white/10 pt-3">
+      <label className="flex items-center justify-between gap-3">
+        <span className="font-semibold">Lite graphics</span>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={lite}
+          onClick={() => {
+            sfx('nav')
+            setPerfMode(lite ? 'full' : 'lite')
+          }}
+          className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${lite ? 'bg-white' : 'bg-white/20'}`}
+        >
+          <span className={`absolute top-0.5 size-5 rounded-full transition-all ${lite ? 'left-[22px] bg-black' : 'left-0.5 bg-white/70'}`} />
+        </button>
+      </label>
+      <p className="mt-1.5 text-xs text-white/55">
+        {note}
+        {mode !== 'auto' && (
+          <>
+            {' '}
+            <button type="button" className="underline underline-offset-2 hover:text-white" onClick={() => setPerfMode('auto')}>
+              Use automatic
+            </button>
+          </>
+        )}
+      </p>
     </div>
   )
 }

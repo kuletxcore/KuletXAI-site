@@ -1,6 +1,7 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 
 import appCss from '../styles.css?url'
+import { PERF_HEAD_SCRIPT } from '#/lib/perf'
 
 const DESCRIPTION =
   'KuletX AI: interactive AI stories on IsekaiZero, series on Trimz and videos on YouTube.'
@@ -22,6 +23,8 @@ export const Route = createRootRoute({
       { rel: 'preload', href: '/fonts/x14y24pxHeadUpDaisy.woff2', as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' },
       { rel: 'preload', href: '/fonts/ObelMono.woff2', as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' },
     ],
+    // Lite graphics on a returning older PC, applied before first paint
+    scripts: [{ children: PERF_HEAD_SCRIPT }],
   }),
   shellComponent: RootDocument,
 })

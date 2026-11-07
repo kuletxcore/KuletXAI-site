@@ -2,6 +2,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { isMuted } from '#/lib/sfx'
 import { holdMusic } from '#/lib/music'
+import { useLite } from '#/lib/perf'
 
 /**
  * Console-style start screen: black curtain, the PS5 WebGL scene and wordmark
@@ -31,6 +32,7 @@ declare global {
       isInitialized?: boolean
       init?: () => Promise<unknown>
       unbindEvents?: () => void
+      destroy?: () => void
     }
     __kxUnicorn?: Promise<unknown>
   }
@@ -57,6 +59,7 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
   const [phase, setPhase] = useState<Phase>('off')
   const [fast, setFast] = useState(false)
   const reduce = useReducedMotion()
+  const lite = useLite()
   const timers = useRef<number[]>([])
   const decision = useRef<boolean | null>(null)
 
@@ -181,7 +184,7 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
               if (phase === 'leaving') setPhase('lifting')
             }}
           >
-            {!reduce && <UnicornStage />}
+            {!reduce && !lite && <UnicornStage />}
             <motion.h1
               className="kx-boot-title"
               initial={{ opacity: 0, scale: 0.96, filter: 'blur(6px)' }}
@@ -237,6 +240,18 @@ function loadUnicorn() {
   return window.__kxUnicorn
 }
 
+function stopUnicorn() {
+  const us = window.UnicornStudio
+  if (!us?.isInitialized) return
+  try {
+    us.destroy?.()
+  } catch {
+    /* already gone */
+  }
+  us.isInitialized = false
+  window.__kxUnicorn = undefined
+}
+
 /** WebGL startup scene from the PS5 boot (Unicorn Studio). Fades with the wordmark. */
 function UnicornStage() {
   const ref = useRef<HTMLDivElement>(null)
@@ -247,7 +262,16 @@ function UnicornStage() {
     project.setAttribute('data-us-dpi', mobile ? '0.8' : '1')
     project.setAttribute('data-us-fps', mobile ? '30' : '35')
     project.setAttribute('data-us-disablemobile', 'false')
-    void loadUnicorn()
+    let alive = true
+    void loadUnicorn().then(() => {
+      if (!alive) stopUnicorn() // closed while it was still loading
+    })
+    // The scene renders every frame until destroyed, even after its canvas is
+    // gone, so shut it down as soon as the start screen closes
+    return () => {
+      alive = false
+      stopUnicorn()
+    }
   }, [])
   return (
     <div className="kx-boot-stage" aria-hidden>
