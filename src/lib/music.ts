@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { audioContext, existingAudioContext, isMuted, onMutedChange } from './sfx'
 
 /**
- * Console-style background music: one looping track per hub item, crossfaded through Web Audio gain (iOS ignores
+ * Console-style background music: one looping track per hub item, faded through Web Audio gain (iOS ignores
  * <audio>.volume). Tracks resume where they were; playback starts once a user gesture has started the audio context.
  */
 
@@ -21,6 +21,11 @@ const volumeListeners = new Set<() => void>()
 const gainFor = () => MAX_GAIN * level
 const FADE_IN = 2.5
 const FADE_OUT = 2.0
+// Selection changes, timed from a PS5 home screen capture: the music reacts 0.4s after a move (later moves don't
+// restart that), the old track fades out alone over 0.7s, then the selected one starts at once
+const SWITCH_DELAY = 0.4
+const SWITCH_FADE_OUT = 0.7
+const SWITCH_FADE_IN = 0.05
 
 type Channel = { src: string; el: HTMLAudioElement; gain: GainNode }
 
@@ -29,6 +34,14 @@ let current: Channel | null = null
 let wanted: string | null = null
 let held = false
 let wired = false
+let switchTimer = 0
+let switchingFrom: Channel | null = null
+const wantedListeners = new Set<() => void>()
+const setWanted = (src: string | null) => {
+  if (src === wanted) return
+  wanted = src
+  wantedListeners.forEach((l) => l())
+}
 
 function channel(ctx: AudioContext, src: string) {
   let ch = channels.get(src)
@@ -75,6 +88,9 @@ function startAudioSoon() {
   else window.setTimeout(run, 200)
 }
 
+const blocked = () => held || isMuted() || ost.active || mediaHolds.size > 0
+
+/** Mute, the start screen, the OST player and card videos: these fade the music in and out gently. */
 function apply() {
   const ctx = existingAudioContext()
   if (!ctx) return startAudioSoon()
@@ -85,25 +101,82 @@ function apply() {
   }
   if (ctx.state !== 'running') return // starts on the first tap/click/key
 
-  const target = held || isMuted() || ost.active || mediaHolds.size > 0 ? null : wanted
-  if (current && current.src === target) {
+  if (blocked()) {
+    if (current) fadeOut(current)
+    current = null
+    return
+  }
+  if (switchTimer || switchingFrom) return // a selection switch is under way and starts the wanted track itself
+  if (current && current.src === wanted) {
     if (current.el.paused) void current.el.play().catch(() => {})
     ramp(current, gainFor(), FADE_IN)
     return
   }
   if (current) fadeOut(current)
   current = null
-  if (!target) return
-  const next = channel(ctx, target)
+  if (!wanted) return
+  const next = channel(ctx, wanted)
   current = next
   void next.el.play().catch(() => {})
   ramp(next, gainFor(), FADE_IN)
 }
 
-/** Crossfade to this track (or to silence with null). */
-export function setMusic(src: string | null) {
-  wanted = src
-  if (typeof window !== 'undefined') apply()
+function beginSwitch() {
+  switchTimer = 0
+  const ctx = existingAudioContext()
+  if (!ctx || ctx.state !== 'running' || blocked()) return apply()
+  const from = current
+  if (from?.src === wanted) return
+  if (!from) return startWanted(ctx)
+  switchingFrom = from
+  ramp(from, 0, SWITCH_FADE_OUT)
+  window.setTimeout(() => {
+    switchingFrom = null
+    if (current === from) current = null
+    from.el.pause()
+    startWanted(ctx)
+  }, SWITCH_FADE_OUT * 1000)
+}
+
+/** The selected item's track (whatever is selected now, not when the switch began), straight in. */
+function startWanted(ctx: AudioContext) {
+  if (ctx.state !== 'running' || blocked()) return apply()
+  if (current && current.src !== wanted) fadeOut(current)
+  if (!wanted) {
+    current = null
+    return
+  }
+  const next = channel(ctx, wanted)
+  current = next
+  if (next.el.paused) void next.el.play().catch(() => {})
+  ramp(next, gainFor(), SWITCH_FADE_IN)
+}
+
+/**
+ * Music for the highlighted item, switched like the PS5 home screen (or silence with null).
+ * keepIfNone: an item with no music of its own leaves the current track playing, as the console does.
+ */
+export function setMusic(src: string | null, { keepIfNone = false } = {}) {
+  if (src === null && keepIfNone) {
+    if (current && !switchingFrom) setWanted(current.src)
+    return
+  }
+  setWanted(src)
+  if (typeof window === 'undefined' || switchTimer || switchingFrom) return
+  if ((current?.src ?? null) === wanted) return
+  switchTimer = window.setTimeout(beginSwitch, SWITCH_DELAY * 1000)
+}
+
+/** The track the hub wants playing (also while muted or held back), for the "now playing" line. */
+export function useWantedMusic() {
+  return useSyncExternalStore(
+    (cb) => {
+      wantedListeners.add(cb)
+      return () => wantedListeners.delete(cb)
+    },
+    () => wanted,
+    () => null,
+  )
 }
 
 // Soundtrack player: OST files stream through /api/ost (IsekaiZero's CDN sends no CORS headers) so Web Audio can give
@@ -281,7 +354,7 @@ export function setMusicVolume(v: number) {
   } catch {
     /* not persisted */
   }
-  if (current) ramp(current, gainFor(), 0.12)
+  if (current && current !== switchingFrom) ramp(current, gainFor(), 0.12)
   if (ost.gain && ost.playing) rampGain(ost.gain, gainFor(), 0.12)
   else if (ost.el && !ost.gain) ost.el.volume = level
   volumeListeners.forEach((l) => l())

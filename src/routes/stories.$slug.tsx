@@ -15,7 +15,7 @@ import { KeyLabel } from '#/components/pad-glyph'
 import { PlatformChip, PlatformIcon, type Platform } from '#/components/platform'
 import { setPerfMode, useLite, usePerfMode, watchFrameRate } from '#/lib/perf'
 import type { LiteReason } from '#/lib/perf'
-import { holdForMedia, playOst, setMusic, setMusicVolume, stopOst, useMusicVolume, useOstState } from '#/lib/music'
+import { holdForMedia, playOst, setMusic, setMusicVolume, stopOst, useMusicVolume, useOstState, useWantedMusic } from '#/lib/music'
 import { OSTS } from '#/data/ost'
 import { TROPHIES } from '#/data/trophies'
 import { SERIES_MUSIC, STORY_MUSIC } from '#/data/music'
@@ -25,6 +25,8 @@ import { YT_CHANNEL_URL, loadYoutubeVideos, ytEmbedUrl, ytThumb, ytWatchUrl } fr
 import type { YtVideo } from '#/data/youtube'
 import { MotionConfig } from 'motion/react'
 import type { IskCast, IskMedia } from '#/data/isk'
+
+const ALL_TRACKS: Track[] = [...Object.values(STORY_MUSIC), ...Object.values(SERIES_MUSIC)]
 
 /** Shareable hub state: which tab, and which series / video / section is open. */
 type HubSearch = { tab?: 'trimz' | 'youtube'; series?: string; v?: string; section?: string }
@@ -399,11 +401,10 @@ function StoryHub() {
   // Background music for whatever is highlighted; the YouTube tab stays quiet for the videos
   const nowPlaying: Track | null =
     tab === 'stories' ? (STORY_MUSIC[story.slug] ?? null) : tab === 'series' ? (SERIES_MUSIC[activeSeries.slug] ?? null) : null
-  // Change the music once the selection settles: flicking past items shouldn't start (and download) each one's track
-  useEffect(() => {
-    const id = window.setTimeout(() => setMusic(nowPlaying?.src ?? null), 300)
-    return () => clearTimeout(id)
-  }, [nowPlaying?.src])
+  // music.ts times the switch like the console; a story without music keeps the current track, the YouTube tab goes quiet
+  const musicSrc = nowPlaying?.src ?? null
+  const keepMusic = tab !== 'youtube'
+  useEffect(() => setMusic(musicSrc, { keepIfNone: keepMusic }), [musicSrc, keepMusic])
   useEffect(() => () => setMusic(null), [])
   // Auto graphics: drop to Lite if this PC can't hold a decent frame rate
   useEffect(() => watchFrameRate(), [])
@@ -424,9 +425,10 @@ function StoryHub() {
   const ostState = useOstState()
   const album = OSTS[story.slug]
   const ostTrack = album?.tracks.find((t) => t.src === ostState.src)
+  const wantedSrc = useWantedMusic()
   const menuTrack: Track | null = ostTrack
     ? { title: ostTrack.title, src: ostTrack.src, trackUrl: ostTrack.url, ost: { title: album.title, url: album.url } }
-    : nowPlaying
+    : (ALL_TRACKS.find((t) => t.src === wantedSrc) ?? null)
 
   // Console-style notice when a controller connects
   const [padToast, setPadToast] = useState<string | null>(null)
