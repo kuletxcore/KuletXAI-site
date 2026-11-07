@@ -543,9 +543,10 @@ function StoryHub() {
               idx={seriesIdx}
               onOpenStory={(slug) => {
                 sfx('enter')
-                setTab('stories')
-                setSection('overview')
-                if (slug !== story.slug) navigate({ to: '/stories/$slug', params: { slug }, resetScroll: false })
+                // One navigation, and the address switches the tab (see the sync above).
+                // Setting the tab here as well made the sync write the *current* story's
+                // address over this one, landing on the last-viewed storyline.
+                navigate({ to: '/stories/$slug', params: { slug }, search: {}, resetScroll: false })
               }}
             />
           ) : (
