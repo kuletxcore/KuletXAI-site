@@ -1,5 +1,5 @@
 import { Link, createFileRoute, notFound, useNavigate } from '@tanstack/react-router'
-import { memo, useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { STORIES, TRIMZ, castTrimz, isekaiStoryUrl, trimzSeriesUrl } from '#/data/content'
 import type { Logo as TitleArt, Story } from '#/data/content'
@@ -302,8 +302,9 @@ function StoryHub() {
     navigate({ to: '/' })
   }
 
-  // Phones: the tile row scrolls under your finger and the selection follows the
-  // tile in the first slot, then glides into place when you let go
+  // The tile row keeps the selected tile in the first slot. On phones it also
+  // scrolls under your finger, the selection follows the tile in the first slot,
+  // and it glides into place when you let go
   const ribbonRef = useRef<HTMLDivElement>(null)
   const reelIdx = tab === 'stories' ? storyIdx : tab === 'series' ? seriesIdx : ytIdx
   const reelCount = tab === 'stories' ? STORIES.length : tab === 'series' ? TRIMZ.length : videos.length
@@ -314,6 +315,20 @@ function StoryHub() {
       navigate({ to: '/stories/$slug', params: { slug: STORIES[i].slug }, resetScroll: false, replace: !first })
     } else if (tab === 'series') setSeriesIdx(i)
     else setYtIdx(i)
+  })
+
+  // Details hide the moment the selection moves and come back once the row settles (as on the console)
+  const detailsRef = useRef<HTMLElement>(null)
+  const detailsKey = useRef('')
+  useLayoutEffect(() => {
+    const key = `${tab}:${reelIdx}`
+    const el = detailsRef.current
+    if (detailsKey.current && detailsKey.current !== key && el) {
+      el.classList.remove('is-entering')
+      void el.offsetWidth // restart the animation
+      el.classList.add('is-entering')
+    }
+    detailsKey.current = key
   })
 
   // Controller
@@ -520,7 +535,7 @@ function StoryHub() {
         </div>
 
         {/* Details */}
-        <section data-sub-scope className="ps5-details mt-auto flex flex-col gap-3 pt-24 pb-4 md:max-w-[680px] md:pt-6">
+        <section ref={detailsRef} data-sub-scope className="ps5-details mt-auto flex flex-col gap-3 pt-24 pb-4 md:max-w-[680px] md:pt-6">
           {tab === 'stories' ? (
             <StoryDetails story={story} section={section} setSection={pickSection} sections={sections} series={series} openModal={openModal} />
           ) : tab === 'series' ? (
@@ -723,7 +738,9 @@ function revealSections() {
 let ostScope: string | null = null
 
 /**
- * Touch screens: a "fixed-focus reel". The row scrolls natively; whichever tile
+ * A "fixed-focus reel", like the console: the selected tile always sits in the
+ * first slot. Any selection change (D-pad, keys, clicks) glides the row there.
+ * Touch screens also drive it by hand: the row scrolls natively; whichever tile
  * sits in the first slot becomes the selection (with a nav tick), and when the
  * row comes to rest it glides so that tile lines up exactly. Selection changes
  * from taps, the D-pad or the address glide the row the same way.
@@ -758,10 +775,6 @@ function useTouchReel(
     const row = ref.current
     const end = list()?.querySelector<HTMLElement>(':scope > .ps5-reel-end')
     if (!row || !end) return
-    if (!coarse()) {
-      end.style.width = '0px'
-      return
-    }
     const cs = getComputedStyle(row)
     const inner = row.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
     const l = list()
@@ -798,7 +811,9 @@ function useTouchReel(
       return
     }
     if (s.raf) return // already gliding: just move the destination
-    const tick = () => {
+    // Time-based ease-out (~95% there in 120ms, like the console), whatever the frame rate
+    let last = performance.now()
+    const tick = (now: number) => {
       const target = Math.min(s.target, row.scrollWidth - row.clientWidth)
       const cur = row.scrollLeft
       const d = target - cur
@@ -806,8 +821,10 @@ function useTouchReel(
         row.scrollLeft = target
         return done()
       }
-      row.scrollLeft = cur + d * 0.28
-      if (row.scrollLeft === cur) return done() // clamped by the browser
+      const k = 1 - Math.exp(-Math.max(0, now - last) / 40)
+      last = now
+      row.scrollLeft = Math.abs(d * k) < 0.5 ? target : cur + d * k
+      if (row.scrollLeft === cur && k > 0) return done() // clamped by the browser
       s.raf = requestAnimationFrame(tick)
     }
     s.raf = requestAnimationFrame(tick)
@@ -825,7 +842,6 @@ function useTouchReel(
   useEffect(() => {
     const s = st.current
     s.picked = index
-    if (!coarse()) return
     if (index === s.fromScroll) {
       s.fromScroll = -1
       return
@@ -836,7 +852,7 @@ function useTouchReel(
   }, [index, scope, count])
 
   useEffect(() => {
-    const onResize = () => coarse() && glideTo(st.current.picked, true)
+    const onResize = () => glideTo(st.current.picked, true)
     window.addEventListener('resize', onResize)
     return () => {
       window.removeEventListener('resize', onResize)
@@ -885,10 +901,7 @@ function Tile({ active, label, children }: { active: boolean; label: string; chi
   const [alignEnd, setAlignEnd] = useState(false)
   useEffect(() => {
     if (!active) return
-    // Touch screens: the row's position is driven by useTouchReel instead
-    // (Lite graphics: jump instead of a smooth scroll)
-    const smooth = !document.documentElement.classList.contains('kx-lite')
-    if (!window.matchMedia(COARSE).matches) ref.current?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: smooth ? 'smooth' : 'auto' })
+    // The row's position is driven by useTouchReel (selected tile pinned to the first slot)
     const measure = () => {
       const label = labelRef.current
       const row = ref.current?.closest('.ps5-ribbon')

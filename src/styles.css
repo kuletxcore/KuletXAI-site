@@ -157,13 +157,13 @@ a:focus-visible {
   transform: scale(1.03);
   /* hidden layers stop being drawn once they've faded out (one per story/video) */
   visibility: hidden;
-  transition: opacity 0.5s var(--ps-ease), transform 0.9s var(--ps-ease), visibility 0s linear 0.5s;
+  transition: opacity 0.2s ease-out, transform 0.9s var(--ps-ease), visibility 0s linear 0.2s;
 }
 .ps5-layer.is-active {
   opacity: 1;
   transform: scale(1);
   visibility: visible;
-  transition: opacity 0.5s var(--ps-ease), transform 0.9s var(--ps-ease), visibility 0s;
+  transition: opacity 0.4s var(--ps-ease) 0.12s, transform 0.9s var(--ps-ease) 0.12s, visibility 0s;
 }
 .ps5-layer-blur {
   position: absolute;
@@ -269,8 +269,13 @@ a:focus-visible {
   height: 15px;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
 }
+.ps5-chip-isk {
+  border-color: #fff;
+  background: #fff;
+}
 .ps5-chip-isk img {
   height: 12px;
+  filter: brightness(0);
 }
 .ps5-chip-trimz img {
   height: 18px;
@@ -309,7 +314,6 @@ svg.ps5-picon {
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
-  scroll-snap-type: x proximity;
 }
 .ps5-ribbon::-webkit-scrollbar {
   display: none;
@@ -326,7 +330,7 @@ svg.ps5-picon {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
   opacity: 0.72;
   scroll-snap-align: start;
-  transition: width 0.28s var(--ps-ease), height 0.28s var(--ps-ease), transform 0.22s var(--ps-spring), opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.22s ease;
+  transition: width 0.2s var(--ps-ease), height 0.2s var(--ps-ease), transform 0.22s var(--ps-spring), opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.22s ease;
 }
 .ps5-tile img {
   width: 100%;
@@ -365,6 +369,19 @@ svg.ps5-picon {
   line-height: 1.04;
   text-shadow: 0 4px 18px rgba(0, 0, 0, 0.8);
   animation: psFadeUp 0.4s var(--ps-ease) both;
+}
+.ps5-details.is-entering {
+  animation: psDetailsIn 0.2s ease-out 0.34s both;
+}
+@keyframes psDetailsIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 .ps5-shadow {
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
@@ -415,13 +432,24 @@ svg.ps5-picon {
   justify-content: center;
   gap: 10px;
   border-radius: 999px;
-  background: #fff;
-  color: #000;
+  /* translucent like the console's "Play Game"; it turns white only when focused */
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  color: #fff;
   font-weight: 700;
   font-size: 16px;
   padding: 12px 34px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-  transition: transform 0.2s var(--ps-spring), box-shadow 0.2s ease;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+  transition: transform 0.2s var(--ps-spring), background-color 0.16s ease, color 0.16s ease, border-color 0.16s ease, box-shadow 0.2s ease;
+}
+.ps5-cta:hover,
+.ps5-cta:focus-visible,
+.ps5-cta:active {
+  border-color: #fff;
+  background: #fff;
+  color: #000;
 }
 .ps5-cta:hover {
   transform: scale(1.04);
@@ -490,7 +518,8 @@ svg.ps5-picon {
   .ps5-round {
     transition: opacity 0.2s linear;
   }
-  .ps5-title {
+  .ps5-title,
+  .ps5-details.is-entering {
     animation: none;
   }
 }
@@ -647,7 +676,7 @@ html.kx-boot body::before {
   font-weight: 600;
   color: #fff;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
-  animation: psFadeUp 0.3s var(--ps-ease) both;
+  animation: psFadeUp 0.3s var(--ps-ease) 0.12s both;
   pointer-events: none;
 }
 
@@ -904,6 +933,9 @@ html.kx-boot body::before {
 }
 .kx-lite .ps5-round {
   background: rgba(22, 24, 32, 0.85);
+}
+.kx-lite .ps5-cta:not(:hover, :focus-visible, :active) {
+  background: rgba(40, 42, 50, 0.85);
 }
 .kx-lite .ps5-layer-blur,
 .kx-lite .kx-trophies-bg img,
