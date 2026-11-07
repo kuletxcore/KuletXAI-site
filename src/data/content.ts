@@ -56,6 +56,17 @@ export const TRIMZ: TrimzSeries[] = [
   },
 ]
 
+/**
+ * Cast members who lead a Trimz series, by IsekaiZero character id
+ * (src/data/isk.ts). Rin fronts the original Acolytes series, Jo Side B.
+ */
+const CAST_TRIMZ: Record<string, string> = {
+  '6aa9130cbda2b3fef5ba8e8d': 'acolytes-maid-for-your-protection', // Rin Aoyama
+  '6aede2da070968d7a79850ec': 'acolytes-maid-for-your-protection-side-b', // Josefina "Jo" Jones
+}
+
+export const castTrimz = (castId: string) => TRIMZ.find((t) => t.slug === CAST_TRIMZ[castId])
+
 export type Logo = { src: string; w: number; h: number }
 
 export type Story = {

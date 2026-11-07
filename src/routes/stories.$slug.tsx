@@ -1,7 +1,7 @@
 import { Link, createFileRoute, notFound, useNavigate } from '@tanstack/react-router'
 import { memo, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { STORIES, TRIMZ, isekaiStoryUrl, trimzSeriesUrl } from '#/data/content'
+import { STORIES, TRIMZ, castTrimz, isekaiStoryUrl, trimzSeriesUrl } from '#/data/content'
 import type { Logo as TitleArt, Story } from '#/data/content'
 import { ISK } from '#/data/isk'
 import { LiveCount, LiveDot } from '#/components/live-count'
@@ -319,7 +319,9 @@ function StoryHub() {
     const fire = (key: string) => window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
     if (window.__kxBootActive) return fire('Enter') // any button skips the start screen
     if (modal) {
+      const watch = modal.kind === 'cast' ? castTrimz(modal.cast.id) : undefined
       if (b === 'b') fire('Escape')
+      else if (b === 'a' && watch) openExternal(trimzSeriesUrl(watch.slug))
       else if (b === 'x') window.dispatchEvent(new Event('kx-toggle-redaction'))
       else if (b === 'left') fire('ArrowLeft')
       else if (b === 'right') fire('ArrowRight')
@@ -564,7 +566,7 @@ function StoryHub() {
           </div>
         </section>
 
-        {modal && <ModalView modal={modal} setModal={setModal} />}
+        {modal && <ModalView modal={modal} setModal={setModal} padLabel={pad.connected ? PAD_LABEL[pad.kind].a : undefined} />}
 
         <BottomBar onPrev={() => step(-1)} onNext={() => step(1)} onPrimary={primary} toggleTab={() => cycleTab(1)} pad={pad} tab={tab} canEnter={canEnter} inSub={subIdx !== null} section={section} />
       </div>
@@ -1053,6 +1055,11 @@ function StoryDetails({
                     </span>
                     <span className="mt-1.5 block text-xs leading-snug font-semibold text-white/90">{c.name}</span>
                     {c.role === 'persona' && <span className="block text-[10px] font-bold tracking-wide text-white/50 uppercase">You play</span>}
+                    {castTrimz(c.id) && (
+                      <span className="mt-0.5 block text-[10px] font-bold tracking-wide text-[#ff7aa2] uppercase">
+                        ▶ Trimz{castTrimz(c.id)!.key === 'side-b' ? ' · Side B' : ''}
+                      </span>
+                    )}
                   </button>
                 </li>
               ))}
@@ -1461,7 +1468,7 @@ const LockIcon = ({ open }: { open: boolean }) => (
   </svg>
 )
 
-function ModalView({ modal, setModal }: { modal: Modal; setModal: (m: Modal | null) => void }) {
+function ModalView({ modal, setModal, padLabel }: { modal: Modal; setModal: (m: Modal | null) => void; padLabel?: string }) {
   const closeRef = useRef<HTMLButtonElement>(null)
   const close = () => {
     sfx('back')
@@ -1563,9 +1570,26 @@ function ModalView({ modal, setModal }: { modal: Modal; setModal: (m: Modal | nu
             )}
             <div className="flex min-h-0 flex-1 flex-col">
               {modal.kind === 'cast' && (
-                <div className="flex items-center gap-3 border-b border-white/10 px-5 py-3">
+                <div className="flex flex-wrap items-center gap-3 border-b border-white/10 px-5 py-3">
                   {modal.cast.portrait && <img src={modal.cast.portrait} alt="" className="size-12 rounded-lg object-cover md:hidden" />}
-                  <p className="text-sm leading-relaxed text-white/80">{modal.cast.summary}</p>
+                  <p className="min-w-0 flex-1 basis-56 text-sm leading-relaxed text-white/80">{modal.cast.summary}</p>
+                  {(() => {
+                    const watch = castTrimz(modal.cast.id)
+                    return (
+                      watch && (
+                        <a
+                          href={trimzSeriesUrl(watch.slug)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="ps5-pill ml-auto shrink-0 whitespace-nowrap"
+                          title={`Watch ${watch.title} on Trimz`}
+                          onClick={() => sfx('enter')}
+                        >
+                          {padLabel && <span className="ps5-key mr-1.5">{padLabel}</span>}▶ {watch.key === 'side-b' ? 'Side B' : 'Watch'} on Trimz
+                        </a>
+                      )
+                    )
+                  })()}
                 </div>
               )}
               {(modal.kind === 'card' ? modal.src : modal.kind === 'cast' ? modal.cast.card : undefined) ? (
