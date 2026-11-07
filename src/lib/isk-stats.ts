@@ -5,7 +5,7 @@ import { isLite } from '#/lib/perf'
 /**
  * Live IsekaiZero counts. Pages render the numbers baked into content.ts
  * (so server HTML and hydration match), then swap in the latest copy from
- * /api/isk-stats, which itself asks IsekaiZero at most every few hours.
+ * /api/isk-stats, which the server refreshes from IsekaiZero every hour.
  * The client re-checks the route on load, when the tab comes back, and on a
  * timer while the page stays open.
  */
@@ -14,7 +14,7 @@ export type IskStats = { t: number; stories: Record<string, IskCounts> }
 export type CountKey = keyof IskCounts
 
 const KEY = 'kx_isk_stats'
-const RECHECK_MS = 30 * 60 * 1000
+const RECHECK_MS = 10 * 60 * 1000
 
 let stats: IskStats | null = null
 let checkedAt = 0
