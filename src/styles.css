@@ -149,21 +149,45 @@ a:focus-visible {
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+  /* How far the art pans on a selection change, and which way (see data-dir) */
+  --ps-shift: clamp(6px, 0.6vw, 16px);
+  --ps-dir: 1;
 }
+.ps5-backdrop[data-dir="prev"] {
+  --ps-dir: -1;
+}
+/* Pressing right: the old art slides a little left as it fades, and the new art
+   drifts in from the right. Left mirrors it. No zoom, as on the console. */
 .ps5-layer {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transform: scale(1.03);
   /* hidden layers stop being drawn once they've faded out (one per story/video) */
   visibility: hidden;
-  transition: opacity 0.2s ease-out, transform 0.9s var(--ps-ease), visibility 0s linear 0.2s;
+  transition: opacity 0.22s ease-out, visibility 0s linear 0.3s;
+  animation: psBgOut 0.3s ease-out both;
 }
 .ps5-layer.is-active {
   opacity: 1;
-  transform: scale(1);
   visibility: visible;
-  transition: opacity 0.4s var(--ps-ease) 0.12s, transform 0.9s var(--ps-ease) 0.12s, visibility 0s;
+  transition: opacity 0.35s var(--ps-ease) 0.12s, visibility 0s;
+  animation: psBgIn 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) 0.1s both;
+}
+@keyframes psBgIn {
+  from {
+    transform: translate3d(calc(var(--ps-dir) * var(--ps-shift)), 0, 0);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes psBgOut {
+  from {
+    transform: none;
+  }
+  to {
+    transform: translate3d(calc(var(--ps-dir) * var(--ps-shift) * -1), 0, 0);
+  }
 }
 .ps5-layer-blur {
   position: absolute;
@@ -504,7 +528,9 @@ svg.ps5-picon {
 @media (max-width: 767px), (max-aspect-ratio: 4/5) {
   .ps5-layer-art {
     max-width: none;
-    width: 100%;
+    /* a little wider than the screen so the pan never shows an edge */
+    right: calc(var(--ps-shift) * -1);
+    width: calc(100% + var(--ps-shift) * 2);
     height: 70%;
     -webkit-mask-image: linear-gradient(180deg, #000 40%, transparent 100%);
     mask-image: linear-gradient(180deg, #000 40%, transparent 100%);
@@ -517,6 +543,10 @@ svg.ps5-picon {
   .ps5-cta,
   .ps5-round {
     transition: opacity 0.2s linear;
+  }
+  .ps5-layer,
+  .ps5-layer.is-active {
+    animation: none;
   }
   .ps5-title,
   .ps5-details.is-entering {
@@ -944,9 +974,11 @@ html.kx-boot body::before {
 }
 .kx-lite .ps5-layer {
   transform: none;
+  animation: none;
   transition: opacity 0.25s linear, visibility 0s linear 0.25s;
 }
 .kx-lite .ps5-layer.is-active {
+  animation: none;
   transition: opacity 0.25s linear, visibility 0s;
 }
 .kx-lite .ps5-logo,

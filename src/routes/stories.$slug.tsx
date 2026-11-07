@@ -206,8 +206,11 @@ function StoryHub() {
     if (!latestSearch.current.section) setSection('overview')
   }, [story.slug])
 
+  // Which way the last selection change went, so the backdrop pans that way (see below)
+  const navHint = useRef<1 | -1 | 0>(0)
   const step = (dir: 1 | -1) => {
     sfx('nav')
+    navHint.current = dir
     if (tab === 'stories') {
       const next = STORIES[(storyIdx + dir + STORIES.length) % STORIES.length]
       navigate({ to: '/stories/$slug', params: { slug: next.slug }, resetScroll: false })
@@ -223,7 +226,10 @@ function StoryHub() {
     sfx('tab')
     setTab(next)
   }
-  const cycleTab = (dir: 1 | -1) => switchTab(TAB_ORDER[(TAB_ORDER.indexOf(tab) + dir + TAB_ORDER.length) % TAB_ORDER.length])
+  const cycleTab = (dir: 1 | -1) => {
+    navHint.current = dir
+    switchTab(TAB_ORDER[(TAB_ORDER.indexOf(tab) + dir + TAB_ORDER.length) % TAB_ORDER.length])
+  }
   // X / Square: "enter" the highlighted section and move between its items
   const [subIdx, setSubIdx] = useState<number | null>(null)
   const subItems = () => Array.from(document.querySelectorAll<HTMLElement>('.ps5 [data-sub-scope] [data-sub-item]'))
@@ -316,6 +322,23 @@ function StoryHub() {
     } else if (tab === 'series') setSeriesIdx(i)
     else setYtIdx(i)
   })
+
+  // The backdrop pans the way the selection moved: the old art slides out to
+  // one side as the new art drifts in from the other (as on the console).
+  // Worked out during render so the direction lands in the same commit as the
+  // new active layer. Wrap-arounds take the button's direction (navHint).
+  const bgKey = `${tab}:${reelIdx}`
+  const bg = useRef({ key: bgKey, dir: 1 as 1 | -1 })
+  if (bg.current.key !== bgKey) {
+    const [prevTab, prevIdx] = bg.current.key.split(':')
+    const dir: 1 | -1 = navHint.current
+      ? navHint.current
+      : prevTab !== tab
+        ? TAB_ORDER.indexOf(tab) > TAB_ORDER.indexOf(prevTab as HubTab) ? 1 : -1
+        : reelIdx >= Number(prevIdx) ? 1 : -1
+    bg.current = { key: bgKey, dir }
+    navHint.current = 0
+  }
 
   // Details hide the moment the selection moves and come back once the row settles (as on the console)
   const detailsRef = useRef<HTMLElement>(null)
@@ -455,7 +478,7 @@ function StoryHub() {
     <BootScreen />
     <div className="ps5">
       {/* Backdrops for every item, crossfaded by toggling is-active */}
-      <div className="ps5-backdrop" aria-hidden>
+      <div className="ps5-backdrop" data-dir={bg.current.dir < 0 ? 'prev' : 'next'} aria-hidden>
         {STORIES.map((s) => (
           <Backdrop key={s.slug} src={s.cover} video={ISK[s.slug]?.videoCover} active={tab === 'stories' && s.slug === story.slug} />
         ))}
