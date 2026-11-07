@@ -113,7 +113,7 @@ function scrollFrame(frame: HTMLIFrameElement | null, dy: number) {
   }
 }
 
-/** Left stick: scroll what's in focus — open card, then the section panel, then the page. */
+/** Left stick scrolls what's in focus: the open card, then the section panel, then the page. */
 function stickScroll(dy: number) {
   if (window.__kxBootActive) return
   stopAllGlides()
@@ -167,9 +167,8 @@ function StoryHub() {
     if (!sections.includes(section)) setSection('overview')
   }, [sections.join(), section])
 
-  // Keep the address and the hub state in step, both ways:
-  // - our own changes are written with replace (so Back still leaves the page)
-  // - an address we didn't write (Back/Forward, a pasted link) drives the state
+  // Address and hub state follow each other: our own changes use replace (so Back still leaves the page),
+  // and an address we didn't write (Back/Forward, a pasted link) drives the state
   const searchKey = (q: HubSearch) => [q.tab ?? '', q.series ?? '', q.v ?? '', q.section ?? ''].join('|')
   const written = useRef(searchKey(search))
   useEffect(() => {
@@ -198,8 +197,7 @@ function StoryHub() {
   const activeSeries = TRIMZ[seriesIdx]
   const primaryHref = tab === 'stories' ? play : tab === 'series' ? trimzSeriesUrl(activeSeries.slug) : activeVideo ? ytWatchUrl(activeVideo) : YT_CHANNEL_URL
 
-  // New story: start on its overview
-  // New story: start on its overview — unless the address asks for a section
+  // New story: start on its overview, unless the address asks for a section
   // (on Back/Forward the address can arrive a render before the story data does)
   const firstSlug = useRef(story.slug)
   const latestSearch = useRef(search)
@@ -312,9 +310,8 @@ function StoryHub() {
     navigate({ to: '/' })
   }
 
-  // The tile row keeps the selected tile in the first slot. On phones it also
-  // scrolls under your finger, the selection follows the tile in the first slot,
-  // and it glides into place when you let go
+  // The tile row keeps the selected tile in the first slot. On phones it also scrolls under your finger,
+  // the selection follows the first slot, and the row glides into place when you let go
   const ribbonRef = useRef<HTMLDivElement>(null)
   const reelIdx = tab === 'stories' ? storyIdx : tab === 'series' ? seriesIdx : ytIdx
   const reelCount = tab === 'stories' ? STORIES.length : tab === 'series' ? TRIMZ.length : videos.length
@@ -327,10 +324,8 @@ function StoryHub() {
     else setYtIdx(i)
   })
 
-  // The backdrop pans the way the selection moved: the old art slides out to
-  // one side as the new art drifts in from the other (as on the console).
-  // Worked out during render so the direction lands in the same commit as the
-  // new active layer. Wrap-arounds take the button's direction (navHint).
+  // The backdrop pans the way the selection moved, as on the console. Worked out during render so the direction
+  // lands in the same commit as the new active layer; wrap-arounds take the button's direction (navHint)
   const bgKey = `${tab}:${reelIdx}`
   const bg = useRef({ key: bgKey, dir: 1 as 1 | -1 })
   if (bg.current.key !== bgKey) {
@@ -357,7 +352,6 @@ function StoryHub() {
     detailsKey.current = key
   })
 
-  // Controller
   const pad = useGamepad((b: PadButton) => {
     const fire = (key: string) => window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
     if (window.__kxBootActive) return fire('Enter') // any button skips the start screen
@@ -581,9 +575,8 @@ function StoryHub() {
               idx={seriesIdx}
               onOpenStory={(slug) => {
                 sfx('enter')
-                // One navigation, and the address switches the tab (see the sync above).
-                // Setting the tab here as well made the sync write the *current* story's
-                // address over this one, landing on the last-viewed storyline.
+                // One navigation; the address switches the tab (see the sync above). Also setting the tab here
+                // made the sync write the current story's address over this one
                 navigate({ to: '/stories/$slug', params: { slug }, search: {}, resetScroll: false })
               }}
             />
@@ -650,14 +643,13 @@ function loadPlan(): LoadPlan {
   return { preview: webm, full: !webm || !slow }
 }
 
-/**
- * Progressive backdrop: the still image paints first, a small WebM loop fades
- * in once it plays, then the original MP4 loads and takes over in sync.
- */
-// Memoized: switching items only re-renders the two layers whose `active` changed
 /** Tiny pre-blurred copy of a local backdrop (public/soft), used in lite mode instead of a live blur. */
 const softOf = (src: string) => (src.startsWith('/') ? `/soft/${src.slice(1).replace(/\//g, '-')}` : undefined)
 
+/**
+ * Progressive backdrop: the still paints first, a small WebM loop fades in once it plays, then the MP4 takes over in sync.
+ * Memoized, so switching items re-renders only the layers whose props changed.
+ */
 const Backdrop = memo(function Backdrop({
   src,
   blurSrc,
@@ -671,7 +663,7 @@ const Backdrop = memo(function Backdrop({
   softSrc?: string
   video?: string
   active: boolean
-  /** Load the images ahead of being shown. Layers never warmed stay empty, so 20+ hidden backgrounds don't all download on load. */
+  /** Load the images before the layer is shown. A layer never warmed stays empty, so hidden backgrounds don't all download at once. */
   warm: boolean
 }) {
   const [wanted, setWanted] = useState(() => active || warm)
@@ -681,9 +673,8 @@ const Backdrop = memo(function Backdrop({
   const video = lite ? undefined : videoSrc
   const [plan, setPlan] = useState<LoadPlan | null>(null)
   const [stage, setStage] = useState(0) // 0 still, 1 preview, 2 full
-  // The top layer has finished fading in. Layers under it are then hidden:
-  // the art fades out at its edges, so stacked layers would show through each
-  // other there and look like a ghost (still + preview + full slightly out of step).
+  // Set once the top layer has faded in; the layers under it are then hidden, since the art's faded edges
+  // would let stacked layers (still, preview, full) show through each other like a ghost
   const [settled, setSettled] = useState(0)
   useEffect(() => {
     if (stage === 0) return
@@ -770,10 +761,7 @@ const Backdrop = memo(function Backdrop({
 const COARSE = '(pointer: coarse)'
 const SHORT_LANDSCAPE = '(orientation: landscape) and (max-height: 540px)'
 
-/**
- * Short landscape screens scroll the page (see styles.css): after the D-pad or
- * arrow keys change section, bring the section pills and panel into view.
- */
+/** Short landscape screens scroll the page (see styles.css): after the D-pad or arrow keys change section, bring the pills and panel into view. */
 function revealSections() {
   if (!window.matchMedia(SHORT_LANDSCAPE).matches) return
   const pills = document.querySelector('.ps5 [aria-label="Story sections"]')
@@ -790,13 +778,8 @@ function revealSections() {
 let ostScope: string | null = null
 
 /**
- * A "fixed-focus reel", like the console: the selected tile always sits in the
- * first slot. Any selection change (D-pad, keys, clicks) glides the row there.
- * Touch screens also drive it by hand: the row scrolls natively; whichever tile
- * sits in the first slot becomes the selection (with a nav tick), and when the
- * row comes to rest it glides so that tile lines up exactly. Selection changes
- * from taps, the D-pad or the address glide the row the same way.
- * `pick(i, first)` gets first=true for the first change in a gesture.
+ * Fixed-focus reel, as on the console: the selected tile sits in the first slot and any selection change glides the row there.
+ * On touch screens the row scrolls natively and the tile in the first slot becomes the selection; `pick` gets first=true once per gesture.
  */
 function useTouchReel(
   ref: React.RefObject<HTMLDivElement | null>,
@@ -961,7 +944,7 @@ function useTouchReel(
 function Tile({ active, label, children }: { active: boolean; label: string; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
   const labelRef = useRef<HTMLSpanElement>(null)
-  // When the name would run past the edge of the tile row (e.g. the last tile on a phone), anchor it to the tile's right side
+  // Anchor the name to the tile's right side when it would run past the row's edge (e.g. the last tile on a phone)
   const [alignEnd, setAlignEnd] = useState(false)
   useEffect(() => {
     if (!active) return
@@ -1477,10 +1460,8 @@ type RedactionScope = 'modal' | 'inline'
 const toggleRedaction = (scope: RedactionScope) => window.dispatchEvent(new CustomEvent('kx-toggle-redaction', { detail: scope }))
 
 /**
- * One of the story's HTML cards (same-origin, sandboxed: no scripts). Cards
- * "redact" words by matching text colour to its background; when any are found,
- * an Unredact button appears. R on a keyboard toggles it (X on a controller in
- * the card viewer), and the button shows that key.
+ * One of the story's HTML cards (same-origin, sandboxed, no scripts). Cards redact words by matching text colour to the background;
+ * when any are found an Unredact button appears, toggled by R (X on a controller in the card viewer), and it shows that key.
  */
 function CardFrame({
   src,

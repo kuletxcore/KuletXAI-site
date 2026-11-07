@@ -2,11 +2,8 @@ import { useSyncExternalStore } from 'react'
 import { audioContext, existingAudioContext, isMuted, onMutedChange } from './sfx'
 
 /**
- * Console-style background music: one looping track per hub item, crossfaded
- * through Web Audio gain (so it fades on iOS too, where <audio>.volume is
- * read-only). Tracks remember where they were, like a console menu.
- * Browsers only allow playback after a user gesture, so the requested track
- * starts as soon as the audio context is running.
+ * Console-style background music: one looping track per hub item, crossfaded through Web Audio gain (iOS ignores
+ * <audio>.volume). Tracks resume where they were; playback starts once a user gesture has started the audio context.
  */
 
 const MAX_GAIN = 0.6
@@ -109,12 +106,8 @@ export function setMusic(src: string | null) {
   if (typeof window !== 'undefined') apply()
 }
 
-/* ── Soundtrack player (OST tab) ──
- * OST tracks live on IsekaiZero's CDN, which sends no CORS headers, so they
- * stream through this site's /api/ost pass-through. That keeps them
- * same-origin, so they run through Web Audio like the background music:
- * same volume slider, fades and mute (iOS included). While one plays, the
- * background music fades out; it fades back when the OST stops. */
+// Soundtrack player: OST files stream through /api/ost (IsekaiZero's CDN sends no CORS headers) so Web Audio can give
+// them the music's volume, fades and mute. The background music fades out while one plays and back when it stops
 const ost = { el: null as HTMLAudioElement | null, gain: null as GainNode | null, src: null as string | null, active: false, playing: false, onEnded: null as null | (() => void) }
 const ostListeners = new Set<() => void>()
 let ostSnapshot = { src: null as string | null, playing: false }
@@ -150,7 +143,7 @@ function ostElement() {
       ost.gain.gain.value = 0
       ctx.createMediaElementSource(el).connect(ost.gain).connect(ctx.destination)
     }
-    // Mute pauses the OST; unmuting resumes it — but only if mute was what paused it
+    // Mute pauses the OST; unmuting resumes it, but only if mute was what paused it
     let pausedByMute = false
     onMutedChange(() => {
       if (isMuted()) {
@@ -234,9 +227,8 @@ export function useOstState() {
   )
 }
 
-/* ── Other media on the page (e.g. a video inside a story card) ──
- * While any of it plays with sound, the background music fades out and an
- * OST track pauses; both come back when it stops. */
+// Other media on the page (e.g. a video inside a story card): while any plays with sound, the background music
+// fades out and an OST track pauses; both come back when it stops
 const mediaHolds = new Set<object>()
 let ostPausedForMedia = false
 

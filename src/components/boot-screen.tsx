@@ -6,16 +6,8 @@ import { useLite } from '#/lib/perf'
 import { runSting } from '#/components/boot-sting'
 
 /**
- * Console-style start screen: black curtain, the PS5 WebGL scene and wordmark
- * fade in together with the startup sound, hold, then fade out to the hub.
- * Plays once per browser session, never on a reload, and any key or click skips it.
- *
- * A direct /stories link opens like the console powering on: the white KX mark
- * on black, then one line, "Click to continue", on black. The press plays the
- * continue sound, and the screen follows it as the console does: navy bokeh,
- * gold sparks bursting out on the hit, then a warm beam with dust. When the sound
- * ends, the KuletX intro and the startup sound take over. Coming from the
- * homepage already has a click, so that path starts the intro immediately.
+ * Console-style start screen, once per browser session (never on a reload; any key or click skips it).
+ * A direct /stories link powers on like the console: KX mark, "Click to continue", the burst, then the intro and startup sound.
  */
 
 const SESSION_KEY = 'kx_boot_seen'
@@ -92,10 +84,8 @@ function takeBoot(): BootMode {
   return (bootMode = direct ? 'direct' : 'nav')
 }
 
-/* ── Sound for the press ──
- * Both sounds go through Web Audio: the press unlocks it, the continue sound
- * starts at once, and the startup sound is scheduled to the sample where it
- * ends. One clock for both also lets the picture follow the sound exactly. */
+// Both sounds go through Web Audio: the press unlocks it, the continue sound starts at once and the startup
+// sound is scheduled to the sample where it ends, so the picture can follow one clock
 
 function soundBytes(src: string) {
   const cache = (window.__kxBootBytes ??= {})
@@ -574,9 +564,8 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
 }
 
 /**
- * The burst: soft light under the intro, dust over it. When the intro fades in,
- * the light holds until the scene covers it, and the dust keeps drifting over
- * the KuletX scene before it fades, so the hand-over has no seam.
+ * The burst: soft light under the intro, dust over it. The light holds until the scene covers it and the dust
+ * keeps drifting over the KuletX scene before it fades, so the hand-over has no seam.
  */
 function StingLayer({ sound, lite, still, phase, fast }: { sound: BootSound; lite: boolean; still: boolean; phase: Phase; fast: boolean }) {
   const atmo = useRef<HTMLCanvasElement>(null)

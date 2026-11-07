@@ -1,9 +1,8 @@
 import { useSyncExternalStore } from 'react'
 
 /**
- * UI sounds. nav/enter/back/tab play sample files from /sfx (decoded once);
- * the boot swell is synthesized. Browsers only allow audio after a user
- * gesture, so the context is created lazily and resumed on the first press.
+ * UI sounds: nav/enter/back/tab are sample files from /sfx (decoded once), the boot swell is synthesized.
+ * Audio needs a user gesture, so the context is created lazily and resumed on the first press.
  */
 
 export type Sfx = 'nav' | 'enter' | 'back' | 'tab' | 'boot'

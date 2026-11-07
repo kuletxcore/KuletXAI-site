@@ -1,11 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 /**
- * Same-origin pass-through for OST audio on IsekaiZero's CDN.
- * The CDN sends no CORS headers, so the browser won't let Web Audio process
- * those files directly; serving them from this site lets the OST player share
- * the music volume, fades and mute (iOS included).
- * Only IsekaiZero music files are allowed — this is not an open proxy.
+ * Same-origin pass-through for OST audio: IsekaiZero's CDN sends no CORS headers, so Web Audio can't use its files directly.
+ * Only IsekaiZero music files are allowed; this is not an open proxy.
  */
 const ALLOWED = /^https:\/\/s3\.(alterworld|isk0)\.ai\/uploads\/(music|audios)\/[A-Za-z0-9_.-]+\.mp3$/
 

@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 
 /**
- * Gamepad support via the standard Gamepad API mapping.
- * Fires onPress once per press; directions (D-pad or left stick) repeat while
- * held, like a console menu.
+ * Gamepad support through the standard mapping. onPress fires once per press; directions (D-pad or left stick)
+ * repeat while held, like a console menu.
  */
 
 export type PadButton = 'a' | 'b' | 'x' | 'y' | 'lb' | 'rb' | 'lt' | 'rt' | 'select' | 'start' | 'up' | 'down' | 'left' | 'right'

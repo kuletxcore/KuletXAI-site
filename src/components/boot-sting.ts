@@ -1,19 +1,6 @@
 /**
- * The burst after "Click to continue", rebuilt from the console's own capture (the
- * continue sound is the audio of that capture, so the two line up exactly). Shapes,
- * colours and timings were fitted to its frames. t is seconds since the sound started:
- *
- *   0.0–2.5   three huge navy bokeh discs fade up, drift and slowly brighten
- *   2.15–2.9  soft grey discs bloom over them, then shrink away
- *   2.52      the hit: dim gold bokeh bursts open right of centre, a fine white spray over the left
- *   2.5–3.0   the navy drains to black
- *   2.84–3.45 the gold pulls into focus and a few bright orbs flare
- *   2.96+     a warm beam opens from the top left; the dust drifts and thins out in its light
- *
- * Every frame is a pure function of t, so the picture follows the sound and a dropped
- * frame never puts it out of step. The soft light (bokeh, beam, haze) is drawn at a
- * fraction of screen resolution and scaled up, since it is all blur anyway; the dust
- * has a full-resolution canvas of its own.
+ * The burst after "Click to continue", fitted to the console's own capture, whose audio is the continue sound.
+ * Each frame is a pure function of t (seconds since the sound started), so a dropped frame never puts it out of step.
  */
 
 export type StingClock = () => number | null
@@ -59,7 +46,7 @@ function rng(seed: number) {
 /** Roughly normal, mean 0, spread 1 */
 const gauss = (rand: () => number) => (rand() + rand() + rand() + rand() - 2) * 1.732
 
-/* ── Timeline, measured from the capture ── */
+// Timeline, measured from the capture
 
 /** Navy: in with the press; after the hit it eases off, then drains to black just before the beam */
 const navyIn = (t: number) => smooth(0, 0.45, t)
@@ -71,10 +58,8 @@ const focusAt = (t: number) => smooth(2.84, 3.45, t)
 /** ...and just before that its colour turns from orange to cream */
 const warmAt = (t: number) => smooth(2.8, 3.05, t)
 
-/* ── The lit room ── a model of the console's light, fitted to its frames (u, v are
- * fractions of the screen; values are 0–255). A warm source just above the top-left
- * falls off with distance and is cut by a diagonal edge on the right; a cool haze
- * lies on the floor; the walls fade from grey on the left to navy on the right. */
+// The lit room, fitted to the console's frames (u, v are screen fractions; values 0–255): a warm source above
+// the top left cut by a diagonal edge on the right, a cool haze on the floor, walls fading from grey to navy
 const SU = 0.1445
 const SV = -0.032
 function lightAt(u: number, v: number, A: number, out: [number, number, number]) {
@@ -146,9 +131,8 @@ function buildRoom(aw: number, ah: number, w: number, h: number, fieldW: number)
   return room
 }
 
-/* ── Sprites ── each worked out once from a radial profile (rho: 0 at the centre, 1 at
- * the edge). The colour is stored at full strength and `gain` scales it back down as
- * it's drawn, so the faint navy and grey keep their precision. */
+// Sprites, each worked out once from a radial profile (rho: 0 at the centre, 1 at the edge). Colour is stored
+// at full strength and `gain` scales it down as it's drawn, so the faint navy and grey keep their precision
 
 type Sprite = { img: HTMLCanvasElement; gain: number }
 
@@ -186,8 +170,7 @@ const bokehProfile = (rho: number) => Math.exp(-((rho / 0.68) ** 3)) * (1 - smoo
 /** In focus: a bright point with a little glow */
 const pointProfile = (rho: number) => (Math.exp(-((rho / 0.3) ** 2)) + 0.14 * Math.exp(-((rho / 0.6) ** 2))) * (1 - smooth(0.75, 1, rho))
 
-/* ── Bokeh discs ── in a 1920×1080 design frame, cover-fitted to the screen.
- * x, y are fractions of that frame; r is a fraction of its height. */
+// Bokeh discs in a 1920×1080 design frame, cover-fitted to the screen: x, y are fractions of the frame, r of its height
 
 // Each navy disc drifts in a straight line from its first values (at 0s) to its second
 // (at 3s) and brightens from lo to full by 2.5s. c is its colour at full strength.
@@ -198,9 +181,8 @@ const NAVY: Navy[] = [
   { x: [0.619, 0.579], y: [0.997, 0.831], r: [0.656, 0.761], c: [0, 4.2, 6.5], lo: 1 },
 ]
 
-// The grey discs, fitted across the capture's frames: position at 2.45s and its drift per
-// second, radius at 2.45s and its change per second, colour, edge softness, and the times
-// they're fully in (tb) and gone (tg). Brightest first (lite draws the first few).
+// Grey discs: position and radius at 2.45s with their change per second, colour, edge softness, and the times
+// they're fully in (tb) and gone (tg). Brightest first, since lite draws only the first few
 type Pale = { x: number; y: number; vx: number; vy: number; r: number; vr: number; c: RGB; e: number; tb: number; tg: number }
 const PALE: Pale[] = [
   { x: -0.131, y: -0.172, vx: -0.386, vy: 0.377, r: 0.453, vr: -1.497, c: [9.4, 20.9, 21.3], e: 0.22, tb: 2.267, tg: 2.554 },
@@ -220,7 +202,7 @@ const PALE: Pale[] = [
 ]
 const paleLevel = (p: Pale, t: number) => smooth(p.tb - 0.12, p.tb + 0.08, t) * (1 - smooth(p.tg - 0.18, p.tg, t))
 
-/* ── Dust ── positions are fractions of the screen; sizes are CSS pixels at 1080p, scaled to the screen */
+// Dust: positions are fractions of the screen; sizes are CSS pixels at 1080p, scaled to the screen
 
 type Gold = { hu: number; hv: number; born: number; rb: number; rf: number; a: number; col: number; vx: number; vy: number; wa: number; wf: number; ph: number; end: number; fd: number }
 type Orb = { u: number; v: number; r: number; on: number; off: number; vx: number; vy: number }
@@ -232,9 +214,8 @@ type Drifter = { u: number; v: number; born: number; r: number; a: number; vx: n
 const GU = 0.66
 const GV = 0.45
 
-// The gold's four kinds, as counted in the capture: a haze of small dim orange bokeh,
-// medium ones, a few big faint discs that swell and fade before the focus pull, and
-// bright cream sparks. Sizes are sprite radii in pixels at 1080p.
+// The gold's four kinds, as counted in the capture: small dim orange bokeh, medium ones, a few big faint discs
+// that swell and fade before the focus pull, and bright cream sparks (sprite radii in pixels at 1080p)
 const G_HAZE = 0
 const G_MID = 1
 const G_BIG = 2

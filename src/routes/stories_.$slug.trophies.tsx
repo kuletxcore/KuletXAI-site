@@ -72,9 +72,8 @@ function TrophyPage() {
     return c
   }, [set])
 
-  // Keep the story's music playing on its trophy list. A soundtrack track started
-  // in the hub keeps playing here (the background music stays quiet under it);
-  // it stops only if you leave for somewhere other than this story's hub.
+  // The story's music carries on here; a soundtrack track started in the hub keeps playing (background music quiet
+  // under it) and stops only if you leave for somewhere other than this story's hub
   useEffect(() => {
     setMusic(STORY_MUSIC[story.slug]?.src ?? null)
     const hub = `/stories/${story.slug}`

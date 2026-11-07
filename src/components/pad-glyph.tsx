@@ -1,7 +1,6 @@
 /**
- * Label inside a button-prompt chip. PlayStation face buttons are drawn as
- * shapes: the ✕ ○ □ △ characters come from whatever symbol font the device
- * has, so their size and weight change between Windows, macOS and phones.
+ * Label inside a button-prompt chip. PlayStation face buttons are drawn as shapes, since the ✕ ○ □ △ characters
+ * change size and weight with each device's symbol font.
  */
 const PS_GLYPH: Record<string, { name: string; shape: React.ReactNode }> = {
   '✕': { name: 'Cross', shape: <path d="M5.5 5.5l13 13M18.5 5.5l-13 13" /> },

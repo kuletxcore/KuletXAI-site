@@ -2,13 +2,8 @@ import { STORIES } from '#/data/content'
 import type { IskCounts, IskStats } from '#/lib/isk-stats'
 
 /**
- * Server side of the live IsekaiZero counts.
- *
- * An hourly scheduled run (src/server.ts) asks IsekaiZero for the five
- * storylines and stores the result in the edge cache. /api/isk-stats serves
- * that copy. If a run is missed and the copy is more than an hour old, the
- * route refreshes it itself, and if IsekaiZero is down it serves the last good
- * copy. Only the storyline ids from content.ts are ever requested.
+ * Live IsekaiZero counts, server side: an hourly run (src/server.ts) caches them at the edge for /api/isk-stats, which
+ * refreshes a stale copy itself and falls back to the last good one. Only content.ts storyline ids are requested.
  */
 export const REFRESH_S = 60 * 60
 const GRACE_S = 10 * 60 // the hourly run lands a little after its slot

@@ -132,7 +132,7 @@ a:focus-visible {
   }
 }
 
-/* ───────── PS5-style story hub ───────── */
+/* PS5-style story hub */
 .ps5 {
   --ps-tile: clamp(62px, 5vw, 80px);
   --ps-ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -588,7 +588,7 @@ svg.ps5-picon {
   }
 }
 
-/* ───────── Start screen ───────── */
+/* Start screen */
 html.kx-boot body::before {
   content: "";
   position: fixed;
@@ -838,9 +838,8 @@ html.kx-boot body::before {
   }
 }
 
-/* Hub tab row: scrolls sideways on narrow screens without ever showing a scrollbar.
-   (overflow-x:auto forces overflow-y too, and the tab underline poked 2px below the
-   row, so browsers with classic scrollbars drew one over the last tab.) */
+/* Hub tab row: scrolls sideways on narrow screens with no scrollbar (overflow-x:auto forces overflow-y too,
+   and the underline poking 2px below the row made classic-scrollbar browsers draw one over the last tab) */
 .ps5-tabs {
   overflow-x: auto;
   overflow-y: hidden;
@@ -857,7 +856,7 @@ html.kx-boot body::before {
   outline-color: #fff;
 }
 
-/* ───────── Trophy list ───────── */
+/* Trophy list */
 .kx-trophies {
   position: relative;
   overflow-x: clip;
@@ -997,9 +996,8 @@ html.kx-boot body::before {
   }
 }
 
-/* ── Lite graphics (older PCs; see src/lib/perf.ts) ──
-   Still backgrounds (the hub renders no video), no blur of any kind, no
-   full-screen blend layers, and tiles that change size instantly. */
+/* Lite graphics for older PCs (see src/lib/perf.ts): still backgrounds, no blur, no full-screen blend layers,
+   and nothing that redraws on every frame */
 .kx-lite *,
 .kx-lite *::before,
 .kx-lite *::after {
@@ -1104,10 +1102,8 @@ html.kx-boot body::before {
   .kx-live-dot::after { animation: none; }
 }
 
-/* ── Short landscape screens (phones on their side, small windows) ──
-   The console layout is built for a tall screen and locks itself to the
-   viewport from 768px up, which cut the details off with no way to scroll.
-   Here the hub shrinks to fit and the page scrolls (touch, wheel, left stick). */
+/* Short landscape screens (phones on their side, small windows): the console layout locks to the viewport from 768px up,
+   which cut the details off, so here the hub shrinks to fit and the page scrolls (touch, wheel, left stick) */
 @media (orientation: landscape) and (max-height: 540px) {
   .ps5 {
     --ps-tile: 44px;

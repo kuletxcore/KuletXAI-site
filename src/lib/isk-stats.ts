@@ -3,11 +3,8 @@ import { STORIES, type Story } from '#/data/content'
 import { isLite } from '#/lib/perf'
 
 /**
- * Live IsekaiZero counts. Pages render the numbers baked into content.ts
- * (so server HTML and hydration match), then swap in the latest copy from
- * /api/isk-stats, which the server refreshes from IsekaiZero every hour.
- * The client re-checks the route on load, when the tab comes back, and on a
- * timer while the page stays open.
+ * Live IsekaiZero counts. Pages render the numbers baked into content.ts (so server HTML and hydration match), then
+ * swap in /api/isk-stats, re-checked on load, when the tab comes back, and on a timer while the page is open.
  */
 export type IskCounts = { messages?: number; chats?: number; likes?: number }
 export type IskStats = { t: number; stories: Record<string, IskCounts> }

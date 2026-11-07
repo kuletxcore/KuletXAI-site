@@ -1,14 +1,8 @@
 import { useSyncExternalStore } from 'react'
 
 /**
- * Lite graphics for older PCs: still backgrounds instead of video, no blur
- * effects, no start-screen WebGL scene, no tile resize animation.
- *
- * Mode is "auto" unless the visitor picks one in the settings menu. Auto judges
- * the device first (graphics chip, memory, CPU, Data Saver), then confirms with
- * a frame-rate check once the hub has settled: Lite only if two checks are slow.
- * The <html> class `kx-lite` drives the CSS; PERF_HEAD_SCRIPT sets it before
- * first paint so a returning visitor never starts the heavy version at all.
+ * Lite graphics for older PCs: still backgrounds, no blur, no start-screen WebGL scene. Auto mode judges the hardware,
+ * then confirms with frame-rate checks; PERF_HEAD_SCRIPT sets the `kx-lite` class before first paint.
  */
 
 export type PerfMode = 'auto' | 'lite' | 'full'
@@ -122,9 +116,8 @@ const SLOW_FPS = 24
 let rearm: (() => void) | null = null
 
 /**
- * Auto mode's frame-rate check for the hub. It waits for the page to settle,
- * then samples for 3s; Lite turns on only after two slow samples (this visit or
- * the last). A fast sample clears the count. Paused while hidden or on the start screen.
+ * Auto mode's frame-rate check: 3s samples once the hub settles (not while hidden or on the start screen).
+ * Lite turns on after two slow samples, this visit or the last; a fast sample clears the count.
  */
 export function watchFrameRate() {
   if (typeof window === 'undefined') return () => {}

@@ -1,11 +1,6 @@
 /**
- * Retargetable smooth scrolling for controller and arrow-key navigation.
- *
- * The browser's own smooth scroll restarts from zero speed every time it is
- * called, so a held D-pad (a new target every ~50–140ms) stutters. A glide
- * here keeps its momentum and just moves its target: each frame it covers a
- * fixed share of the remaining distance, measured in real time so it feels the
- * same at 60Hz and 120Hz.
+ * Retargetable smooth scrolling. The browser's smooth scroll restarts from zero speed on every call, so a held D-pad
+ * stutters; a glide keeps its momentum and covers a fixed share of the distance per real-time frame (60Hz or 120Hz).
  */
 type Scroller = Element | Window
 
@@ -77,9 +72,8 @@ function scrollParent(el: Element): Element | null {
 }
 
 /**
- * Like scrollIntoView({ block: 'nearest' }), gliding: the nearest scrolling
- * box first (e.g. the section panel), then the page. `margin` keeps a little
- * room around the item.
+ * Like scrollIntoView({ block: 'nearest' }), gliding: the nearest scrolling box first (e.g. the section panel),
+ * then the page. `margin` keeps a little room around the item.
  */
 export function glideIntoView(el: Element, margin = 12) {
   const box = scrollParent(el)

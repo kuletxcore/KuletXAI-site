@@ -1,10 +1,5 @@
-// Acolytes achievements from the IsekaiZero codex (category "achievement").
-// Titles and descriptions are the story's own. The codex has no grades, so they're
-// set here by how hard each card's TRIGGER is to meet:
-//   bronze — one beat, or a milestone that arrives with normal play
-//   silver — a deliberate setup, or several conditions held through one file
-//   gold   — strict all-or-nothing conditions, a chained sequence, or multi-session play
-// The Platinum is a site addition for collecting the full set.
+// Acolytes achievements from the IsekaiZero codex, titles and descriptions as written. Grades are this site's, by how hard
+// each TRIGGER is (bronze: normal play, silver: a deliberate setup, gold: strict or chained conditions); Platinum is the full set
 export type TrophyGrade = 'platinum' | 'gold' | 'silver' | 'bronze'
 export type Trophy = { id: string; title: string; description: string; grade: TrophyGrade; hidden: boolean }
 export type TrophySet = { slug: string; title: string; trophies: Trophy[] }

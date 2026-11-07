@@ -1,7 +1,6 @@
 /**
- * Platform marks for the hub, styled after the PS5's "PS5" chip next to a
- * game's name: a small outlined chip holding the platform's white logo, and
- * icons for the tabs and buttons.
+ * Platform marks styled after the PS5's chip beside a game's name: an outlined chip holding the platform's
+ * white logo, plus icons for the tabs and buttons.
  */
 export type Platform = 'isk' | 'trimz' | 'youtube'
 
