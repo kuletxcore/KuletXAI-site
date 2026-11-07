@@ -448,7 +448,7 @@ function StoryHub() {
           <Backdrop key={t.slug} src={t.poster} video={t.video} active={tab === 'series' && i === seriesIdx} />
         ))}
         {videos.map((v, i) => (
-          <Backdrop key={v.id} src={ytThumb(v.id, 'maxresdefault')} blurSrc={ytThumb(v.id)} active={tab === 'youtube' && i === ytIdx} />
+          <Backdrop key={v.id} src={ytThumb(v.id, 'maxresdefault')} blurSrc={ytThumb(v.id)} softSrc={ytThumb(v.id, 'default')} active={tab === 'youtube' && i === ytIdx} />
         ))}
         <div className="ps5-vignette" />
       </div>
@@ -594,7 +594,22 @@ function loadPlan(): LoadPlan {
  * in once it plays, then the original MP4 loads and takes over in sync.
  */
 // Memoized: switching items only re-renders the two layers whose `active` changed
-const Backdrop = memo(function Backdrop({ src, blurSrc, video: videoSrc, active }: { src: string; blurSrc?: string; video?: string; active: boolean }) {
+/** Tiny pre-blurred copy of a local backdrop (public/soft), used in lite mode instead of a live blur. */
+const softOf = (src: string) => (src.startsWith('/') ? `/soft/${src.slice(1).replace(/\//g, '-')}` : undefined)
+
+const Backdrop = memo(function Backdrop({
+  src,
+  blurSrc,
+  softSrc,
+  video: videoSrc,
+  active,
+}: {
+  src: string
+  blurSrc?: string
+  softSrc?: string
+  video?: string
+  active: boolean
+}) {
   // Lite graphics: the still image only
   const lite = useLite()
   const video = lite ? undefined : videoSrc
@@ -645,6 +660,8 @@ const Backdrop = memo(function Backdrop({ src, blurSrc, video: videoSrc, active 
   return (
     <div className={`ps5-layer ${active ? 'is-active' : ''}`}>
       <img className="ps5-layer-blur" src={blurSrc ?? src} alt="" loading={active ? 'eager' : 'lazy'} />
+      {/* Lite: the same soft glow from a ~500-byte pre-blurred image, scaled up with no filter */}
+      {lite && (softSrc ?? softOf(src)) && <img className="ps5-layer-soft" src={softSrc ?? softOf(src)} alt="" loading={active ? 'eager' : 'lazy'} />}
       <img className={`ps5-layer-art ${settled >= 1 && video ? 'invisible' : ''}`} src={src} alt="" loading={active ? 'eager' : 'lazy'} />
       {plan?.preview && webm && (
         <video

@@ -22,7 +22,7 @@ export const YT_SNAPSHOT: YtVideo[] = [
   { id: '1-6a_xlnhYQ', title: 'Acolytes side B out now on Trimz', published: '2026-10-27', views: 415, short: true },
 ]
 
-export const ytThumb = (id: string, size: 'maxresdefault' | 'hqdefault' = 'hqdefault') => `https://i.ytimg.com/vi/${id}/${size}.jpg`
+export const ytThumb = (id: string, size: 'maxresdefault' | 'hqdefault' | 'default' = 'hqdefault') => `https://i.ytimg.com/vi/${id}/${size}.jpg`
 export const ytWatchUrl = (v: YtVideo) => (v.short ? `https://www.youtube.com/shorts/${v.id}` : `https://www.youtube.com/watch?v=${v.id}`)
 export const ytEmbedUrl = (id: string) => `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&playsinline=1&modestbranding=1`
 
