@@ -21,7 +21,7 @@ import { TROPHIES } from '#/data/trophies'
 import { SERIES_MUSIC, STORY_MUSIC } from '#/data/music'
 import type { Track } from '#/data/music'
 import type { PadButton, PadKind } from '#/lib/gamepad'
-import { YT_CHANNEL_URL, loadYoutubeVideos, ytEmbedUrl, ytThumb, ytWatchUrl } from '#/data/youtube'
+import { YT_CHANNEL_URL, loadYoutubeVideos, rememberYoutubeVideos, ytEmbedUrl, ytThumb, ytWatchUrl } from '#/data/youtube'
 import type { YtVideo } from '#/data/youtube'
 import { MotionConfig } from 'motion/react'
 import type { IskCast, IskMedia } from '#/data/isk'
@@ -141,6 +141,7 @@ function stickScroll(dy: number) {
 
 function StoryHub() {
   const { story, videos } = Route.useLoaderData()
+  useEffect(() => rememberYoutubeVideos(videos), [])
   const navigate = useNavigate()
   const search = Route.useSearch()
   const [tab, setTab] = useState<HubTab>(() => (search.tab === 'trimz' ? 'series' : search.tab === 'youtube' ? 'youtube' : 'stories'))

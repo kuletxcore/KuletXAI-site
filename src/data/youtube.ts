@@ -78,3 +78,8 @@ export function loadYoutubeVideos() {
   clientVideos ??= getYoutubeVideos().catch(() => YT_SNAPSHOT)
   return clientVideos
 }
+
+/** The list the page arrived with, so the first story change doesn't wait on a server round trip. */
+export function rememberYoutubeVideos(videos: YtVideo[]) {
+  if (typeof window !== 'undefined') clientVideos ??= Promise.resolve(videos)
+}
