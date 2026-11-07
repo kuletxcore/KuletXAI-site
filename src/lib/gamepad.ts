@@ -41,8 +41,18 @@ export function kindOf(id: string): PadKind {
   // Xbox first: its name ("Xbox Wireless Controller") also contains "Wireless Controller"
   if (/xbox|xinput|vendor: 045e|^045e-/i.test(id)) return 'xbox'
   // Sony vendor id 054c; a DualShock 4 on Chrome is just "Wireless Controller (... Vendor: 054c ...)"
-  if (/playstation|dualsense|dualshock|vendor: 054c|^054c-|^wireless controller/i.test(id)) return 'playstation'
+  // Android can report "Sony Interactive Entertainment Wireless Controller" with no vendor id
+  if (/playstation|dualsense|dualshock|sony|vendor: 054c|^054c-|^wireless controller/i.test(id)) return 'playstation'
   return 'generic'
+}
+
+/** Sony model from the name or product id (Chrome "Product: 0ce6", Firefox "054c-0ce6-..."). */
+export function modelOf(id: string): string | undefined {
+  if (kindOf(id) !== 'playstation') return undefined
+  if (/dualsense edge|\b0df2\b/i.test(id)) return 'DualSense Edge'
+  if (/dualsense|\b0ce6\b/i.test(id)) return 'DualSense'
+  if (/dualshock|\b(05c4|09cc|0ba0)\b/i.test(id)) return 'DUALSHOCK 4'
+  return undefined
 }
 
 function pressed(pad: Gamepad, b: PadButton) {
@@ -69,7 +79,7 @@ const RAMP_MS = 700
  * onScroll: left stick up/down, in pixels for this frame (eased, with a deadzone).
  */
 export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: number) => void) {
-  const [state, setState] = useState<{ connected: boolean; kind: PadKind }>({ connected: false, kind: 'generic' })
+  const [state, setState] = useState<{ connected: boolean; kind: PadKind; model?: string }>({ connected: false, kind: 'generic' })
   const handler = useRef(onPress)
   handler.current = onPress
   const scroller = useRef(onScroll)
@@ -139,7 +149,7 @@ export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: numb
 
     const sync = () => {
       const pad = firstPad()
-      setState(pad ? { connected: true, kind: kindOf(pad.id) } : { connected: false, kind: 'generic' })
+      setState(pad ? { connected: true, kind: kindOf(pad.id), model: modelOf(pad.id) } : { connected: false, kind: 'generic' })
       if (pad && !raf) raf = requestAnimationFrame(loop)
     }
 

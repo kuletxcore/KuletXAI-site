@@ -517,6 +517,24 @@ svg.ps5-picon {
   font-weight: 700;
   color: #fff;
 }
+.ps5-key-sm {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 10px;
+  line-height: 1;
+}
+/* Keyboard prompts: hidden on touch screens, where there's no key to press */
+.kx-kbm {
+  display: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .kx-kbm {
+    display: inline-grid;
+  }
+}
 
 .ps5-scroll {
   scrollbar-width: thin;
@@ -886,6 +904,7 @@ html.kx-boot body::before {
 .kx-trophy-gold { --grade: #e0a92a; }
 .kx-trophy-silver { --grade: #b9c0ca; }
 .kx-trophy-bronze { --grade: #c0643a; }
+.kx-trophy-locked { --grade: #7d838d; }
 .kx-trophy.is-selected {
   background: rgba(52, 57, 68, 0.95);
   box-shadow: 0 0 0 2px #fff, 0 10px 30px rgba(0, 0, 0, 0.45);

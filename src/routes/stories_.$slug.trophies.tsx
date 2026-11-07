@@ -6,6 +6,7 @@ import { STORY_MUSIC } from '#/data/music'
 import { TROPHIES } from '#/data/trophies'
 import type { Trophy, TrophyGrade } from '#/data/trophies'
 import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
+import { KeyLabel } from '#/components/pad-glyph'
 import type { PadButton } from '#/lib/gamepad'
 import { setMusic, stopOst } from '#/lib/music'
 import { isMuted, play as sfx, setMuted } from '#/lib/sfx'
@@ -60,9 +61,11 @@ function TrophyPage() {
 
   const trophies = useMemo(() => {
     const list = [...set.trophies]
-    if (sort === 'grade') list.sort((a, b) => GRADE_ORDER.indexOf(a.grade) - GRADE_ORDER.indexOf(b.grade))
+    // A hidden trophy's grade is a secret until revealed, so it sorts after every graded one
+    const rank = (t: Trophy) => (t.hidden && !revealed.has(t.id) ? GRADE_ORDER.length : GRADE_ORDER.indexOf(t.grade))
+    if (sort === 'grade') list.sort((a, b) => rank(a) - rank(b))
     return list
-  }, [set, sort])
+  }, [set, sort, revealed])
   const counts = useMemo(() => {
     const c: Record<TrophyGrade, number> = { platinum: 0, gold: 0, silver: 0, bronze: 0 }
     for (const t of set.trophies) c[t.grade]++
@@ -197,19 +200,21 @@ function TrophyPage() {
               return (
                 <li
                   key={t.id}
-                  className={`kx-trophy kx-trophy-${t.grade} ${i === selected ? 'is-selected' : ''}`}
+                  className={`kx-trophy ${hiddenNow ? 'kx-trophy-locked' : `kx-trophy-${t.grade}`} ${i === selected ? 'is-selected' : ''}`}
                   onMouseEnter={() => setSelected(i)}
                 >
                   <div className="kx-trophy-art">
-                    {t.grade === 'platinum' ? <img src={story.tile ?? story.cover} alt="" /> : <TrophyIcon grade={t.grade} className="size-[55%]" />}
+                    {hiddenNow ? <LockedTrophyIcon className="size-[55%]" /> : t.grade === 'platinum' ? <img src={story.tile ?? story.cover} alt="" /> : <TrophyIcon grade={t.grade} className="size-[55%]" />}
                   </div>
                   <div className="min-w-0">
                     <p className="text-base leading-snug font-bold text-white md:text-lg">{hiddenNow ? 'Hidden trophy' : t.title}</p>
-                    <p className="mt-1 flex items-center gap-1.5 text-sm text-white/75">
-                      <TrophyIcon grade={t.grade} className="size-4" /> {GRADE_LABEL[t.grade]}
-                    </p>
+                    {!hiddenNow && (
+                      <p className="mt-1 flex items-center gap-1.5 text-sm text-white/75">
+                        <TrophyIcon grade={t.grade} className="size-4" /> {GRADE_LABEL[t.grade]}
+                      </p>
+                    )}
                     <p className="mt-1 flex items-center gap-1.5 text-sm text-white/55">
-                      {t.grade === 'platinum' ? 'Collect every trophy' : t.hidden ? 'Spoiler · hidden until you reveal it' : 'Codex achievement'}
+                      {t.grade === 'platinum' ? 'Collect every trophy' : hiddenNow ? 'Grade and details hidden until revealed' : t.hidden ? 'Spoiler · hidden trophy' : 'Codex achievement'}
                     </p>
                   </div>
                   <div className="kx-trophy-desc">
@@ -276,7 +281,10 @@ function TrophyPage() {
 function Key({ k, label }: { k: string; label: string }) {
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span className="ps5-key">{k}</span> {label}
+      <span className="ps5-key">
+        <KeyLabel k={k} />
+      </span>{' '}
+      {label}
     </span>
   )
 }
@@ -303,6 +311,21 @@ function TrophyIcon({ grade, className = '' }: { grade: TrophyGrade; className?:
         fill={`url(#${id})`}
         d="M7 3h10v2h3v2a5 5 0 01-4.1 4.92A5 5 0 0113 14.9V17h3v2H8v-2h3v-2.1a5 5 0 01-2.9-2.98A5 5 0 014 7V5h3V3zm0 4H6a3 3 0 001.06 2.29C7.02 8.87 7 8.44 7 8V7zm10 0v1c0 .44-.02.87-.06 1.29A3 3 0 0018 7h-1zM7 20h10v1H7z"
       />
+    </svg>
+  )
+}
+
+/** Grey cup with a padlock: a hidden trophy before it's revealed, so the colour can't give its grade away. */
+function LockedTrophyIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      <path
+        fill="#5d636e"
+        d="M7 3h10v2h3v2a5 5 0 01-4.1 4.92A5 5 0 0113 14.9V17h3v2H8v-2h3v-2.1a5 5 0 01-2.9-2.98A5 5 0 014 7V5h3V3zm0 4H6a3 3 0 001.06 2.29C7.02 8.87 7 8.44 7 8V7zm10 0v1c0 .44-.02.87-.06 1.29A3 3 0 0018 7h-1zM7 20h10v1H7z"
+      />
+      <rect x="14.5" y="15.5" width="8" height="7" rx="1.4" fill="#d6dae1" stroke="#0c0e14" strokeWidth="1.2" />
+      <path d="M16.5 15.5v-1.6a2 2 0 014 0v1.6" fill="none" stroke="#d6dae1" strokeWidth="1.5" />
+      <circle cx="18.5" cy="19" r="1" fill="#0c0e14" />
     </svg>
   )
 }

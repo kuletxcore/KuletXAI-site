@@ -11,6 +11,7 @@ import { Logo } from '#/components/site'
 import { isMuted, play as sfx, setMuted, useMuted } from '#/lib/sfx'
 import { glideIntoView, glideTo, stopAllGlides } from '#/lib/smooth-scroll'
 import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
+import { KeyLabel } from '#/components/pad-glyph'
 import { PlatformChip, PlatformIcon, type Platform } from '#/components/platform'
 import { setPerfMode, useLite, usePerfMode, watchFrameRate } from '#/lib/perf'
 import { holdForMedia, playOst, setMusic, setMusicVolume, stopOst, useMusicVolume, useOstState } from '#/lib/music'
@@ -362,7 +363,7 @@ function StoryHub() {
       const watch = modal.kind === 'cast' ? castTrimz(modal.cast.id) : undefined
       if (b === 'b') fire('Escape')
       else if (b === 'a' && watch) openExternal(trimzSeriesUrl(watch.slug))
-      else if (b === 'x') window.dispatchEvent(new Event('kx-toggle-redaction'))
+      else if (b === 'x') toggleRedaction('modal')
       else if (b === 'left') fire('ArrowLeft')
       else if (b === 'right') fire('ArrowRight')
       return
@@ -431,14 +432,22 @@ function StoryHub() {
   const [padToast, setPadToast] = useState<string | null>(null)
   useEffect(() => {
     if (!pad.connected) return
-    setPadToast(pad.kind === 'playstation' ? 'PlayStation controller connected' : pad.kind === 'xbox' ? 'Xbox controller connected' : 'Controller connected')
+    setPadToast(
+      pad.model
+        ? `${pad.model} wireless controller connected`
+        : pad.kind === 'playstation'
+          ? 'PlayStation controller connected'
+          : pad.kind === 'xbox'
+            ? 'Xbox controller connected'
+            : 'Controller connected',
+    )
     const id = window.setTimeout(() => setPadToast(null), 2600)
     return () => clearTimeout(id)
-  }, [pad.connected, pad.kind])
+  }, [pad.connected, pad.kind, pad.model])
 
   // Controller-style keyboard shortcuts
-  const keyState = useRef({ step, sections, tab, modal, cycleTab, pickSection, stepSection, primary })
-  keyState.current = { step, sections, tab, modal, cycleTab, pickSection, stepSection, primary }
+  const keyState = useRef({ step, sections, section, tab, modal, cycleTab, pickSection, stepSection, primary })
+  keyState.current = { step, sections, section, tab, modal, cycleTab, pickSection, stepSection, primary }
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
@@ -464,6 +473,8 @@ function StoryHub() {
         k.cycleTab(-1)
       } else if (e.key === 'e' || e.key === 'E' || e.key === 'm' || e.key === 'M') {
         k.cycleTab(1)
+      } else if ((e.key === 'r' || e.key === 'R') && !e.repeat && k.tab === 'stories' && k.section === 'intro') {
+        toggleRedaction('inline')
       } else if (k.tab === 'stories' && /^[1-8]$/.test(e.key)) {
         const s = k.sections[Number(e.key) - 1]
         if (s) k.pickSection(s)
@@ -560,7 +571,7 @@ function StoryHub() {
         {/* Details */}
         <section ref={detailsRef} data-sub-scope className="ps5-details mt-auto flex flex-col gap-3 pt-24 pb-4 md:max-w-[680px] md:pt-6">
           {tab === 'stories' ? (
-            <StoryDetails story={story} section={section} setSection={pickSection} sections={sections} series={series} openModal={openModal} />
+            <StoryDetails story={story} section={section} setSection={pickSection} sections={sections} series={series} openModal={openModal} padConnected={pad.connected} />
           ) : tab === 'series' ? (
             <SeriesDetails
               idx={seriesIdx}
@@ -607,7 +618,14 @@ function StoryHub() {
           </div>
         </section>
 
-        {modal && <ModalView modal={modal} setModal={setModal} padLabel={pad.connected ? PAD_LABEL[pad.kind].a : undefined} />}
+        {modal && (
+          <ModalView
+            modal={modal}
+            setModal={setModal}
+            padLabel={pad.connected ? PAD_LABEL[pad.kind].a : undefined}
+            padX={pad.connected ? PAD_LABEL[pad.kind].x : undefined}
+          />
+        )}
 
         <BottomBar onPrev={() => step(-1)} onNext={() => step(1)} onPrimary={primary} toggleTab={() => cycleTab(1)} pad={pad} tab={tab} canEnter={canEnter} inSub={subIdx !== null} section={section} />
       </div>
@@ -1014,6 +1032,7 @@ function StoryDetails({
   sections,
   series,
   openModal,
+  padConnected,
 }: {
   story: Story
   section: Section
@@ -1021,6 +1040,7 @@ function StoryDetails({
   sections: Section[]
   series: typeof TRIMZ
   openModal: (m: Modal) => void
+  padConnected: boolean
 }) {
   const isk = ISK[story.slug]
   const live = useIskStats()
@@ -1090,6 +1110,8 @@ function StoryDetails({
               src={isk.introCard}
               title={`${story.title} intro card`}
               lazy
+              scope="inline"
+              keyHint={padConnected ? undefined : { label: 'R' }}
               frameClassName="h-[22vh] w-full rounded-xl border border-white/10 bg-[#0d0f14] md:h-[19vh]"
             />
             <button type="button" data-sub-item className="ps5-pill self-start" onClick={() => openModal({ kind: 'card', title: story.title, src: isk.introCard!, image: story.cover })}>
@@ -1429,16 +1451,35 @@ function tidyCaption(c: string) {
 const REDACT_CSS = `[data-kx-redacted]{transition:color .45s ease,background-color .45s ease,box-shadow .45s ease}
 html.kx-unredacted [data-kx-redacted]{color:#f8fafc!important;background-color:rgba(248,113,113,.22)!important;box-shadow:inset 0 -1px 0 rgba(248,113,113,.75)}`
 
+type RedactionScope = 'modal' | 'inline'
+const toggleRedaction = (scope: RedactionScope) => window.dispatchEvent(new CustomEvent('kx-toggle-redaction', { detail: scope }))
+
 /**
  * One of the story's HTML cards (same-origin, sandboxed: no scripts). Cards
  * "redact" words by matching text colour to its background; when any are found,
- * an Unredact button appears. X on a controller toggles it in the card viewer.
+ * an Unredact button appears. R on a keyboard toggles it (X on a controller in
+ * the card viewer), and the button shows that key.
  */
-function CardFrame({ src, title, frameClassName, lazy, listenForToggle }: { src: string; title: string; frameClassName: string; lazy?: boolean; listenForToggle?: boolean }) {
+function CardFrame({
+  src,
+  title,
+  frameClassName,
+  lazy,
+  scope,
+  keyHint,
+}: {
+  src: string
+  title: string
+  frameClassName: string
+  lazy?: boolean
+  scope: RedactionScope
+  keyHint?: { label: string; pad?: boolean }
+}) {
   const ref = useRef<HTMLIFrameElement>(null)
   const [count, setCount] = useState(0)
   const [open, setOpen] = useState(false)
   const media = useRef<HTMLMediaElement[]>([])
+  const keyDoc = useRef<Document | null>(null)
 
   // Release any music hold if the card goes away mid-video
   useEffect(
@@ -1474,6 +1515,15 @@ function CardFrame({ src, title, frameClassName, lazy, listenForToggle }: { src:
       style.textContent = REDACT_CSS
       doc.head.appendChild(style)
     }
+    // Keys pressed while the card itself has focus never reach the page
+    if (keyDoc.current !== doc) {
+      keyDoc.current = doc
+      doc.addEventListener('keydown', (e) => {
+        if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return
+        if (e.key === 'r' || e.key === 'R') toggleRef.current()
+        else if (e.key === 'Escape') window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+      })
+    }
     setCount(n)
     setOpen(false)
   }
@@ -1482,16 +1532,24 @@ function CardFrame({ src, title, frameClassName, lazy, listenForToggle }: { src:
     sfx(open ? 'back' : 'enter')
     setOpen((o) => !o)
   }
+  const toggleRef = useRef(toggle)
+  toggleRef.current = toggle
+  // A server-rendered card can finish loading before hydration, so onLoad never fires
+  useEffect(() => {
+    const doc = ref.current?.contentDocument
+    if (doc && doc.readyState === 'complete' && doc.location.href !== 'about:blank') scan()
+  }, [src])
 
   useEffect(() => {
     ref.current?.contentDocument?.documentElement.classList.toggle('kx-unredacted', open)
   }, [open, count])
   useEffect(() => {
-    if (!listenForToggle) return
-    const onToggle = () => toggle()
+    const onToggle = (e: Event) => {
+      if ((e as CustomEvent<RedactionScope>).detail === scope) toggleRef.current()
+    }
     window.addEventListener('kx-toggle-redaction', onToggle)
     return () => window.removeEventListener('kx-toggle-redaction', onToggle)
-  })
+  }, [scope])
 
   return (
     <div className="relative">
@@ -1509,8 +1567,14 @@ function CardFrame({ src, title, frameClassName, lazy, listenForToggle }: { src:
           type="button"
           onClick={toggle}
           aria-pressed={open}
-          className="absolute top-2 right-3 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur hover:bg-black/85"
+          aria-keyshortcuts="R"
+          className="absolute top-2 right-3 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/70 py-1 pr-3 pl-1.5 text-xs font-semibold text-white backdrop-blur hover:bg-black/85"
         >
+          {keyHint ? (
+            <kbd className={`ps5-key ps5-key-sm ${keyHint.pad ? '' : 'kx-kbm'}`}>
+              <KeyLabel k={keyHint.label} />
+            </kbd>
+          ) : null}
           <LockIcon open={open} />
           {open ? 'Redact' : 'Unredact'} <span className="text-white/55">({count})</span>
         </button>
@@ -1526,7 +1590,7 @@ const LockIcon = ({ open }: { open: boolean }) => (
   </svg>
 )
 
-function ModalView({ modal, setModal, padLabel }: { modal: Modal; setModal: (m: Modal | null) => void; padLabel?: string }) {
+function ModalView({ modal, setModal, padLabel, padX }: { modal: Modal; setModal: (m: Modal | null) => void; padLabel?: string; padX?: string }) {
   const closeRef = useRef<HTMLButtonElement>(null)
   const close = () => {
     sfx('back')
@@ -1546,6 +1610,7 @@ function ModalView({ modal, setModal, padLabel }: { modal: Modal; setModal: (m: 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') close()
+      if ((e.key === 'r' || e.key === 'R') && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) toggleRedaction('modal')
       if (isGallery && e.key === 'ArrowRight') go(1)
       if (isGallery && e.key === 'ArrowLeft') go(-1)
     }
@@ -1643,7 +1708,11 @@ function ModalView({ modal, setModal, padLabel }: { modal: Modal; setModal: (m: 
                           title={`Watch ${watch.title} on Trimz`}
                           onClick={() => sfx('enter')}
                         >
-                          {padLabel && <span className="ps5-key">{padLabel}</span>}
+                          {padLabel && (
+                            <span className="ps5-key">
+                              <KeyLabel k={padLabel} />
+                            </span>
+                          )}
                           <PlatformIcon platform="trimz" />
                           {watch.key === 'side-b' ? 'Side B' : 'Watch'} on Trimz
                         </a>
@@ -1656,7 +1725,8 @@ function ModalView({ modal, setModal, padLabel }: { modal: Modal; setModal: (m: 
                 <CardFrame
                   src={(modal.kind === 'card' ? modal.src : modal.kind === 'cast' ? modal.cast.card : undefined)!}
                   title={`${title} card`}
-                  listenForToggle
+                  scope="modal"
+                  keyHint={padX ? { label: padX, pad: true } : { label: 'R' }}
                   frameClassName="h-[68vh] w-full bg-[#0d0f14] md:h-[72vh]"
                 />
               ) : (
@@ -1676,7 +1746,9 @@ function Hint({ keys, label, className = 'md:inline-flex' }: { keys: string[]; l
       {keys.map((k, i) => (
         <span key={k} className="flex items-center gap-1.5">
           {i > 0 && '/'}
-          <span className="ps5-key">{k}</span>
+          <span className="ps5-key">
+            <KeyLabel k={k} />
+          </span>
         </span>
       ))}{' '}
       {label}
