@@ -165,13 +165,14 @@ a:focus-visible {
   /* hidden layers stop being drawn once they've faded out (one per story/video) */
   visibility: hidden;
   transition: opacity 0.22s ease-out, visibility 0s linear 0.3s;
-  animation: psBgOut 0.3s ease-out both;
+  /* backwards, not both: a finished animation that keeps filling stays on its own GPU layer for good */
+  animation: psBgOut 0.3s ease-out backwards;
 }
 .ps5-layer.is-active {
   opacity: 1;
   visibility: visible;
   transition: opacity 0.35s var(--ps-ease) 0.12s, visibility 0s;
-  animation: psBgIn 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) 0.1s both;
+  animation: psBgIn 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) 0.1s backwards;
 }
 @keyframes psBgIn {
   from {
@@ -392,12 +393,26 @@ svg.ps5-picon {
   letter-spacing: -0.02em;
   line-height: 1.04;
   text-shadow: 0 4px 18px rgba(0, 0, 0, 0.8);
-  animation: psFadeUp 0.4s var(--ps-ease) both;
+  animation: psFadeUp 0.4s var(--ps-ease) backwards;
 }
 .ps5-details.is-entering {
-  animation: psDetailsIn 0.2s ease-out 0.34s both;
+  animation: psDetailsIn 0.2s ease-out 0.34s backwards;
+}
+/* A second name for the same animation: swapping names restarts it without forcing a layout */
+.ps5-details.is-entering[data-enter="b"] {
+  animation-name: psDetailsInB;
 }
 @keyframes psDetailsIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes psDetailsInB {
   from {
     opacity: 0;
     transform: translateY(6px);
@@ -567,7 +582,8 @@ svg.ps5-picon {
     animation: none;
   }
   .ps5-title,
-  .ps5-details.is-entering {
+  .ps5-details.is-entering,
+  .ps5-details.is-entering[data-enter] {
     animation: none;
   }
 }
@@ -724,7 +740,7 @@ html.kx-boot body::before {
   font-weight: 600;
   color: #fff;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
-  animation: psFadeUp 0.3s var(--ps-ease) 0.12s both;
+  animation: psFadeUp 0.3s var(--ps-ease) 0.12s backwards;
   pointer-events: none;
 }
 
@@ -791,7 +807,7 @@ html.kx-boot body::before {
 /* Title logotype in place of the text title */
 .ps5-title-logo {
   margin: 0;
-  animation: psFadeUp 0.4s var(--ps-ease) both;
+  animation: psFadeUp 0.4s var(--ps-ease) backwards;
 }
 .ps5-logo {
   display: block;
@@ -953,6 +969,19 @@ html.kx-boot body::before {
 @media (prefers-reduced-motion: reduce) {
   .kx-trophy { transition: none; }
 }
+/* Lite: one plain gradient for the grade tint. The masked stripes and the soft shadow
+   are most of this page's drawing work (about 9 parts in 10 on an old PC) */
+.kx-lite .kx-trophy {
+  transition: none;
+}
+.kx-lite .kx-trophy::after {
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--grade) 30%, transparent));
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.kx-lite .kx-trophy.is-selected {
+  box-shadow: 0 0 0 2px #fff;
+}
 
 /* Touch screens: the tile row is a reel (see useTouchReel): it scrolls freely and the
    hub glides it into place, so native snapping is off */
@@ -991,14 +1020,12 @@ html.kx-boot body::before {
 .kx-lite .kx-boot-noise {
   display: none;
 }
-.kx-lite .ps5-layer {
+.kx-lite .ps5-layer,
+.kx-lite .ps5-layer.is-active {
   transform: none;
   animation: none;
-  transition: opacity 0.25s linear, visibility 0s linear 0.25s;
-}
-.kx-lite .ps5-layer.is-active {
-  animation: none;
-  transition: opacity 0.25s linear, visibility 0s;
+  /* instant swap: a crossfade puts two full-screen layers on the GPU and redraws both on every press */
+  transition: none;
 }
 .kx-lite .ps5-logo,
 .kx-lite .kx-boot-logo {
@@ -1019,6 +1046,27 @@ html.kx-boot body::before {
   transform: none;
   box-shadow: none;
 }
+/* Its own layer: drawn once, instead of redrawing three full-screen gradients with every new background */
+.kx-lite .ps5-vignette {
+  will-change: transform;
+}
+/* No fade-up on each selection change: every one lifts the panel onto its own GPU layer and redraws it */
+.kx-lite .ps5-title,
+.kx-lite .ps5-title-logo,
+.kx-lite .ps5-tile-label,
+.kx-lite .ps5-details.is-entering,
+.kx-lite .ps5-details.is-entering[data-enter] {
+  animation: none;
+}
+/* The scanline overlay sits above the whole page, so it's blended again on every scrolled frame */
+.kx-lite .crt::after {
+  display: none;
+}
+/* No zoom on hover: every frame of it repaints the picture */
+.kx-lite [class*="hover:scale"] {
+  scale: none;
+  transition: none;
+}
 .kx-lite .cover img,
 .kx-lite .cover:hover img {
   transform: none;
@@ -1027,24 +1075,33 @@ html.kx-boot body::before {
 
 /* Live IsekaiZero counts (src/lib/isk-stats.ts): a small dot that breathes */
 .kx-live-dot {
+  position: relative;
   display: inline-block;
   width: 7px;
   height: 7px;
   flex: none;
   border-radius: 9999px;
   background: #4ade80;
-  box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.55);
+}
+/* The pulse is a ring scaled with transform, not a growing box-shadow, so it never repaints */
+.kx-live-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(74, 222, 128, 0.55);
+  opacity: 0;
   animation: kx-live 2.4s ease-out infinite;
 }
 @keyframes kx-live {
-  0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.55); }
-  70%, 100% { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
+  0% { transform: scale(1); opacity: 1; }
+  70%, 100% { transform: scale(2.7); opacity: 0; }
 }
-.kx-lite .kx-live-dot {
+.kx-lite .kx-live-dot::after {
   animation: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .kx-live-dot { animation: none; }
+  .kx-live-dot::after { animation: none; }
 }
 
 /* ── Short landscape screens (phones on their side, small windows) ──

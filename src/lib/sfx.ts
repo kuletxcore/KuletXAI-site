@@ -223,6 +223,11 @@ export function audioContext() {
   return audio()
 }
 
+/** The shared AudioContext if something already created it; never creates one. */
+export function existingAudioContext() {
+  return ctx
+}
+
 /** Run cb whenever mute changes. Returns an unsubscribe function. */
 export function onMutedChange(cb: () => void) {
   listeners.add(cb)

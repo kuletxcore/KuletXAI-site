@@ -14,6 +14,7 @@ import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
 import { KeyLabel } from '#/components/pad-glyph'
 import { PlatformChip, PlatformIcon, type Platform } from '#/components/platform'
 import { setPerfMode, useLite, usePerfMode, watchFrameRate } from '#/lib/perf'
+import type { LiteReason } from '#/lib/perf'
 import { holdForMedia, playOst, setMusic, setMusicVolume, stopOst, useMusicVolume, useOstState } from '#/lib/music'
 import { OSTS } from '#/data/ost'
 import { TROPHIES } from '#/data/trophies'
@@ -147,6 +148,8 @@ function StoryHub() {
   const activeVideo: YtVideo | undefined = videos[ytIdx]
 
   const storyIdx = STORIES.findIndex((s) => s.slug === story.slug)
+  // Backdrops worth loading now: each tab's current item (so a tab switch is instant), plus the visible tab's neighbours
+  const warm = (t: HubTab, i: number, cur: number) => i === cur || (tab === t && Math.abs(i - cur) <= 1)
   const series = TRIMZ.filter((t) => story.trimz?.includes(t.slug))
   const isk = ISK[story.slug]
   const sections: Section[] = [
@@ -348,8 +351,7 @@ function StoryHub() {
     const key = `${tab}:${reelIdx}`
     const el = detailsRef.current
     if (detailsKey.current && detailsKey.current !== key && el) {
-      el.classList.remove('is-entering')
-      void el.offsetWidth // restart the animation
+      el.dataset.enter = el.dataset.enter === 'b' ? 'a' : 'b'
       el.classList.add('is-entering')
     }
     detailsKey.current = key
@@ -403,7 +405,11 @@ function StoryHub() {
   // Background music for whatever is highlighted; the YouTube tab stays quiet for the videos
   const nowPlaying: Track | null =
     tab === 'stories' ? (STORY_MUSIC[story.slug] ?? null) : tab === 'series' ? (SERIES_MUSIC[activeSeries.slug] ?? null) : null
-  useEffect(() => setMusic(nowPlaying?.src ?? null), [nowPlaying?.src])
+  // Change the music once the selection settles: flicking past items shouldn't start (and download) each one's track
+  useEffect(() => {
+    const id = window.setTimeout(() => setMusic(nowPlaying?.src ?? null), 300)
+    return () => clearTimeout(id)
+  }, [nowPlaying?.src])
   useEffect(() => () => setMusic(null), [])
   // Auto graphics: drop to Lite if this PC can't hold a decent frame rate
   useEffect(() => watchFrameRate(), [])
@@ -490,14 +496,14 @@ function StoryHub() {
     <div className="ps5">
       {/* Backdrops for every item, crossfaded by toggling is-active */}
       <div className="ps5-backdrop" data-dir={bg.current.dir < 0 ? 'prev' : 'next'} aria-hidden>
-        {STORIES.map((s) => (
-          <Backdrop key={s.slug} src={s.cover} video={ISK[s.slug]?.videoCover} active={tab === 'stories' && s.slug === story.slug} />
+        {STORIES.map((s, i) => (
+          <Backdrop key={s.slug} src={s.cover} video={ISK[s.slug]?.videoCover} active={tab === 'stories' && i === storyIdx} warm={warm('stories', i, storyIdx)} />
         ))}
         {TRIMZ.map((t, i) => (
-          <Backdrop key={t.slug} src={t.poster} video={t.video} active={tab === 'series' && i === seriesIdx} />
+          <Backdrop key={t.slug} src={t.poster} video={t.video} active={tab === 'series' && i === seriesIdx} warm={warm('series', i, seriesIdx)} />
         ))}
         {videos.map((v, i) => (
-          <Backdrop key={v.id} src={ytThumb(v.id, 'maxresdefault')} blurSrc={ytThumb(v.id)} softSrc={ytThumb(v.id, 'default')} active={tab === 'youtube' && i === ytIdx} />
+          <Backdrop key={v.id} src={ytThumb(v.id, 'maxresdefault')} blurSrc={ytThumb(v.id)} softSrc={ytThumb(v.id, 'default')} active={tab === 'youtube' && i === ytIdx} warm={warm('youtube', i, ytIdx)} />
         ))}
         <div className="ps5-vignette" />
       </div>
@@ -510,7 +516,6 @@ function StoryHub() {
           </div>
         )}
 
-        {/* Tile ribbon */}
         <div ref={ribbonRef} className="ps5-ribbon mt-3 md:mt-5" {...reel}>
           <div className="flex w-max items-start gap-3 md:gap-4" role="list">
             {tab === 'stories'
@@ -568,7 +573,6 @@ function StoryHub() {
           </div>
         </div>
 
-        {/* Details */}
         <section ref={detailsRef} data-sub-scope className="ps5-details mt-auto flex flex-col gap-3 pt-24 pb-4 md:max-w-[680px] md:pt-6">
           {tab === 'stories' ? (
             <StoryDetails story={story} section={section} setSection={pickSection} sections={sections} series={series} openModal={openModal} padConnected={pad.connected} />
@@ -660,13 +664,18 @@ const Backdrop = memo(function Backdrop({
   softSrc,
   video: videoSrc,
   active,
+  warm,
 }: {
   src: string
   blurSrc?: string
   softSrc?: string
   video?: string
   active: boolean
+  /** Load the images ahead of being shown. Layers never warmed stay empty, so 20+ hidden backgrounds don't all download on load. */
+  warm: boolean
 }) {
+  const [wanted, setWanted] = useState(() => active || warm)
+  if ((active || warm) && !wanted) setWanted(true)
   // Lite graphics: the still image only
   const lite = useLite()
   const video = lite ? undefined : videoSrc
@@ -714,6 +723,7 @@ const Backdrop = memo(function Backdrop({
   const webm = video?.replace(/\.mp4$/, '.webm')
   const loadFull = !!video && !!plan?.full && (stage >= 1 || !plan.preview)
 
+  if (!wanted) return <div className="ps5-layer" />
   return (
     <div className={`ps5-layer ${active ? 'is-active' : ''}`}>
       <img className="ps5-layer-blur" src={blurSrc ?? src} alt="" loading={active ? 'eager' : 'lazy'} />
@@ -813,7 +823,7 @@ function useTouchReel(
     return small + (parseFloat(getComputedStyle(l).columnGap) || 0)
   }
   // Room after the last tile, so every tile can reach the first slot
-  const sizeSpacer = () => {
+  const sizeSpacer = (step: number) => {
     const row = ref.current
     const end = list()?.querySelector<HTMLElement>(':scope > .ps5-reel-end')
     if (!row || !end) return
@@ -821,9 +831,19 @@ function useTouchReel(
     const inner = row.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
     const l = list()
     const gap = l ? parseFloat(getComputedStyle(l).columnGap) || 0 : 0
-    const small = stepPx() - gap
     // the selected tile is drawn 1.45× (see .ps5-tile.is-active)
-    end.style.width = `${Math.max(0, Math.ceil(inner - small * 1.45 - gap) + 1)}px`
+    end.style.width = `${Math.max(0, Math.ceil(inner - (step - gap) * 1.45 - gap) + 1)}px`
+  }
+  // Sizes change only with the window or the set of tiles. Measuring on every selection
+  // forced two page layouts per press, so it's cached; reads all happen before the one write
+  const measured = useRef<{ key: string; step: number } | null>(null)
+  const measure = () => {
+    const key = `${scope}:${countRef.current}`
+    if (measured.current?.key === key) return measured.current.step
+    const step = stepPx()
+    sizeSpacer(step)
+    measured.current = { key, step }
+    return step
   }
 
   const stopGlide = () => {
@@ -837,8 +857,7 @@ function useTouchReel(
     const row = ref.current
     const s = st.current
     if (!row) return
-    sizeSpacer()
-    s.target = i * stepPx()
+    s.target = i * measure()
     s.gliding = true
     clearTimeout(s.glideEnd)
     const done = () => {
@@ -894,7 +913,10 @@ function useTouchReel(
   }, [index, scope, count])
 
   useEffect(() => {
-    const onResize = () => glideTo(st.current.picked, true)
+    const onResize = () => {
+      measured.current = null
+      glideTo(st.current.picked, true)
+    }
     window.addEventListener('resize', onResize)
     return () => {
       window.removeEventListener('resize', onResize)
@@ -908,7 +930,7 @@ function useTouchReel(
       const row = ref.current
       const s = st.current
       if (!row || !coarse() || s.gliding) return
-      const step = stepPx()
+      const step = measure()
       if (step <= 0) return
       const i = Math.min(countRef.current - 1, Math.max(0, Math.round(row.scrollLeft / step)))
       if (i !== s.picked) {
@@ -1935,12 +1957,20 @@ function SoundMenu({ nowPlaying }: { nowPlaying: Track | null }) {
   )
 }
 
+const AUTO_LITE_NOTE: Record<LiteReason, string> = {
+  gpu: 'Turned on automatically: this graphics chip struggles with video and blur.',
+  memory: 'Turned on automatically: this device has little memory to spare.',
+  cpu: 'Turned on automatically: this device has a low-power processor.',
+  fps: 'Turned on automatically: the hub ran slowly here twice.',
+  data: 'On while Data Saver is on.',
+}
+
 function GraphicsSwitch() {
   const lite = useLite()
-  const { mode, autoLite } = usePerfMode()
+  const { mode, reason, autoLite } = usePerfMode()
   const note =
-    mode === 'auto' && autoLite
-      ? 'Turned on automatically for this PC.'
+    autoLite && reason
+      ? AUTO_LITE_NOTE[reason]
       : lite
         ? 'Still backgrounds, no blur or motion effects.'
         : 'For older PCs: still backgrounds, no blur or motion effects.'
@@ -2012,7 +2042,6 @@ function ShareButton() {
   )
 }
 
-/* Icons */
 const iconProps = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true }
 const PlayIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>

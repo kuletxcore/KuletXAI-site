@@ -1,5 +1,5 @@
 import { Link, createFileRoute, notFound, useNavigate } from '@tanstack/react-router'
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { MotionConfig } from 'motion/react'
 import { STORIES } from '#/data/content'
 import { STORY_MUSIC } from '#/data/music'
@@ -87,7 +87,7 @@ function TrophyPage() {
     }
   }, [story.slug])
 
-  const toggleReveal = (t: Trophy) => {
+  const toggleReveal = useCallback((t: Trophy) => {
     if (!t.hidden) return
     sfx('enter')
     setRevealed((r) => {
@@ -96,8 +96,15 @@ function TrophyPage() {
       else next.add(t.id)
       return next
     })
-  }
+  }, [])
+  // The list glides to the selection only when keys or the pad moved it; under the mouse it's already in view
+  const selectedBy = useRef<'keys' | 'mouse'>('keys')
+  const hover = useCallback((i: number) => {
+    selectedBy.current = 'mouse'
+    setSelected(i)
+  }, [])
   const move = (dir: 1 | -1) => {
+    selectedBy.current = 'keys'
     setSelected((i) => {
       const next = Math.min(trophies.length - 1, Math.max(0, i + dir))
       if (next !== i) sfx('nav')
@@ -111,11 +118,13 @@ function TrophyPage() {
   const flipSort = () => {
     sfx('tab')
     setSort((s) => (s === 'default' ? 'grade' : 'default'))
+    selectedBy.current = 'keys'
     setSelected(0)
   }
 
   // Selected card follows the controller / arrow keys
   useEffect(() => {
+    if (selectedBy.current === 'mouse') return
     const el = listRef.current?.children[selected] as HTMLElement | undefined
     if (el) glideIntoView(el, 24)
   }, [selected])
@@ -195,50 +204,9 @@ function TrophyPage() {
           </div>
 
           <ol ref={listRef} className="mt-4 flex flex-col gap-3" aria-label="Trophies">
-            {trophies.map((t, i) => {
-              const hiddenNow = t.hidden && !revealed.has(t.id)
-              return (
-                <li
-                  key={t.id}
-                  className={`kx-trophy ${hiddenNow ? 'kx-trophy-locked' : `kx-trophy-${t.grade}`} ${i === selected ? 'is-selected' : ''}`}
-                  onMouseEnter={() => setSelected(i)}
-                >
-                  <div className="kx-trophy-art">
-                    {hiddenNow ? <LockedTrophyIcon className="size-[55%]" /> : t.grade === 'platinum' ? <img src={story.tile ?? story.cover} alt="" /> : <TrophyIcon grade={t.grade} className="size-[55%]" />}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-base leading-snug font-bold text-white md:text-lg">{hiddenNow ? 'Hidden trophy' : t.title}</p>
-                    {!hiddenNow && (
-                      <p className="mt-1 flex items-center gap-1.5 text-sm text-white/75">
-                        <TrophyIcon grade={t.grade} className="size-4" /> {GRADE_LABEL[t.grade]}
-                      </p>
-                    )}
-                    <p className="mt-1 flex items-center gap-1.5 text-sm text-white/55">
-                      {t.grade === 'platinum' ? 'Collect every trophy' : hiddenNow ? 'Grade and details hidden until revealed' : t.hidden ? 'Spoiler · hidden trophy' : 'Codex achievement'}
-                    </p>
-                  </div>
-                  <div className="kx-trophy-desc">
-                    {hiddenNow ? (
-                      <>
-                        <p className="text-sm text-white/60">This trophy is hidden. Keep playing to unlock it, or reveal it here.</p>
-                        <button type="button" onClick={() => toggleReveal(t)} className="ps5-pill mt-3">
-                          Reveal
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-sm leading-relaxed text-white/85 md:text-[15px]">{t.description}</p>
-                        {t.hidden && (
-                          <button type="button" onClick={() => toggleReveal(t)} className="ps5-pill mt-3">
-                            Hide again
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </li>
-              )
-            })}
+            {trophies.map((t, i) => (
+              <TrophyRow key={t.id} t={t} index={i} selected={i === selected} hiddenNow={t.hidden && !revealed.has(t.id)} art={story.tile ?? story.cover} onHover={hover} onToggle={toggleReveal} />
+            ))}
           </ol>
 
           <p className="mt-8 text-xs text-white/45">
@@ -277,6 +245,73 @@ function TrophyPage() {
     </MotionConfig>
   )
 }
+
+// Memoized: moving the selection re-renders the two rows that changed, not the whole list
+const TrophyRow = memo(function TrophyRow({
+  t,
+  index,
+  selected,
+  hiddenNow,
+  art,
+  onHover,
+  onToggle,
+}: {
+  t: Trophy
+  index: number
+  selected: boolean
+  hiddenNow: boolean
+  art: string
+  onHover: (i: number) => void
+  onToggle: (t: Trophy) => void
+}) {
+  return (
+    <li
+      className={`kx-trophy ${hiddenNow ? 'kx-trophy-locked' : `kx-trophy-${t.grade}`} ${selected ? 'is-selected' : ''}`}
+      onPointerMove={(e) => {
+        // Scrolling the list under a still mouse also reports a move; only a pointer that moved selects
+        if (e.pointerType === 'touch' || (e.clientX === lastPointer.x && e.clientY === lastPointer.y)) return
+        lastPointer.x = e.clientX
+        lastPointer.y = e.clientY
+        if (!selected) onHover(index)
+      }}
+    >
+      <div className="kx-trophy-art">
+        {hiddenNow ? <LockedTrophyIcon className="size-[55%]" /> : t.grade === 'platinum' ? <img src={art} alt="" /> : <TrophyIcon grade={t.grade} className="size-[55%]" />}
+      </div>
+      <div className="min-w-0">
+        <p className="text-base leading-snug font-bold text-white md:text-lg">{hiddenNow ? 'Hidden trophy' : t.title}</p>
+        {!hiddenNow && (
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-white/75">
+            <TrophyIcon grade={t.grade} className="size-4" /> {GRADE_LABEL[t.grade]}
+          </p>
+        )}
+        <p className="mt-1 flex items-center gap-1.5 text-sm text-white/55">
+          {t.grade === 'platinum' ? 'Collect every trophy' : hiddenNow ? 'Grade and details hidden until revealed' : t.hidden ? 'Spoiler · hidden trophy' : 'Codex achievement'}
+        </p>
+      </div>
+      <div className="kx-trophy-desc">
+        {hiddenNow ? (
+          <>
+            <p className="text-sm text-white/60">This trophy is hidden. Keep playing to unlock it, or reveal it here.</p>
+            <button type="button" onClick={() => onToggle(t)} className="ps5-pill mt-3">
+              Reveal
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="text-sm leading-relaxed text-white/85 md:text-[15px]">{t.description}</p>
+            {t.hidden && (
+              <button type="button" onClick={() => onToggle(t)} className="ps5-pill mt-3">
+                Hide again
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    </li>
+  )
+})
+const lastPointer = { x: NaN, y: NaN }
 
 function Key({ k, label }: { k: string; label: string }) {
   return (

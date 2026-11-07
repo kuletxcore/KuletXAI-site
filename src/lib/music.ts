@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { audioContext, isMuted, onMutedChange } from './sfx'
+import { audioContext, existingAudioContext, isMuted, onMutedChange } from './sfx'
 
 /**
  * Console-style background music: one looping track per hub item, crossfaded
@@ -64,9 +64,23 @@ function fadeOut(ch: Channel) {
   }, FADE_OUT * 1000 + 80)
 }
 
+// Creating the AudioContext takes tens of milliseconds, so music asks for it in idle time
+// rather than in the middle of the start screen's first frame (the first tap creates it anyway)
+let audioSoon = false
+function startAudioSoon() {
+  if (audioSoon || typeof window === 'undefined') return
+  audioSoon = true
+  const run = () => {
+    audioContext()
+    apply()
+  }
+  if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(run, { timeout: 1000 })
+  else window.setTimeout(run, 200)
+}
+
 function apply() {
-  const ctx = audioContext()
-  if (!ctx) return
+  const ctx = existingAudioContext()
+  if (!ctx) return startAudioSoon()
   if (!wired) {
     wired = true
     ctx.addEventListener('statechange', apply)

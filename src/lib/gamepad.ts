@@ -67,6 +67,8 @@ function pressed(pad: Gamepad, b: PadButton) {
   return false
 }
 
+let polled = false
+
 const DEADZONE = 0.2
 // Left stick scroll speed, px per second: a light push reads, full tilt flies,
 // and holding it ramps up to full speed over RAMP_MS
@@ -155,10 +157,21 @@ export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: numb
 
     window.addEventListener('gamepadconnected', sync)
     window.addEventListener('gamepaddisconnected', sync)
-    sync()
+    // The first getGamepads() starts the browser's gamepad service, which can stall a fresh
+    // page's first frame; later pages in the same visit read the pads at once
+    const firstSync = () => {
+      polled = true
+      sync()
+    }
+    const hasIdle = typeof window.requestIdleCallback === 'function'
+    let wait = 0
+    if (polled) sync()
+    else wait = hasIdle ? window.requestIdleCallback(firstSync, { timeout: 600 }) : window.setTimeout(firstSync, 100)
     return () => {
       window.removeEventListener('gamepadconnected', sync)
       window.removeEventListener('gamepaddisconnected', sync)
+      if (hasIdle) window.cancelIdleCallback(wait)
+      else clearTimeout(wait)
       if (raf) cancelAnimationFrame(raf)
     }
   }, [])
