@@ -457,6 +457,7 @@ html.kx-boot body::before {
   cursor: pointer;
   user-select: none;
   pointer-events: auto;
+  z-index: 3;
   will-change: opacity;
 }
 .kx-boot-stage,
@@ -501,77 +502,113 @@ html.kx-boot body::before {
   height: auto;
   filter: drop-shadow(0 6px 30px rgba(0, 0, 0, 0.8));
 }
-.kx-boot-mark {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: clamp(44px, 3.6vw, 68px);
-  height: auto;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-/* Dim teal bokeh behind "Click to continue", like a console's power-on notice */
-.kx-boot-intro {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background: #000;
-  pointer-events: none; /* the press lands on the start screen above */
-}
-.kx-bokeh {
-  position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(circle closest-side, rgba(8, 42, 70, 0.66), rgba(6, 36, 60, 0.6) 90%, rgba(6, 36, 60, 0) 100%);
-  animation: kxBokeh 16s ease-in-out infinite alternate;
-}
-/* Sized in vmax so the circles stay large on a phone held upright */
-.kx-bokeh-a {
-  width: 76vmax;
-  height: 76vmax;
-  left: calc(54% - 38vmax);
-  top: calc(42% - 38vmax);
-}
-.kx-bokeh-b {
-  width: 56vmax;
-  height: 56vmax;
-  left: calc(28% - 28vmax);
-  top: calc(54% - 28vmax);
-  opacity: 0.6;
-  animation-duration: 21s;
-  animation-direction: alternate-reverse;
-}
-.kx-bokeh-c {
-  width: 30vmax;
-  height: 30vmax;
-  left: calc(94% - 15vmax);
-  top: calc(90% - 15vmax);
-  opacity: 0.4;
-  animation-duration: 13s;
-}
-@keyframes kxBokeh {
-  from { transform: translate3d(0, 0, 0) scale(1); }
-  to { transform: translate3d(2.5vmax, -1.5vmax, 0) scale(1.04); }
-}
+/* Direct load: one line on black, KX mark under it like the PS button */
 .kx-boot-continue {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(28px, 5vh, 42px);
   margin: 0;
-  padding: 0 16px;
+  padding: 0 24px;
+  pointer-events: none;
   text-align: center;
+}
+.kx-boot-continue p {
+  margin: 0;
   font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(13px, 0.95vw, 16px);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: rgba(255, 255, 255, 0.86);
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+  font-size: clamp(13px, 1.4vw, 16px);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.92);
+}
+.kx-boot-emblem {
+  position: relative;
+  width: clamp(56px, 5vw, 72px);
+  height: clamp(56px, 5vw, 72px);
+}
+.kx-boot-ring {
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.25);
+}
+.kx-boot-emblem img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: screen;
+}
+.kx-lite .kx-boot-ring {
+  box-shadow: none;
+}
+/* Click: particles burst, then this layer fades as the KuletX intro fades in */
+.kx-burst {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 1;
+}
+.kx-burst.is-out {
+  opacity: 0;
+  transition: opacity 2.6s linear;
+}
+.kx-burst-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.kx-boot-ray {
+  position: absolute;
+  left: -6%;
+  top: -20%;
+  width: 48%;
+  height: 80%;
+  background: linear-gradient(118deg, rgba(255, 244, 220, 0.22), rgba(255, 236, 200, 0.05) 42%, transparent 68%);
+  pointer-events: none;
+}
+/* Lite: one transformed layer, no canvas and no per-dot paint */
+.kx-burst-lite {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: 3px;
+  height: 3px;
+  margin: -1.5px 0 0 -1.5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 -18px 0 0 rgba(255, 246, 232, 0.9),
+    14px -12px 0 0 rgba(255, 246, 232, 0.75),
+    20px 4px 0 0 rgba(255, 246, 232, 0.8),
+    8px 16px 0 0 rgba(255, 246, 232, 0.7),
+    -12px 14px 0 0 rgba(255, 246, 232, 0.85),
+    -20px 2px 0 0 rgba(255, 246, 232, 0.7),
+    -14px -14px 0 0 rgba(255, 246, 232, 0.8),
+    2px -28px 0 1px rgba(255, 244, 220, 0.55);
+  animation: kxPop 1.05s ease-out forwards;
+}
+@keyframes kxPop {
+  from { transform: scale(0.2); opacity: 1; }
+  to { transform: scale(26); opacity: 0; }
+}
+.kx-lite .kx-burst.is-out {
+  transition: opacity 0.55s linear;
+}
+.kx-lite .kx-boot-ray {
+  display: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .kx-bokeh { animation: none; }
-}
-.kx-lite .kx-bokeh {
-  animation: none;
+  .kx-burst-lite { animation: none; opacity: 0; }
+  .kx-burst.is-out { transition: opacity 0.3s linear; }
 }
 .kx-boot-hint {
   position: absolute;
