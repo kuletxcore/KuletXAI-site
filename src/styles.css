@@ -501,6 +501,27 @@ html.kx-boot body::before {
   height: auto;
   filter: drop-shadow(0 6px 30px rgba(0, 0, 0, 0.8));
 }
+.kx-boot-start {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.82);
+  pointer-events: none; /* the press lands on the start screen underneath */
+  animation: kxStartPulse 2.4s ease-in-out infinite;
+}
+@keyframes kxStartPulse {
+  50% { color: rgba(255, 255, 255, 0.45); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kx-boot-start { animation: none; }
+}
 .kx-boot-hint {
   position: absolute;
   bottom: max(32px, env(safe-area-inset-bottom));

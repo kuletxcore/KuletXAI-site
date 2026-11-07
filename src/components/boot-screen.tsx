@@ -19,12 +19,14 @@ const CURTAIN_OUT = 0.9
 const FAST_CURTAIN = 0.3
 const EASE = [0.4, 0, 0.2, 1] as const
 
-type Phase = 'off' | 'curtain' | 'playing' | 'leaving' | 'lifting'
+// waiting: the browser blocked the startup sound; hold on black until a press starts it
+type Phase = 'off' | 'curtain' | 'waiting' | 'playing' | 'leaving' | 'lifting'
 
-/** Inline script for <head>: blacks out the page and starts the startup sound before first paint.
- * The element has to live in the document. A detached Audio() plus a seek aborts the
- * one gesture-less play() browsers allow on a direct /stories/* load. */
-export const BOOT_HEAD_SCRIPT = `try{if(typeof window.__kxBoot!=='boolean'){var n=performance.getEntriesByType('navigation')[0];window.__kxBoot=!sessionStorage.getItem('${SESSION_KEY}')&&!(n&&n.type==='reload');if(window.__kxBoot){document.documentElement.classList.add('kx-boot');if(localStorage.getItem('kx_sound')!=='off'){var a=document.createElement('audio');a.id='kx-boot-audio';a.src='/sfx/ps5-startup.mp3';a.preload='auto';a.autoplay=true;a.volume=1;a.setAttribute('playsinline','');a.style.display='none';document.documentElement.appendChild(a);window.__kxBootAudio=a;window.__kxBootHeard=false;a.addEventListener('playing',function(){window.__kxBootHeard=true});var p=a.play();if(p&&p.catch)p.catch(function(){});var unlock=function(e){if(window.__kxBootHeard||!a.paused)return;e.preventDefault();e.stopImmediatePropagation();var q=a.play();if(q&&q.catch)q.catch(function(){})};window.addEventListener('pointerdown',unlock,true);window.addEventListener('keydown',unlock,true);a.addEventListener('playing',function(){window.removeEventListener('pointerdown',unlock,true);window.removeEventListener('keydown',unlock,true)},{once:true})}}}}catch(e){}`
+/** Inline script for <head>: blacks out the page and tries to start the startup sound before
+ * first paint. The element has to live in the document. A detached Audio() plus a seek aborts
+ * the one gesture-less play() browsers allow on a direct /stories/* load. If the browser blocks
+ * it (no click on the site yet), the start screen waits for a press instead (see 'waiting'). */
+export const BOOT_HEAD_SCRIPT = `try{if(typeof window.__kxBoot!=='boolean'){var n=performance.getEntriesByType('navigation')[0];window.__kxBoot=!sessionStorage.getItem('${SESSION_KEY}')&&!(n&&n.type==='reload');if(window.__kxBoot){document.documentElement.classList.add('kx-boot');if(localStorage.getItem('kx_sound')!=='off'){var a=document.createElement('audio');a.id='kx-boot-audio';a.src='/sfx/ps5-startup.mp3';a.preload='auto';a.autoplay=true;a.volume=1;a.setAttribute('playsinline','');a.style.display='none';document.documentElement.appendChild(a);window.__kxBootAudio=a;window.__kxBootHeard=false;a.addEventListener('playing',function(){window.__kxBootHeard=true});var p=a.play();if(p&&p.catch)p.catch(function(){})}}}}catch(e){}`
 
 declare global {
   interface Window {
@@ -67,6 +69,9 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
   const timers = useRef<number[]>([])
   const decision = useRef<boolean | null>(null)
   const startup = useRef<HTMLAudioElement | null>(null)
+  const blocked = useRef(false)
+  const phaseRef = useRef<Phase>('off')
+  phaseRef.current = phase
   const armStartup = useCallback(() => {
     if (isMuted()) {
       window.__kxBootAudio?.pause()
@@ -92,8 +97,35 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
     }
     const audio = startup.current
     audio.volume = 1
-    if (audio.paused) void audio.play().catch(() => {})
+    if (audio.paused)
+      void audio.play().catch((e: unknown) => {
+        if ((e as Error)?.name === 'NotAllowedError') blocked.current = true
+      })
     return audio
+  }, [])
+
+  // Can the startup sound play without a press? A blocked play() rejects at once;
+  // anything still pending after a moment is just loading, so treat it as allowed.
+  const soundAllowed = (audio: HTMLAudioElement) =>
+    new Promise<boolean>((resolve) => {
+      if (window.__kxBootHeard || !audio.paused) return resolve(true)
+      const id = window.setTimeout(() => resolve(true), 500)
+      audio.play().then(
+        () => {
+          clearTimeout(id)
+          resolve(true)
+        },
+        (e: unknown) => {
+          clearTimeout(id)
+          resolve((e as Error)?.name !== 'NotAllowedError')
+        },
+      )
+    })
+
+  // Fade the scene in now and leave after the hold
+  const begin = useCallback(() => {
+    timers.current.push(window.setTimeout(() => setPhase((p) => (p === 'curtain' ? 'playing' : p)), 250))
+    timers.current.push(window.setTimeout(() => setPhase((p) => (p === 'playing' ? 'leaving' : p)), 250 + HOLD_UNTIL_MS))
   }, [])
 
   useIsoLayoutEffect(() => {
@@ -106,31 +138,44 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
       /* private mode: boot may replay, that's fine */
     }
     setPhase((p) => (p === 'off' ? 'curtain' : p))
-    armStartup()
-    // Let the black curtain paint, then start the synced fade-in
-    timers.current.push(window.setTimeout(() => setPhase('playing'), 250))
-    timers.current.push(window.setTimeout(() => setPhase((p) => (p === 'playing' ? 'leaving' : p)), 250 + HOLD_UNTIL_MS))
-    const ids = timers.current
+    // Keep the hub's music back from the very first frame (its effect runs after this one)
+    holdMusic(true)
+    const audio = armStartup()
+    let live = true
+    if (!audio) begin() // sound off: nothing to wait for
+    else
+      void soundAllowed(audio).then((ok) => {
+        if (!live) return
+        // Let the black curtain paint, then start the synced fade-in. When the
+        // browser blocked the sound, wait for a press so they start together.
+        if (ok) begin()
+        else setPhase((p) => (p === 'curtain' ? 'waiting' : p))
+      })
     return () => {
-      ids.forEach(clearTimeout)
+      live = false
+      timers.current.forEach(clearTimeout)
       timers.current = []
     }
-  }, [armStartup])
+  }, [armStartup, begin])
 
   // Lets other input (the gamepad) know the start screen is up
   useEffect(() => {
-    window.__kxBootActive = phase === 'curtain' || phase === 'playing' || phase === 'leaving'
+    window.__kxBootActive = phase === 'curtain' || phase === 'waiting' || phase === 'playing' || phase === 'leaving'
     return () => {
       window.__kxBootActive = false
     }
   }, [phase])
 
   // Hub music waits until the start screen is gone, and until the startup sound ends
+  const started = useRef(false)
   useEffect(() => {
     if (phase !== 'off') {
+      started.current = true
       holdMusic(true)
       return
     }
+    // First render, before the start screen has shown: keep holding
+    if (decision.current && !started.current) return
     const audio = startup.current
     if (audio && !audio.paused && !audio.ended) {
       const release = () => holdMusic(false)
@@ -142,15 +187,24 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
 
   const skip = useCallback(() => {
     const audio = startup.current ?? window.__kxBootAudio
-    // Direct loads often block autoplay. That press starts the sound; it does not skip.
-    if (audio && !window.__kxBootHeard) {
+    // Waiting for a press: this one starts the sound and the intro together
+    if (phaseRef.current === 'waiting') {
+      blocked.current = false
+      if (audio) void audio.play().catch(() => {})
+      setPhase('curtain')
+      begin()
+      return
+    }
+    // The sound was still blocked after all: this press starts it instead of skipping
+    if (audio && blocked.current && !window.__kxBootHeard) {
+      blocked.current = false
       void audio.play().catch(() => {})
       return
     }
     audio?.pause()
     setFast(true)
     setPhase((p) => (p === 'curtain' || p === 'playing' ? 'leaving' : p))
-  }, [])
+  }, [begin])
 
   // Any key (except Tab) or click skips; capture so the hub doesn't also react
   useEffect(() => {
@@ -195,6 +249,22 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
           if (phase === 'lifting') setPhase('off')
         }}
       />
+
+      {/* Browser blocked the sound: a console-style "press to start" */}
+      <AnimatePresence>
+        {phase === 'waiting' && (
+          <motion.p
+            key="start"
+            className="kx-boot-start"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.2 } }}
+            transition={{ duration: 0.5, ease: EASE }}
+          >
+            {typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches ? 'Tap to start' : 'Press any key or click to start'}
+          </motion.p>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {phase !== 'lifting' && (
