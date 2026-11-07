@@ -21,14 +21,17 @@ const EASE = [0.4, 0, 0.2, 1] as const
 
 type Phase = 'off' | 'curtain' | 'playing' | 'leaving' | 'lifting'
 
-/** Inline script for <head>: blacks out the page and starts the startup sound before first paint. */
-export const BOOT_HEAD_SCRIPT = `try{if(typeof window.__kxBoot!=='boolean'){var n=performance.getEntriesByType('navigation')[0];window.__kxBoot=!sessionStorage.getItem('${SESSION_KEY}')&&!(n&&n.type==='reload');if(window.__kxBoot){document.documentElement.classList.add('kx-boot');if(localStorage.getItem('kx_sound')!=='off'){var a=new Audio('/sfx/ps5-startup.mp3');a.preload='auto';a.volume=0.85;window.__kxBootAudio=a;var p=a.play();if(p&&p.catch)p.catch(function(){})}}}}catch(e){}`
+/** Inline script for <head>: blacks out the page and starts the startup sound before first paint.
+ * The element has to live in the document. A detached Audio() plus a seek aborts the
+ * one gesture-less play() browsers allow on a direct /stories/* load. */
+export const BOOT_HEAD_SCRIPT = `try{if(typeof window.__kxBoot!=='boolean'){var n=performance.getEntriesByType('navigation')[0];window.__kxBoot=!sessionStorage.getItem('${SESSION_KEY}')&&!(n&&n.type==='reload');if(window.__kxBoot){document.documentElement.classList.add('kx-boot');if(localStorage.getItem('kx_sound')!=='off'){var a=document.createElement('audio');a.id='kx-boot-audio';a.src='/sfx/ps5-startup.mp3';a.preload='auto';a.autoplay=true;a.volume=1;a.setAttribute('playsinline','');a.style.display='none';document.documentElement.appendChild(a);window.__kxBootAudio=a;window.__kxBootHeard=false;a.addEventListener('playing',function(){window.__kxBootHeard=true});var p=a.play();if(p&&p.catch)p.catch(function(){});var unlock=function(e){if(window.__kxBootHeard||!a.paused)return;e.preventDefault();e.stopImmediatePropagation();var q=a.play();if(q&&q.catch)q.catch(function(){})};window.addEventListener('pointerdown',unlock,true);window.addEventListener('keydown',unlock,true);a.addEventListener('playing',function(){window.removeEventListener('pointerdown',unlock,true);window.removeEventListener('keydown',unlock,true)},{once:true})}}}}catch(e){}`
 
 declare global {
   interface Window {
     __kxBoot?: boolean
     __kxBootActive?: boolean
     __kxBootAudio?: HTMLAudioElement
+    __kxBootHeard?: boolean
     UnicornStudio?: {
       isInitialized?: boolean
       init?: () => Promise<unknown>
@@ -73,13 +76,22 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
       const early = window.__kxBootAudio
       if (early) startup.current = early
       else {
-        const audio = new Audio('/sfx/ps5-startup.mp3')
+        const audio = document.createElement('audio')
+        audio.src = '/sfx/ps5-startup.mp3'
         audio.preload = 'auto'
-        audio.volume = 0.85
+        audio.autoplay = true
+        audio.volume = 1
+        audio.setAttribute('playsinline', '')
+        document.documentElement.appendChild(audio)
+        audio.addEventListener('playing', () => {
+          window.__kxBootHeard = true
+        })
         startup.current = audio
+        window.__kxBootAudio = audio
       }
     }
     const audio = startup.current
+    audio.volume = 1
     if (audio.paused) void audio.play().catch(() => {})
     return audio
   }, [])
@@ -129,9 +141,9 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
   }, [phase])
 
   const skip = useCallback(() => {
-    const audio = startup.current
-    // The browser blocked the sound: this press is the unlock, not a skip.
-    if (audio && audio.paused && audio.currentTime < 0.05) {
+    const audio = startup.current ?? window.__kxBootAudio
+    // Direct loads often block autoplay. That press starts the sound; it does not skip.
+    if (audio && !window.__kxBootHeard) {
       void audio.play().catch(() => {})
       return
     }
