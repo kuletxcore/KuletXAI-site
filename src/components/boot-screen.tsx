@@ -1,19 +1,21 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { isMuted } from '#/lib/sfx'
+import { audioContext, isMuted } from '#/lib/sfx'
 import { holdMusic } from '#/lib/music'
 import { useLite } from '#/lib/perf'
+import { runSting } from '#/components/boot-sting'
 
 /**
  * Console-style start screen: black curtain, the PS5 WebGL scene and wordmark
  * fade in together with the startup sound, hold, then fade out to the hub.
  * Plays once per browser session, never on a reload, and any key or click skips it.
  *
- * A direct /stories link has no click yet, so the browser will not play the
- * startup. That load opens on a black screen with one line, the PS5 continue
- * sting under it, and no button. The press bursts particles, then the KuletX
- * intro fades in over them. Coming from the homepage already has a click, so
- * that path starts the intro immediately.
+ * A direct /stories link opens like the console powering on: the white KX mark
+ * on black, then one line, "Click to continue", on black. The press plays the
+ * continue sound, and the screen follows it as the console does: navy bokeh,
+ * gold sparks bursting out on the hit, then a warm beam with dust. When the sound
+ * ends, the KuletX intro and the startup sound take over. Coming from the
+ * homepage already has a click, so that path starts the intro immediately.
  */
 
 const SESSION_KEY = 'kx_boot_seen'
@@ -24,18 +26,27 @@ const FAST_OUT = 0.28
 const CURTAIN_OUT = 0.9
 const FAST_CURTAIN = 0.3
 const EASE = [0.4, 0, 0.2, 1] as const
-const BURST_MS = 880 // particles own the frame, then the intro fades in over them
-const BURST_MS_LITE = 420
+const MARK_MS = 1500 // KX mark on black, like the console logo at power-on
 
-type Phase = 'off' | 'curtain' | 'waiting' | 'burst' | 'playing' | 'leaving' | 'lifting'
+const STING_SRC = '/sfx/ps5-continue.mp3'
+const STARTUP_SRC = '/sfx/ps5-startup.mp3'
+// The burst is timed from the moment the continue sound reaches 0.094s in (the
+// file opens with a little silence), so playback starts there
+const STING_SKIP = 0.094
+const STING_LEN = 6.338 // played length after the skip; used only if the file can't be decoded
+const STING_GAIN = 0.9
+const UNICORN_SRC = 'https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v1.4.30/dist/unicornStudio.umd.js'
+
+// mark, waiting: direct load, before the press. sting: the burst after it.
+type Phase = 'off' | 'curtain' | 'mark' | 'waiting' | 'sting' | 'playing' | 'leaving' | 'lifting'
 type BootMode = 'direct' | 'nav' | 'no'
 
 /** Set once per page load so a hydration remount does not drop the direct-load screen. */
 let bootMode: BootMode | null = null
 
-/** Inline script for <head>. On a direct load it blacks the page out and starts the
- * continue sting (not the startup). The element has to live in the document. */
-export const BOOT_HEAD_SCRIPT = `try{if(typeof window.__kxBoot!=='boolean'){var n=performance.getEntriesByType('navigation')[0];window.__kxBoot=!sessionStorage.getItem('${SESSION_KEY}')&&!(n&&n.type==='reload');if(window.__kxBoot){document.documentElement.classList.add('kx-boot');window.__kxBootDirect=true;if(localStorage.getItem('kx_sound')!=='off'){var a=document.createElement('audio');a.id='kx-continue-audio';a.src='/sfx/ps5-continue.mp3';a.preload='auto';a.autoplay=true;a.volume=0.9;a.setAttribute('playsinline','');a.style.display='none';document.documentElement.appendChild(a);window.__kxContinueAudio=a;var p=a.play();if(p&&p.catch)p.catch(function(){})}}}}catch(e){}`
+/** Inline script for <head>. On a direct load it blacks the page out before first paint,
+ * preloads the KX mark, and starts downloading both sounds so the press has them ready. */
+export const BOOT_HEAD_SCRIPT = `try{if(typeof window.__kxBoot!=='boolean'){var n=performance.getEntriesByType('navigation')[0];window.__kxBoot=!sessionStorage.getItem('${SESSION_KEY}')&&!(n&&n.type==='reload');if(window.__kxBoot){document.documentElement.classList.add('kx-boot');window.__kxBootDirect=true;var l=document.createElement('link');l.rel='preload';l.as='image';l.href='/brand/kx-mark.webp';document.head.appendChild(l);if(localStorage.getItem('kx_sound')!=='off'){var b=window.__kxBootBytes={};['${STING_SRC}','${STARTUP_SRC}'].forEach(function(u){b[u]=fetch(u).then(function(r){return r.ok?r.arrayBuffer():null}).catch(function(){return null})})}}}}catch(e){}`
 
 declare global {
   interface Window {
@@ -43,8 +54,9 @@ declare global {
     __kxBootDirect?: boolean
     __kxBootActive?: boolean
     __kxBootAudio?: HTMLAudioElement
-    __kxContinueAudio?: HTMLAudioElement
     __kxBootHeard?: boolean
+    __kxBootBytes?: Record<string, Promise<ArrayBuffer | null>>
+    __kxStingT?: number // dev only: freeze the burst at this time (for frame checks)
     UnicornStudio?: {
       isInitialized?: boolean
       init?: () => Promise<unknown>
@@ -80,42 +92,167 @@ function takeBoot(): BootMode {
   return (bootMode = direct ? 'direct' : 'nav')
 }
 
-function armContinue() {
-  if (isMuted()) return
-  let audio = window.__kxContinueAudio
-  if (!audio) {
-    audio = document.createElement('audio')
-    audio.src = '/sfx/ps5-continue.mp3'
-    audio.preload = 'auto'
-    audio.autoplay = true
-    audio.volume = 0.9
-    audio.setAttribute('playsinline', '')
-    audio.style.display = 'none'
-    document.documentElement.appendChild(audio)
-    window.__kxContinueAudio = audio
-  }
-  if (audio.paused) void audio.play().catch(() => {})
+/* ── Sound for the press ──
+ * Both sounds go through Web Audio: the press unlocks it, the continue sound
+ * starts at once, and the startup sound is scheduled to the sample where it
+ * ends. One clock for both also lets the picture follow the sound exactly. */
+
+function soundBytes(src: string) {
+  const cache = (window.__kxBootBytes ??= {})
+  return (cache[src] ??= fetch(src)
+    .then((r) => (r.ok ? r.arrayBuffer() : null))
+    .catch(() => null))
 }
 
-function fadeContinue(instant: boolean) {
-  const audio = window.__kxContinueAudio
-  if (!audio || audio.paused) return
-  if (instant) {
-    audio.pause()
-    return
+function decode(ctx: AudioContext, bytes: ArrayBuffer | null) {
+  return new Promise<AudioBuffer | null>((resolve) => {
+    if (!bytes) return resolve(null)
+    try {
+      // Callback form for older Safari; slice because decoding detaches the buffer
+      const p = ctx.decodeAudioData(bytes.slice(0), resolve, () => resolve(null)) as Promise<AudioBuffer> | undefined
+      p?.catch(() => resolve(null))
+    } catch {
+      resolve(null)
+    }
+  })
+}
+
+type BootSound = {
+  /** Seconds since the continue sound started (follows the audio clock); null until it starts */
+  time: () => number | null
+  stop: (fade?: number) => void
+  /** performance.now() time the startup sound ends, or 0 if it isn't playing */
+  startupEndsAt: () => number
+  /** False when the burst runs without sound (muted, or audio unavailable) */
+  audible: () => boolean
+}
+
+function startBootSounds(onEnd: () => void): BootSound {
+  let done = false
+  const finish = () => {
+    if (done) return
+    done = true
+    onEnd()
   }
-  const from = audio.volume
-  const t0 = performance.now()
-  const step = () => {
-    const k = Math.min(1, (performance.now() - t0) / 420)
-    audio.volume = from * (1 - k)
-    if (k < 1) requestAnimationFrame(step)
-    else {
-      audio.pause()
-      audio.volume = from
+  const press = performance.now()
+  const ctx = isMuted() ? null : audioContext()
+  let len = STING_LEN
+  let at = 0 // context time the continue sound starts
+  let scheduled = false
+  let free = false // running on the page clock instead of the audio clock
+  let perf0 = 0
+  let anchored = false
+  let dead = false
+  let startupEnd = 0
+  const nodes: AudioBufferSourceNode[] = []
+  const gains: GainNode[] = []
+  const timers: number[] = []
+
+  const silence = (fade: number) => {
+    if (!ctx) return
+    const now = ctx.currentTime
+    for (const g of gains) {
+      g.gain.cancelScheduledValues(now)
+      g.gain.setValueAtTime(g.gain.value, now)
+      g.gain.linearRampToValueAtTime(0, now + fade)
+    }
+    for (const n of nodes) {
+      try {
+        n.stop(now + fade + 0.05)
+      } catch {
+        /* never started */
+      }
     }
   }
-  step()
+
+  // No usable audio: run the burst on the page clock, silently
+  const goFree = (from: number) => {
+    if (free || done) return
+    free = true
+    perf0 = from
+    silence(0.05)
+    nodes.length = 0
+    timers.push(window.setTimeout(finish, Math.max(0, len * 1000 - (performance.now() - from))))
+  }
+
+  const running = () => !!ctx && ctx.state === 'running' && scheduled && ctx.currentTime >= at - 0.1
+
+  if (!ctx) goFree(press)
+  else {
+    // The picture waits for the sound, but not for long
+    timers.push(
+      window.setTimeout(() => {
+        if (!running()) goFree(performance.now())
+      }, 1200),
+    )
+    void soundBytes(STING_SRC)
+      .then((b) => decode(ctx, b))
+      .then((buf) => {
+        if (dead || free) return
+        if (!buf) return goFree(performance.now())
+        const skip = Math.min(STING_SKIP, buf.duration / 2)
+        len = buf.duration - skip
+        const src = ctx.createBufferSource()
+        src.buffer = buf
+        const g = ctx.createGain()
+        g.gain.value = STING_GAIN
+        src.connect(g).connect(ctx.destination)
+        at = ctx.currentTime + 0.03
+        src.start(at, skip)
+        src.onended = finish
+        nodes.push(src)
+        gains.push(g)
+        scheduled = true
+        // In case the end event never comes (suspended context, background tab)
+        timers.push(window.setTimeout(finish, (at - ctx.currentTime + len) * 1000 + 1500))
+        return soundBytes(STARTUP_SRC)
+          .then((b) => decode(ctx, b))
+          .then((sb) => {
+            if (!sb || dead || free) return
+            const when = at + len
+            if (ctx.currentTime > when + 1.5) return // far too late to belong to the intro
+            const s = ctx.createBufferSource()
+            s.buffer = sb
+            const sg = ctx.createGain()
+            sg.gain.value = 1
+            s.connect(sg).connect(ctx.destination)
+            const start = Math.max(when, ctx.currentTime)
+            s.start(start)
+            s.onended = () => {
+              startupEnd = 0
+            }
+            nodes.push(s)
+            gains.push(sg)
+            startupEnd = performance.now() + (start - ctx.currentTime + sb.duration) * 1000
+          })
+      })
+  }
+
+  return {
+    time() {
+      const now = performance.now()
+      if (free) return (now - perf0) / 1000
+      if (!ctx || !scheduled) return null
+      const lat = ctx.outputLatency || ctx.baseLatency || 0
+      const audioT = ctx.currentTime - at - lat
+      if (audioT < 0 && !anchored) return null
+      // Follow the page clock between audio clock updates (they come in chunks),
+      // and snap back to the audio whenever the two drift apart
+      if (!anchored || Math.abs((now - perf0) / 1000 - audioT) > 0.05) {
+        perf0 = now - audioT * 1000
+        anchored = true
+      }
+      return Math.max(0, (now - perf0) / 1000)
+    },
+    stop(fade = 0.25) {
+      dead = true
+      silence(fade)
+      startupEnd = 0
+      timers.forEach(clearTimeout)
+    },
+    startupEndsAt: () => startupEnd,
+    audible: () => !free,
+  }
 }
 
 export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
@@ -127,8 +264,9 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
   const decision = useRef<BootMode | null>(null)
   const startup = useRef<HTMLAudioElement | null>(null)
   const blocked = useRef(false)
-  const liteRef = useRef(lite)
-  liteRef.current = lite || !!reduce
+  const sound = useRef<BootSound | null>(null)
+  const launched = useRef(false)
+  const alive = useRef(true)
   const phaseRef = useRef<Phase>('off')
   phaseRef.current = phase
   const armStartup = useCallback(() => {
@@ -139,7 +277,7 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
     if (!startup.current) {
       const audio = document.createElement('audio')
       audio.id = 'kx-boot-audio'
-      audio.src = '/sfx/ps5-startup.mp3'
+      audio.src = STARTUP_SRC
       audio.preload = 'auto'
       audio.volume = 1
       audio.setAttribute('playsinline', '')
@@ -184,19 +322,31 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
     timers.current.push(window.setTimeout(() => setPhase((p) => (p === 'playing' ? 'leaving' : p)), 250 + HOLD_UNTIL_MS))
   }, [])
 
-  // Direct load: the press is the gesture. Particles first, then the intro.
+  // The press: play the continue sound and the burst, then the intro once the sound ends
   const launch = useCallback(() => {
-    fadeContinue(liteRef.current)
+    if (launched.current) return
+    launched.current = true
+    // A startup sound the browser blocked on the homepage path: the burst owns the sound now
+    const el = startup.current
+    if (el) {
+      el.pause()
+      el.currentTime = 0
+    }
+    startup.current = null
     blocked.current = false
-    const audio = armStartup()
-    if (audio && audio.paused) void audio.play().catch(() => {})
-    const wait = liteRef.current ? BURST_MS_LITE : BURST_MS
-    setPhase('burst')
-    timers.current.push(window.setTimeout(() => setPhase((p) => (p === 'burst' ? 'playing' : p)), wait))
-    timers.current.push(window.setTimeout(() => setPhase((p) => (p === 'playing' ? 'leaving' : p)), wait + HOLD_UNTIL_MS))
+    const bootSound = startBootSounds(() => {
+      if (!alive.current) return
+      // Audio unavailable: try the startup on its own (the press counts as a click)
+      if (!bootSound.audible() && !isMuted()) armStartup()
+      setPhase((p) => (p === 'sting' ? 'playing' : p))
+      timers.current.push(window.setTimeout(() => setPhase((p) => (p === 'playing' ? 'leaving' : p)), HOLD_UNTIL_MS))
+    })
+    sound.current = bootSound
+    setPhase('sting')
   }, [armStartup])
 
   useIsoLayoutEffect(() => {
+    alive.current = true
     if (decision.current === null) decision.current = takeBoot()
     document.documentElement.classList.remove('kx-boot')
     const mode = decision.current
@@ -209,8 +359,20 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
     holdMusic(true)
     let live = true
     if (mode === 'direct') {
-      setPhase((p) => (p === 'off' ? 'waiting' : p))
-      armContinue()
+      setPhase((p) => (p === 'off' ? 'mark' : p))
+      timers.current.push(window.setTimeout(() => setPhase((p) => (p === 'mark' ? 'waiting' : p)), MARK_MS))
+      // Fetch the WebGL scene's script while the screen waits; it starts after the press
+      if (!document.querySelector(`link[href="${UNICORN_SRC}"]`)) {
+        const l = document.createElement('link')
+        l.rel = 'preload'
+        l.as = 'script'
+        l.href = UNICORN_SRC
+        document.head.appendChild(l)
+      }
+      if (!isMuted()) {
+        void soundBytes(STING_SRC)
+        void soundBytes(STARTUP_SRC)
+      }
     } else {
       setPhase((p) => (p === 'off' ? 'curtain' : p))
       const audio = armStartup()
@@ -224,6 +386,7 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
     }
     return () => {
       live = false
+      alive.current = false
       timers.current.forEach(clearTimeout)
       timers.current = []
     }
@@ -231,7 +394,7 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
 
   // Lets other input (the gamepad) know the start screen is up
   useEffect(() => {
-    window.__kxBootActive = phase === 'curtain' || phase === 'waiting' || phase === 'burst' || phase === 'playing' || phase === 'leaving'
+    window.__kxBootActive = phase !== 'off' && phase !== 'lifting'
     return () => {
       window.__kxBootActive = false
     }
@@ -254,35 +417,46 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
       audio.addEventListener('ended', release, { once: true })
       return () => audio.removeEventListener('ended', release)
     }
-    holdMusic(false)
+    const left = (sound.current?.startupEndsAt() ?? 0) - performance.now()
+    holdMusic(false, left > 0 ? left + 60 : 0)
   }, [phase])
 
-  const skip = useCallback(() => {
-    const audio = startup.current ?? window.__kxBootAudio
-    if (phaseRef.current === 'waiting') {
-      launch()
-      return
-    }
-    // The sound was still blocked after all: this press starts it instead of skipping
-    if (audio && blocked.current && !window.__kxBootHeard) {
-      blocked.current = false
-      void audio.play().catch(() => {})
-      return
-    }
-    audio?.pause()
-    fadeContinue(true)
-    setFast(true)
-    setPhase((p) => (p === 'curtain' || p === 'burst' || p === 'playing' ? 'leaving' : p))
-  }, [launch])
+  const skip = useCallback(
+    (key?: string) => {
+      const ph = phaseRef.current
+      // Waiting for a press (or still on the mark): this one starts it all
+      if (ph === 'mark' || ph === 'waiting') {
+        launch()
+        return
+      }
+      // The burst plays through, like the console; Escape still skips everything
+      if (ph === 'sting' && key !== 'Escape') return
+      const audio = startup.current ?? window.__kxBootAudio
+      // The sound was still blocked after all: this press starts it instead of skipping
+      if (audio && blocked.current && !window.__kxBootHeard) {
+        blocked.current = false
+        void audio.play().catch(() => {})
+        return
+      }
+      audio?.pause()
+      sound.current?.stop(0.25)
+      setFast(true)
+      setPhase((p) => (p === 'curtain' || p === 'sting' || p === 'playing' ? 'leaving' : p))
+    },
+    [launch],
+  )
 
-  // Any key (except Tab) or click skips; capture so the hub doesn't also react
+  // Any key or click skips (or starts); capture so the hub doesn't also react.
+  // Browser shortcuts and held-down keys are left alone.
   useEffect(() => {
     if (phase === 'off' || phase === 'lifting') return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Tab') return
+      if (e.key === 'Tab' || e.ctrlKey || e.metaKey || e.altKey || /^F\d{1,2}$/.test(e.key)) return
+      if (e.key === 'Shift' || e.key === 'CapsLock') return
       e.preventDefault()
       e.stopImmediatePropagation()
-      skip()
+      if (e.repeat) return
+      skip(e.key)
     }
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
@@ -306,11 +480,13 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
   const curtainDur = fast ? FAST_CURTAIN : CURTAIN_OUT
   const fadeIn = lite || reduce ? 0.7 : FADE_IN
   const sceneVisible = phase === 'playing'
-  const bursting = phase === 'burst' || phase === 'playing' || phase === 'leaving'
+  const stingOn = launched.current && (phase === 'sting' || phase === 'playing' || (phase === 'leaving' && fast))
+  // The WebGL scene only runs once it's about to be seen (it renders every frame)
+  const stageOn = !reduce && !lite && phase !== 'mark' && phase !== 'waiting'
   const line = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches ? 'Tap to continue' : 'Click to continue'
 
   return (
-    <div className="kx-boot-root" aria-hidden={phase === 'lifting'}>
+    <div className="kx-boot-root" data-phase={phase} aria-hidden={phase === 'lifting'}>
       {/* Solid black curtain under the scene; lifts last to reveal the hub */}
       <motion.div
         className="kx-boot-curtain"
@@ -322,29 +498,39 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
         }}
       />
 
-      {bursting && (
-        <div className={`kx-burst ${phase === 'burst' ? '' : 'is-out'}`}>
-          {lite || reduce ? <div className="kx-burst-lite" /> : <BurstCanvas />}
-          {!lite && !reduce && <span className="kx-boot-ray" />}
-        </div>
-      )}
+      {stingOn && sound.current && <StingLayer sound={sound.current} lite={lite} still={!!reduce} phase={phase} fast={fast} />}
 
+      {/* Direct link: the KX mark on black, like the console logo at power-on */}
+      <AnimatePresence>
+        {phase === 'mark' && (
+          <motion.img
+            key="mark"
+            src="/brand/kx-mark.webp"
+            alt=""
+            className="kx-boot-mark"
+            width={240}
+            height={224}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.32, ease: EASE } }}
+            transition={{ duration: 0.45, ease: EASE }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Then one line on black, where the console shows its health notice */}
       <AnimatePresence>
         {phase === 'waiting' && (
-          <motion.div
+          <motion.p
             key="continue"
             className="kx-boot-continue"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.2 } }}
-            transition={{ duration: 0.6, ease: EASE }}
+            exit={{ opacity: 0, transition: { duration: 0.85, delay: 0.3, ease: EASE } }}
+            transition={{ duration: 0.45, delay: 0.38, ease: EASE }}
           >
-            <p>{line}</p>
-            <div className="kx-boot-emblem">
-              <span className="kx-boot-ring" />
-              <img src="/brand/kx-boot.webp" alt="" width={500} height={500} />
-            </div>
-          </motion.div>
+            {line}
+          </motion.p>
         )}
       </AnimatePresence>
 
@@ -355,7 +541,7 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
             className="kx-boot-screen"
             role="dialog"
             aria-label={`${wordmark} start screen`}
-            onClick={skip}
+            onClick={() => skip()}
             initial={{ opacity: 0 }}
             animate={{ opacity: sceneVisible ? 1 : 0 }}
             transition={{ duration: sceneVisible ? fadeIn : outDur, ease: EASE }}
@@ -363,7 +549,7 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
               if (phase === 'leaving') setPhase('lifting')
             }}
           >
-            {!reduce && !lite && <UnicornStage />}
+            {stageOn && <UnicornStage />}
             <motion.h1
               className="kx-boot-title"
               initial={lite || reduce ? { opacity: 0 } : { opacity: 0, scale: 0.96, filter: 'blur(6px)' }}
@@ -387,90 +573,31 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
   )
 }
 
-const UNICORN_SRC = 'https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v1.4.30/dist/unicornStudio.umd.js'
-
-/** Particles thrown out from the middle of the screen, then left to drift. Full mode only. */
-function BurstCanvas() {
-  const ref = useRef<HTMLCanvasElement>(null)
+/**
+ * The burst: soft light under the intro, dust over it. When the intro fades in,
+ * the light holds until the scene covers it, and the dust keeps drifting over
+ * the KuletX scene before it fades, so the hand-over has no seam.
+ */
+function StingLayer({ sound, lite, still, phase, fast }: { sound: BootSound; lite: boolean; still: boolean; phase: Phase; fast: boolean }) {
+  const atmo = useRef<HTMLCanvasElement>(null)
+  const dust = useRef<HTMLCanvasElement>(null)
+  const opts = useRef({ lite, still })
   useEffect(() => {
-    const canvas = ref.current
-    const ctx = canvas?.getContext('2d', { alpha: true })
-    if (!canvas || !ctx) return
-    const sprite = document.createElement('canvas')
-    sprite.width = sprite.height = 32
-    const sg = sprite.getContext('2d')
-    if (!sg) return
-    const glow = sg.createRadialGradient(16, 16, 0, 16, 16, 16)
-    glow.addColorStop(0, 'rgba(255,248,236,1)')
-    glow.addColorStop(0.4, 'rgba(255,232,196,0.45)')
-    glow.addColorStop(1, 'rgba(255,232,196,0)')
-    sg.fillStyle = glow
-    sg.fillRect(0, 0, 32, 32)
-
-    let w = 0
-    let h = 0
-    let raf = 0
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.25)
-    const fit = () => {
-      w = canvas.clientWidth || window.innerWidth
-      h = canvas.clientHeight || window.innerHeight
-      canvas.width = Math.max(1, Math.round(w * dpr))
-      canvas.height = Math.max(1, Math.round(h * dpr))
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    }
-    fit()
-    type Dot = { x: number; y: number; vx: number; vy: number; life: number; max: number; r: number; orb: boolean }
-    const count = w < 700 ? 70 : 130
-    const dots: Dot[] = []
-    const cx = w / 2
-    const cy = h * 0.48
-    for (let i = 0; i < count; i++) {
-      const ang = Math.random() * Math.PI * 2
-      const speed = 40 + Math.random() ** 0.45 * (w < 700 ? 280 : 460)
-      const orb = i < (w < 700 ? 4 : 9)
-      dots.push({
-        x: cx,
-        y: cy,
-        vx: Math.cos(ang) * speed,
-        vy: Math.sin(ang) * speed - 30,
-        life: 0,
-        max: 1.4 + Math.random() * 2.1,
-        r: orb ? 7 + Math.random() * 16 : 0.5 + Math.random() * 1.8,
-        orb,
-      })
-    }
-    let last = performance.now()
-    const draw = (now: number) => {
-      const dt = Math.min(0.034, (now - last) / 1000)
-      last = now
-      ctx.clearRect(0, 0, w, h)
-      let alive = 0
-      for (const d of dots) {
-        d.life += dt
-        if (d.life >= d.max) continue
-        alive++
-        d.vy += 8 * dt
-        d.vx *= 0.985
-        d.vy *= 0.985
-        d.x += d.vx * dt
-        d.y += d.vy * dt
-        const fade = Math.min(1, d.life / 0.12) * (1 - d.life / d.max)
-        if (d.orb) {
-          ctx.globalAlpha = fade * 0.85
-          ctx.drawImage(sprite, d.x - d.r, d.y - d.r, d.r * 2, d.r * 2)
-        } else {
-          ctx.globalAlpha = fade
-          ctx.fillStyle = '#fff6e8'
-          ctx.fillRect(d.x, d.y, d.r, d.r)
-        }
-      }
-      ctx.globalAlpha = 1
-      if (alive) raf = requestAnimationFrame(draw)
-    }
-    raf = requestAnimationFrame(draw)
-    return () => cancelAnimationFrame(raf)
-  }, [])
-  return <canvas ref={ref} className="kx-burst-canvas" />
+    if (!atmo.current || !dust.current) return
+    const clock = import.meta.env.DEV ? () => window.__kxStingT ?? sound.time() : sound.time
+    return runSting(atmo.current, dust.current, clock, opts.current)
+  }, [sound])
+  const out = phase !== 'sting'
+  const quick = fast ? FAST_OUT : 0.6
+  // Lite has no WebGL scene to cover the light, so it simply fades out under the wordmark
+  const atmoOut = phase === 'leaving' ? `opacity ${quick}s linear` : lite || still ? 'opacity 1.4s ease 0.2s' : 'opacity 1.6s ease 1.2s'
+  const dustOut = phase === 'leaving' ? `opacity ${quick}s linear` : 'opacity 3s ease-in 0.8s'
+  return (
+    <>
+      <canvas ref={atmo} className="kx-sting-atmo" aria-hidden style={{ opacity: out ? 0 : 1, transition: out ? atmoOut : 'none' }} />
+      <canvas ref={dust} className="kx-sting-dust" aria-hidden style={{ opacity: out ? 0 : 1, transition: out ? dustOut : 'none' }} />
+    </>
+  )
 }
 
 function loadUnicorn() {

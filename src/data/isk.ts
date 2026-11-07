@@ -16,6 +16,15 @@ export const ISK: Record<string, IskStory> = {
         "card": "/isk/acolytes/cards/6aa9130cbda2b3fef5ba8e8d.html"
       },
       {
+        "id": "6aede2da070968d7a79850ec",
+        "name": "Josefina Jones",
+        "summary": "Agent 00 of the Acolyte Consultancy. On the café floor she is just Jo; in the field every op plan answers to her.",
+        "rating": "m17",
+        "role": "persona",
+        "portrait": "/isk/acolytes/cast/6aede2da070968d7a79850ec.webp",
+        "card": "/isk/acolytes/cards/6aede2da070968d7a79850ec.html"
+      },
+      {
         "id": "6aa9162d3e6d56af8773211b",
         "name": "Hana Morishita",
         "summary": "Agent 01. The squad’s luckiest operator and quiet tactician. Joined for the café job. Stayed because she turned out to be dangerously good at the other half.",
