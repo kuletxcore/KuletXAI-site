@@ -8,6 +8,10 @@ import { useLite } from '#/lib/perf'
  * Console-style start screen: black curtain, the PS5 WebGL scene and wordmark
  * fade in together with the startup sound, hold, then fade out to the hub.
  * Plays once per browser session, never on a reload, and any key or click skips it.
+ *
+ * On a direct link the browser blocks sound until the first click, so the screen
+ * opens like a console power-on instead: the KX mark on black, then a dim bokeh
+ * screen with "Click to continue". That click starts the sound and the scene.
  */
 
 const SESSION_KEY = 'kx_boot_seen'
@@ -18,15 +22,16 @@ const FAST_OUT = 0.28
 const CURTAIN_OUT = 0.9
 const FAST_CURTAIN = 0.3
 const EASE = [0.4, 0, 0.2, 1] as const
+const LOGO_MS = 1300 // KX mark on black before the "continue" screen
 
-// waiting: the browser blocked the startup sound; hold on black until a press starts it
-type Phase = 'off' | 'curtain' | 'waiting' | 'playing' | 'leaving' | 'lifting'
+// logo, waiting: the browser blocked the startup sound. Show the mark, then wait for a press.
+type Phase = 'off' | 'curtain' | 'logo' | 'waiting' | 'playing' | 'leaving' | 'lifting'
 
 /** Inline script for <head>: blacks out the page and tries to start the startup sound before
  * first paint. The element has to live in the document. A detached Audio() plus a seek aborts
  * the one gesture-less play() browsers allow on a direct /stories/* load. If the browser blocks
  * it (no click on the site yet), the start screen waits for a press instead (see 'waiting'). */
-export const BOOT_HEAD_SCRIPT = `try{if(typeof window.__kxBoot!=='boolean'){var n=performance.getEntriesByType('navigation')[0];window.__kxBoot=!sessionStorage.getItem('${SESSION_KEY}')&&!(n&&n.type==='reload');if(window.__kxBoot){document.documentElement.classList.add('kx-boot');if(localStorage.getItem('kx_sound')!=='off'){var a=document.createElement('audio');a.id='kx-boot-audio';a.src='/sfx/ps5-startup.mp3';a.preload='auto';a.autoplay=true;a.volume=1;a.setAttribute('playsinline','');a.style.display='none';document.documentElement.appendChild(a);window.__kxBootAudio=a;window.__kxBootHeard=false;a.addEventListener('playing',function(){window.__kxBootHeard=true});var p=a.play();if(p&&p.catch)p.catch(function(){})}}}}catch(e){}`
+export const BOOT_HEAD_SCRIPT = `try{if(typeof window.__kxBoot!=='boolean'){var n=performance.getEntriesByType('navigation')[0];window.__kxBoot=!sessionStorage.getItem('${SESSION_KEY}')&&!(n&&n.type==='reload');if(window.__kxBoot){document.documentElement.classList.add('kx-boot');if(localStorage.getItem('kx_sound')!=='off'){var a=document.createElement('audio');a.id='kx-boot-audio';a.src='/sfx/ps5-startup.mp3';a.preload='auto';a.autoplay=true;a.volume=1;a.setAttribute('playsinline','');a.style.display='none';document.documentElement.appendChild(a);window.__kxBootAudio=a;window.__kxBootHeard=false;a.addEventListener('playing',function(){window.__kxBootHeard=true});var l=document.createElement('link');l.rel='preload';l.as='image';l.href='/brand/kx-mark.webp';document.head.appendChild(l);var p=a.play();if(p&&p.catch)p.catch(function(){})}}}}catch(e){}`
 
 declare global {
   interface Window {
@@ -149,7 +154,10 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
         // Let the black curtain paint, then start the synced fade-in. When the
         // browser blocked the sound, wait for a press so they start together.
         if (ok) begin()
-        else setPhase((p) => (p === 'curtain' ? 'waiting' : p))
+        else {
+          setPhase((p) => (p === 'curtain' ? 'logo' : p))
+          timers.current.push(window.setTimeout(() => setPhase((p) => (p === 'logo' ? 'waiting' : p)), LOGO_MS))
+        }
       })
     return () => {
       live = false
@@ -160,7 +168,7 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
 
   // Lets other input (the gamepad) know the start screen is up
   useEffect(() => {
-    window.__kxBootActive = phase === 'curtain' || phase === 'waiting' || phase === 'playing' || phase === 'leaving'
+    window.__kxBootActive = phase === 'curtain' || phase === 'logo' || phase === 'waiting' || phase === 'playing' || phase === 'leaving'
     return () => {
       window.__kxBootActive = false
     }
@@ -188,7 +196,7 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
   const skip = useCallback(() => {
     const audio = startup.current ?? window.__kxBootAudio
     // Waiting for a press: this one starts the sound and the intro together
-    if (phaseRef.current === 'waiting') {
+    if (phaseRef.current === 'logo' || phaseRef.current === 'waiting') {
       blocked.current = false
       if (audio) void audio.play().catch(() => {})
       setPhase('curtain')
@@ -250,19 +258,48 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
         }}
       />
 
-      {/* Browser blocked the sound: a console-style "press to start" */}
+      {/* Direct link, sound blocked: the KX mark on black, like a console powering on */}
       <AnimatePresence>
-        {phase === 'waiting' && (
-          <motion.p
-            key="start"
-            className="kx-boot-start"
+        {phase === 'logo' && (
+          <motion.img
+            key="mark"
+            src="/brand/kx-mark.webp"
+            alt=""
+            className="kx-boot-mark"
+            width={240}
+            height={224}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.2 } }}
-            transition={{ duration: 0.5, ease: EASE }}
+            exit={{ opacity: 0, transition: { duration: 0.4, ease: EASE } }}
+            transition={{ duration: 0.35, ease: EASE }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Then dim bokeh and one line, where a console shows its health notice */}
+      <AnimatePresence>
+        {phase === 'waiting' && (
+          <motion.div
+            key="intro"
+            className="kx-boot-intro"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: [1, 1, 0], scale: [1, 1.04, 1.1], transition: { duration: 1.2, times: [0, 0.3, 1], ease: EASE } }}
+            transition={{ duration: 1.6, ease: EASE, delay: 0.45 }}
           >
-            {typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches ? 'Tap to start' : 'Press any key or click to start'}
-          </motion.p>
+            <span className="kx-bokeh kx-bokeh-a" />
+            <span className="kx-bokeh kx-bokeh-b" />
+            <span className="kx-bokeh kx-bokeh-c" />
+            <motion.p
+              className="kx-boot-continue"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.25 } }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+            >
+              {typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches ? 'Tap to continue' : 'Click to continue'}
+            </motion.p>
+          </motion.div>
         )}
       </AnimatePresence>
 
