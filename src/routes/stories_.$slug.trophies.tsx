@@ -9,6 +9,7 @@ import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
 import type { PadButton } from '#/lib/gamepad'
 import { setMusic, stopOst } from '#/lib/music'
 import { isMuted, play as sfx, setMuted } from '#/lib/sfx'
+import { glideIntoView, stopAllGlides } from '#/lib/smooth-scroll'
 
 export const Route = createFileRoute('/stories_/$slug/trophies')({
   loader: ({ params }) => {
@@ -113,7 +114,7 @@ function TrophyPage() {
   // Selected card follows the controller / arrow keys
   useEffect(() => {
     const el = listRef.current?.children[selected] as HTMLElement | undefined
-    el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    if (el) glideIntoView(el, 24)
   }, [selected])
 
   useEffect(() => {
@@ -144,7 +145,10 @@ function TrophyPage() {
         if (!next) sfx('nav')
       }
     },
-    (dy) => window.scrollBy({ top: dy, behavior: 'instant' }),
+    (dy) => {
+      stopAllGlides()
+      window.scrollBy({ top: dy, behavior: 'instant' })
+    },
   )
   const l = PAD_LABEL[pad.kind]
 

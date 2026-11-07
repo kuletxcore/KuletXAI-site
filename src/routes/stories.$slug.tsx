@@ -9,6 +9,7 @@ import { countOf, useIskStats } from '#/lib/isk-stats'
 import { BOOT_HEAD_SCRIPT, BootScreen } from '#/components/boot-screen'
 import { Logo } from '#/components/site'
 import { isMuted, play as sfx, setMuted, useMuted } from '#/lib/sfx'
+import { glideIntoView, glideTo, stopAllGlides } from '#/lib/smooth-scroll'
 import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
 import { setPerfMode, useLite, usePerfMode, watchFrameRate } from '#/lib/perf'
 import { holdForMedia, playOst, setMusic, setMusicVolume, stopOst, useMusicVolume, useOstState } from '#/lib/music'
@@ -111,6 +112,7 @@ function scrollFrame(frame: HTMLIFrameElement | null, dy: number) {
 /** Left stick: scroll what's in focus — open card, then the section panel, then the page. */
 function stickScroll(dy: number) {
   if (window.__kxBootActive) return
+  stopAllGlides()
   const dialog = document.querySelector('[role=dialog][aria-modal]')
   if (dialog) {
     if (scrollFrame(dialog.querySelector('iframe'), dy)) return
@@ -232,7 +234,7 @@ function StoryHub() {
     if (!el) return
     el.setAttribute('data-sub-active', '')
     el.focus({ preventScroll: true })
-    el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
+    glideIntoView(el)
   }, [subIdx, modal])
   const seriesHasStory = tab === 'series' && STORIES.some((s) => s.trimz?.includes(TRIMZ[seriesIdx].slug))
   const canEnter = (tab === 'stories' && ['intro', 'cast', 'gallery', 'ost', 'trophies', 'watch'].includes(section)) || seriesHasStory
@@ -694,7 +696,7 @@ function revealSections() {
   let dy = 0
   if (bottom > innerHeight) dy = Math.min(bottom - innerHeight, top) // keep the pills on screen
   else if (top < 0) dy = top
-  if (Math.abs(dy) > 1) window.scrollBy({ top: dy, behavior: 'smooth' })
+  if (Math.abs(dy) > 1) glideTo(window, window.scrollY + dy)
 }
 // Which story/tab owns the OST player right now (null while the hub isn't mounted)
 let ostScope: string | null = null

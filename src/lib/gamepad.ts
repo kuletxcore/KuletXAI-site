@@ -28,7 +28,8 @@ const BUTTON_INDEX: Partial<Record<PadButton, number>> = {
 const DIRECTIONS = new Set<PadButton>(['up', 'down', 'left', 'right'])
 const STICK = 0.6
 const REPEAT_DELAY = 380
-const REPEAT_EVERY = 140
+// A held direction repeats faster the longer it's held: 140ms, then 80ms, then 45ms
+const repeatEvery = (n: number) => (n < 3 ? 140 : n < 8 ? 80 : 45)
 
 export const PAD_LABEL: Record<PadKind, Record<'a' | 'b' | 'x' | 'y' | 'lb' | 'rb', string>> = {
   xbox: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'LB', rb: 'RB' },
@@ -57,7 +58,11 @@ function pressed(pad: Gamepad, b: PadButton) {
 }
 
 const DEADZONE = 0.2
-const MAX_SCROLL_PX_PER_FRAME = 22
+// Left stick scroll speed, px per second: a light push reads, full tilt flies,
+// and holding it ramps up to full speed over RAMP_MS
+const SCROLL_MIN_PX_S = 1300
+const SCROLL_MAX_PX_S = 7000
+const RAMP_MS = 700
 
 /**
  * onPress: digital buttons and D-pad (plus stick left/right).
@@ -74,6 +79,9 @@ export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: numb
     if (typeof navigator === 'undefined' || !('getGamepads' in navigator)) return
     let raf = 0
     const held = new Map<PadButton, number>() // button -> next repeat time (or Infinity)
+    const repeats = new Map<PadButton, number>()
+    let lastFrame = 0
+    let tiltSince = 0
     const buttons = Object.keys(BUTTON_INDEX) as PadButton[]
 
     const firstPad = () => Array.from(navigator.getGamepads()).find((p): p is Gamepad => !!p && p.connected) ?? null
@@ -87,8 +95,12 @@ export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: numb
       if (!pad) {
         raf = 0
         held.clear()
+        repeats.clear()
+        lastFrame = 0
         return
       }
+      const dt = lastFrame ? Math.min(50, now - lastFrame) : 16.7
+      lastFrame = now
       if (!primed) {
         primed = true
         for (const b of buttons) if (pressed(pad, b)) held.set(b, Infinity)
@@ -101,17 +113,26 @@ export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: numb
         if (down && next === undefined) {
           handler.current(b)
           held.set(b, DIRECTIONS.has(b) ? now + REPEAT_DELAY : Infinity)
+          repeats.set(b, 0)
         } else if (down && next !== undefined && now >= next) {
           handler.current(b)
-          held.set(b, now + REPEAT_EVERY)
+          const n = (repeats.get(b) ?? 0) + 1
+          repeats.set(b, n)
+          held.set(b, now + repeatEvery(n))
         } else if (!down && next !== undefined) {
           held.delete(b)
+          repeats.delete(b)
         }
       }
       const y = pad.axes[1] ?? 0
       if (Math.abs(y) > DEADZONE && scroller.current) {
-        const t = (Math.abs(y) - DEADZONE) / (1 - DEADZONE)
-        scroller.current(Math.sign(y) * t ** 1.5 * MAX_SCROLL_PX_PER_FRAME)
+        tiltSince ||= now
+        const t = Math.min(1, (Math.abs(y) - DEADZONE) / (1 - DEADZONE))
+        const ramp = Math.min(1, (now - tiltSince) / RAMP_MS)
+        const top = SCROLL_MIN_PX_S + (SCROLL_MAX_PX_S - SCROLL_MIN_PX_S) * ramp * ramp
+        scroller.current(Math.sign(y) * t ** 1.8 * top * (dt / 1000))
+      } else {
+        tiltSince = 0
       }
       raf = requestAnimationFrame(loop)
     }
