@@ -810,7 +810,8 @@ html.kx-boot body::before {
 .kx-lite .ps5-tile {
   contain: paint;
   box-shadow: none;
-  transition: opacity 0.12s linear, border-color 0.12s linear;
+  /* instant hover/selection: a fade repaints the tile every frame */
+  transition: none;
 }
 .kx-lite .ps5-tile:hover,
 .kx-lite .ps5-tile.is-active {

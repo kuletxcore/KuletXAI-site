@@ -1,5 +1,5 @@
 import { Link, createFileRoute, notFound, useNavigate } from '@tanstack/react-router'
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { STORIES, TRIMZ, isekaiStoryUrl, trimzSeriesUrl } from '#/data/content'
 import type { Logo as TitleArt, Story } from '#/data/content'
@@ -459,6 +459,7 @@ function StoryHub() {
                     <Link
                       to="/stories/$slug"
                       params={{ slug: s.slug }}
+                      preload={false} // already on this page: hovering shouldn't run the loader
                       resetScroll={false}
                       aria-current={s.slug === story.slug ? 'page' : undefined}
                       onClick={() => s.slug !== story.slug && sfx('nav')}
@@ -581,7 +582,8 @@ function loadPlan(): LoadPlan {
  * Progressive backdrop: the still image paints first, a small WebM loop fades
  * in once it plays, then the original MP4 loads and takes over in sync.
  */
-function Backdrop({ src, blurSrc, video: videoSrc, active }: { src: string; blurSrc?: string; video?: string; active: boolean }) {
+// Memoized: switching items only re-renders the two layers whose `active` changed
+const Backdrop = memo(function Backdrop({ src, blurSrc, video: videoSrc, active }: { src: string; blurSrc?: string; video?: string; active: boolean }) {
   // Lite graphics: the still image only
   const lite = useLite()
   const video = lite ? undefined : videoSrc
@@ -668,7 +670,7 @@ function Backdrop({ src, blurSrc, video: videoSrc, active }: { src: string; blur
       )}
     </div>
   )
-}
+})
 
 const COARSE = '(pointer: coarse)'
 // Which story/tab owns the OST player right now (null while the hub isn't mounted)
@@ -838,7 +840,9 @@ function Tile({ active, label, children }: { active: boolean; label: string; chi
   useEffect(() => {
     if (!active) return
     // Touch screens: the row's position is driven by useTouchReel instead
-    if (!window.matchMedia(COARSE).matches) ref.current?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
+    // (Lite graphics: jump instead of a smooth scroll)
+    const smooth = !document.documentElement.classList.contains('kx-lite')
+    if (!window.matchMedia(COARSE).matches) ref.current?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: smooth ? 'smooth' : 'auto' })
     const measure = () => {
       const label = labelRef.current
       const row = ref.current?.closest('.ps5-ribbon')
