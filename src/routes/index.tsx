@@ -4,7 +4,7 @@ import { Footer, Header, SectionHead } from '#/components/site'
 import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, trimzSeriesUrl } from '#/data/content'
 import { LiveCount, LiveDot } from '#/components/live-count'
-import { countOf, totalOf, useIskStats } from '#/lib/isk-stats'
+import { countOf, totalOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
 
 export const Route = createFileRoute('/')({ component: Home })
 
@@ -208,6 +208,7 @@ function Stories() {
 }
 
 function Trimz() {
+  const live = useIskStats()
   return (
     <section id="trimz" className="scroll-mt-16 border-b border-line bg-panel/40">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
@@ -257,7 +258,7 @@ function Trimz() {
                   <p className="mt-2 flex-1 text-sm leading-relaxed text-mute">{t.summary}</p>
                   <div className="mt-5 flex items-center justify-between border-t border-line pt-4 font-gamer text-xs">
                     <span className="text-mute">
-                      {t.episodes} EP · {t.views} VIEWS
+                      <LiveCount value={trimzCountOf(live, t, 'episodes')} /> EP · <LiveCount value={trimzCountOf(live, t, 'views')} /> VIEWS
                     </span>
                     <span className="text-neon">WATCH →</span>
                   </div>

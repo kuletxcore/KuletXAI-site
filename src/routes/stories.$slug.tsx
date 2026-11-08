@@ -5,7 +5,7 @@ import { STORIES, TRIMZ, castTrimz, isekaiStoryUrl, trimzSeriesUrl } from '#/dat
 import type { Logo as TitleArt, Story } from '#/data/content'
 import { ISK } from '#/data/isk'
 import { LiveCount, LiveDot } from '#/components/live-count'
-import { countOf, useIskStats } from '#/lib/isk-stats'
+import { countOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
 import { BOOT_HEAD_SCRIPT, BootScreen } from '#/components/boot-screen'
 import { Logo } from '#/components/site'
 import { isMuted, play as sfx, setMuted, useMuted } from '#/lib/sfx'
@@ -1192,7 +1192,7 @@ function StoryDetails({
                   <img src={t.poster} alt={`Poster for ${t.title}`} className="aspect-[2/3] w-full rounded-xl border-2 border-transparent object-cover group-hover:border-white" />
                   <p className="mt-2 text-xs font-semibold leading-snug text-white/85 group-hover:text-white">{t.title}</p>
                   <p className="text-[11px] text-white/55">
-                    {t.episodes} ep · {t.views} views
+                    <LiveCount value={trimzCountOf(live, t, 'episodes')} /> ep · <LiveCount value={trimzCountOf(live, t, 'views')} /> views
                   </p>
                 </a>
               </li>
@@ -1207,9 +1207,20 @@ function StoryDetails({
 function SeriesDetails({ idx, onOpenStory }: { idx: number; onOpenStory: (slug: string) => void }) {
   const t = TRIMZ[idx]
   const related = STORIES.find((s) => s.trimz?.includes(t.slug))
+  const live = useIskStats()
+  const episodes = trimzCountOf(live, t, 'episodes')
   return (
     <>
-      <Badge platform="trimz" meta={[`${t.episodes} episode${t.episodes === 1 ? '' : 's'}`, `${t.views} views`]} />
+      <Badge
+        platform="trimz"
+        meta={[`${episodes} episode${episodes === 1 ? '' : 's'}`]}
+        extra={
+          <span className="flex items-center gap-1.5" title="Total views on Trimz">
+            <LiveDot />
+            <LiveCount value={trimzCountOf(live, t, 'views')} /> views
+          </span>
+        }
+      />
       <TitleLogo key={t.slug} title={t.title} logo={t.logo} />
       <p className="ps5-shadow max-w-[560px] text-sm leading-relaxed text-white/85 md:text-[15px]">{t.summary}</p>
       {related && (

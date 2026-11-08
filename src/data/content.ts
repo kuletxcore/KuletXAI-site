@@ -40,7 +40,7 @@ export const TRIMZ: TrimzSeries[] = [
     poster: '/trimz/acolytes.webp',
     video: '/trimz/acolytes.mp4',
     episodes: 4,
-    views: 157,
+    views: 159,
   },
   {
     slug: 'acolytes-maid-for-your-protection-side-b',

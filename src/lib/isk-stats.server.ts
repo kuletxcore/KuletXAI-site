@@ -1,16 +1,19 @@
-import { STORIES } from '#/data/content'
-import type { IskCounts, IskStats } from '#/lib/isk-stats'
+import { STORIES, TRIMZ } from '#/data/content'
+import type { IskCounts, IskStats, TrimzCounts } from '#/lib/isk-stats'
 
 /**
- * Live IsekaiZero counts, server side: an hourly run (src/server.ts) caches them at the edge for /api/isk-stats, which
- * refreshes a stale copy itself and falls back to the last good one. Only content.ts storyline ids are requested.
+ * Live IsekaiZero and Trimz counts, server side: an hourly run (src/server.ts) caches them at the edge for /api/isk-stats,
+ * which refreshes a stale copy itself and falls back to the last good one. Only content.ts stories and series are read.
  */
 export const REFRESH_S = 60 * 60
 const GRACE_S = 10 * 60 // the hourly run lands a little after its slot
 const KEEP_S = 30 * 24 * 60 * 60
 const API = 'https://api-global.isekaizero.ai/api/storylines/'
-const FRESH_KEY = 'https://kuletxai.whop.site/__cache/isk-stats/v2'
-const LAST_KEY = 'https://kuletxai.whop.site/__cache/isk-stats/v2-last'
+// One public listing covers every series on trimz.tv/u/kuletxcore
+const TRIMZ_API = 'https://api.trimz.tv/api/ms/public-series?limit=50&order=updated_desc&owner_username=kuletxcore&locale=en'
+const UA = 'kuletx-hub/1.0 (+https://kuletxai.whop.site)'
+const FRESH_KEY = 'https://kuletxai.whop.site/__cache/isk-stats/v3'
+const LAST_KEY = 'https://kuletxai.whop.site/__cache/isk-stats/v3-last'
 
 let memory: IskStats | null = null
 let inflight: Promise<IskStats | null> | null = null
@@ -21,7 +24,7 @@ const count = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v 
 
 async function readStory(id: string): Promise<IskCounts> {
   const res = await fetch(API + id, {
-    headers: { accept: 'application/json', 'user-agent': 'kuletx-hub/1.0 (+https://kuletxai.whop.site)' },
+    headers: { accept: 'application/json', 'user-agent': UA },
     signal: AbortSignal.timeout(10_000),
   })
   if (!res.ok) throw new Error(`storyline ${id}: HTTP ${res.status}`)
@@ -34,6 +37,20 @@ async function readStory(id: string): Promise<IskCounts> {
   if (out.messages === undefined && out.chats === undefined && out.likes === undefined) {
     throw new Error(`storyline ${id}: no counts`)
   }
+  return out
+}
+
+/** Views and episode counts for the content.ts series, by slug. */
+async function readTrimz(): Promise<Record<string, TrimzCounts>> {
+  const res = await fetch(TRIMZ_API, { headers: { accept: 'application/json', 'user-agent': UA }, signal: AbortSignal.timeout(10_000) })
+  if (!res.ok) throw new Error(`trimz: HTTP ${res.status}`)
+  const body = (await res.json()) as { items?: { slug?: string; total_views?: unknown; episode_count?: unknown }[] }
+  const out: Record<string, TrimzCounts> = {}
+  for (const item of body.items ?? []) {
+    if (!item.slug || !TRIMZ.some((t) => t.slug === item.slug)) continue
+    out[item.slug] = { views: count(item.total_views), episodes: count(item.episode_count) }
+  }
+  if (!Object.keys(out).length) throw new Error('trimz: none of our series in the listing')
   return out
 }
 
@@ -60,21 +77,26 @@ async function writeCached(key: string, stats: IskStats, maxAge: number) {
 }
 
 async function pull(previous: IskStats | null): Promise<IskStats | null> {
-  const results = await Promise.allSettled(STORIES.map((s) => readStory(s.id)))
+  const [trimzResult, ...results] = await Promise.allSettled([readTrimz(), ...STORIES.map((s) => readStory(s.id))] as const)
   const stories: IskStats['stories'] = {}
   let fresh = 0
   results.forEach((r, i) => {
     const slug = STORIES[i].slug
     if (r.status === 'fulfilled') {
-      stories[slug] = r.value
+      stories[slug] = r.value as IskCounts
       fresh++
     } else {
       console.warn('[isk-stats]', String(r.reason))
       if (previous?.stories[slug]) stories[slug] = previous.stories[slug]
     }
   })
+  let trimz = previous?.trimz
+  if (trimzResult.status === 'fulfilled') {
+    trimz = trimzResult.value
+    fresh++
+  } else console.warn('[isk-stats]', String(trimzResult.reason))
   if (!fresh) return null
-  const stats: IskStats = { t: Date.now(), stories }
+  const stats: IskStats = { t: Date.now(), stories, ...(trimz && { trimz }) }
   memory = stats
   await Promise.all([writeCached(FRESH_KEY, stats, REFRESH_S + GRACE_S), writeCached(LAST_KEY, stats, KEEP_S)])
   return stats

@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { STORIES, type Story } from '#/data/content'
+import { STORIES, type Story, type TrimzSeries } from '#/data/content'
 import { isLite } from '#/lib/perf'
 
 /**
- * Live IsekaiZero counts. Pages render the numbers baked into content.ts (so server HTML and hydration match), then
+ * Live IsekaiZero and Trimz counts. Pages render the numbers baked into content.ts (so server HTML and hydration match), then
  * swap in /api/isk-stats, re-checked on load, when the tab comes back, and on a timer while the page is open.
  */
 export type IskCounts = { messages?: number; chats?: number; likes?: number }
-export type IskStats = { t: number; stories: Record<string, IskCounts> }
+export type TrimzCounts = { views?: number; episodes?: number }
+export type IskStats = { t: number; stories: Record<string, IskCounts>; trimz?: Record<string, TrimzCounts> }
 export type CountKey = keyof IskCounts
 
 const KEY = 'kx_isk_stats'
@@ -108,6 +109,13 @@ export function useIskStats() {
 export function countOf(s: IskStats | null, story: Story, key: CountKey) {
   const live = s?.stories[story.slug]?.[key]
   return typeof live === 'number' ? Math.max(live, story[key]) : story[key]
+}
+
+/** A Trimz series count, live when known. Views never drop below the baked-in number; episodes follow Trimz. */
+export function trimzCountOf(s: IskStats | null, t: TrimzSeries, key: keyof TrimzCounts) {
+  const live = s?.trimz?.[t.slug]?.[key]
+  if (typeof live !== 'number') return t[key]
+  return key === 'views' ? Math.max(live, t.views) : live || t.episodes
 }
 
 export function totalOf(s: IskStats | null, key: CountKey) {
