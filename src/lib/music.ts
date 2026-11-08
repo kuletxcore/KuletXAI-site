@@ -3,7 +3,8 @@ import { audioContext, existingAudioContext, isMuted, onMutedChange } from './sf
 
 /**
  * Console-style background music: one looping track per hub item, faded through Web Audio gain (iOS ignores
- * <audio>.volume). Tracks resume where they were; playback starts once a user gesture has started the audio context.
+ * <audio>.volume). Switching items stops the old track, so each starts from the top; mute, the OST and holds only pause it.
+ * Playback starts once a user gesture has started the audio context.
  */
 
 const MAX_GAIN = 0.6
@@ -36,6 +37,7 @@ let held = false
 let wired = false
 let switchTimer = 0
 let switchingFrom: Channel | null = null
+let lastSrc: string | null = null // the track that played last: only it may resume mid-song
 const wantedListeners = new Set<() => void>()
 const setWanted = (src: string | null) => {
   if (src === wanted) return
@@ -67,11 +69,24 @@ function ramp(ch: Channel, to: number, secs: number) {
   g.linearRampToValueAtTime(to, now + secs)
 }
 
-function fadeOut(ch: Channel) {
+/** Pause, or stop (pause and rewind) when another item's track is taking over. */
+function halt(ch: Channel, stop: boolean) {
+  ch.el.pause()
+  if (stop && ch.el.currentTime > 0) ch.el.currentTime = 0
+}
+
+function fadeOut(ch: Channel, stop = false) {
   ramp(ch, 0, FADE_OUT)
   window.setTimeout(() => {
-    if (current !== ch) ch.el.pause()
+    if (current !== ch) halt(ch, stop)
   }, FADE_OUT * 1000 + 80)
+}
+
+/** Play a channel, from the top unless it is the track that was playing before a pause. */
+function start(ch: Channel) {
+  if (ch.src !== lastSrc && ch.el.currentTime > 0) ch.el.currentTime = 0
+  lastSrc = ch.src
+  if (ch.el.paused) void ch.el.play().catch(() => {})
 }
 
 // Creating the AudioContext takes tens of milliseconds, so music asks for it in idle time
@@ -124,12 +139,12 @@ function apply() {
     ramp(current, gainFor(), FADE_IN)
     return
   }
-  if (current) fadeOut(current)
+  if (current) fadeOut(current, true)
   current = null
   if (!wanted) return
   const next = channel(ctx, wanted)
   current = next
-  void next.el.play().catch(() => {})
+  start(next)
   ramp(next, gainFor(), FADE_IN)
 }
 
@@ -145,7 +160,7 @@ function beginSwitch() {
   window.setTimeout(() => {
     switchingFrom = null
     if (current === from) current = null
-    from.el.pause()
+    halt(from, from.src !== wanted)
     startWanted(ctx)
   }, SWITCH_FADE_OUT * 1000)
 }
@@ -153,14 +168,14 @@ function beginSwitch() {
 /** The selected item's track (whatever is selected now, not when the switch began), straight in. */
 function startWanted(ctx: AudioContext) {
   if (ctx.state !== 'running' || blocked()) return apply()
-  if (current && current.src !== wanted) fadeOut(current)
+  if (current && current.src !== wanted) fadeOut(current, true)
   if (!wanted) {
     current = null
     return
   }
   const next = channel(ctx, wanted)
   current = next
-  if (next.el.paused) void next.el.play().catch(() => {})
+  start(next)
   ramp(next, gainFor(), SWITCH_FADE_IN)
 }
 
