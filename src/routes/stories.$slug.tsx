@@ -1917,7 +1917,7 @@ function SoundMenu({ nowPlaying }: { nowPlaying: Track | null }) {
             {nowPlaying ? (
               <>
                 <p>
-                  Now playing:{' '}
+                  {volume === 0 ? 'Stopped (volume at 0):' : 'Now playing:'}{' '}
                   <a href={nowPlaying.trackUrl} target="_blank" rel="noreferrer" className="font-semibold text-white hover:underline">
                     {nowPlaying.title}
                   </a>

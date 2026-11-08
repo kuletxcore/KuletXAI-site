@@ -88,7 +88,18 @@ function startAudioSoon() {
   else window.setTimeout(run, 200)
 }
 
-const blocked = () => held || isMuted() || ost.active || mediaHolds.size > 0
+const blocked = () => level === 0 || held || isMuted() || ost.active || mediaHolds.size > 0
+
+/** Volume at 0 stops the music outright: every track paused and rewound, so it starts from the top when raised. */
+function stopMusic() {
+  for (const ch of channels.values()) {
+    ch.gain.gain.cancelScheduledValues(0)
+    ch.gain.gain.value = 0
+    ch.el.pause()
+    if (ch.el.currentTime > 0) ch.el.currentTime = 0
+  }
+  current = null
+}
 
 /** Mute, the start screen, the OST player and card videos: these fade the music in and out gently. */
 function apply() {
@@ -101,6 +112,7 @@ function apply() {
   }
   if (ctx.state !== 'running') return // starts on the first tap/click/key
 
+  if (level === 0) return stopMusic()
   if (blocked()) {
     if (current) fadeOut(current)
     current = null
@@ -289,6 +301,21 @@ export function stopOst() {
   apply()
 }
 
+/** The OST stops with the music at volume 0, rewound so a later play starts the track over. */
+function stopOstNow() {
+  if (!ost.active) return
+  const el = ost.el
+  if (ost.gain) rampGain(ost.gain, 0, 0.01)
+  if (el) {
+    el.pause()
+    el.currentTime = 0
+  }
+  ost.src = null
+  ost.active = false
+  ost.onEnded = null
+  ostEmit()
+}
+
 export function useOstState() {
   return useSyncExternalStore(
     (cb) => {
@@ -348,13 +375,17 @@ export function holdMusic(hold: boolean, delayMs = 0) {
 
 /** Music volume, 0..1 (independent of the UI sound effects). */
 export function setMusicVolume(v: number) {
+  const was = level
   level = Math.min(1, Math.max(0, v))
   try {
     localStorage.setItem(VOL_KEY, String(level))
   } catch {
     /* not persisted */
   }
-  if (current && current !== switchingFrom) ramp(current, gainFor(), 0.12)
+  if (level === 0 || was === 0) {
+    if (level === 0) stopOstNow()
+    apply() // stops the music at 0, starts it again from the top when raised
+  } else if (current && current !== switchingFrom) ramp(current, gainFor(), 0.12)
   if (ost.gain && ost.playing) rampGain(ost.gain, gainFor(), 0.12)
   else if (ost.el && !ost.gain) ost.el.volume = level
   volumeListeners.forEach((l) => l())
