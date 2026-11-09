@@ -1,7 +1,7 @@
 import { Link, createFileRoute, notFound, useNavigate } from '@tanstack/react-router'
 import { memo, startTransition, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { ReactNode } from 'react'
-import { STORIES, TRIMZ, castTrimz, isekaiStoryUrl, trimzSeriesUrl } from '#/data/content'
+import { STORIES, TRIMZ, castTrimz, storyPlatform, storyPlatformName, storyUrl, trimzSeriesUrl } from '#/data/content'
 import type { Logo as TitleArt, Story } from '#/data/content'
 import { ISK } from '#/data/isk'
 import { LiveCount, LiveDot } from '#/components/live-count'
@@ -84,7 +84,7 @@ export const Route = createFileRoute('/stories/$slug')({
 type HubTab = 'stories' | 'series' | 'youtube'
 const TAB_ORDER: HubTab[] = ['stories', 'series', 'youtube']
 const TAB_LABEL: Record<HubTab, string> = { stories: 'Storylines', series: 'Trimz Series', youtube: 'YouTube' }
-const TAB_PLATFORM: Record<HubTab, Platform> = { stories: 'isk', series: 'trimz', youtube: 'youtube' }
+const TAB_PLATFORM: Record<HubTab, Exclude<Platform, 'kage'>> = { stories: 'isk', series: 'trimz', youtube: 'youtube' }
 type Section = 'overview' | 'intro' | 'cast' | 'gallery' | 'ost' | 'trophies' | 'world' | 'watch'
 
 const SECTION_LABEL: Record<Section, string> = {
@@ -207,7 +207,7 @@ function StoryHub() {
     }, 350)
     return () => clearTimeout(id)
   }, [search, tab, section, seriesIdx, ytIdx, story.slug])
-  const play = isekaiStoryUrl(story.id)
+  const play = storyUrl(story)
   const activeSeries = TRIMZ[seriesIdx]
   const primaryHref = tab === 'stories' ? play : tab === 'series' ? trimzSeriesUrl(activeSeries.slug) : activeVideo ? ytWatchUrl(activeVideo) : YT_CHANNEL_URL
 
@@ -614,7 +614,7 @@ function StoryHub() {
               }}
             >
               <PlayIcon />
-              {tab === 'stories' ? 'Play on IsekaiZero' : tab === 'series' ? 'Watch on Trimz' : activeVideo ? (activeVideo.short ? 'Play Short' : 'Play video') : 'Open channel'}
+              {tab === 'stories' ? `Play on ${storyPlatformName(story)}` : tab === 'series' ? 'Watch on Trimz' : activeVideo ? (activeVideo.short ? 'Play Short' : 'Play video') : 'Open channel'}
             </a>
             {tab === 'youtube' && activeVideo && (
               <a href={ytWatchUrl(activeVideo)} target="_blank" rel="noreferrer" className="ps5-round" aria-label="Open on YouTube" title="Open on YouTube" onClick={() => sfx('enter')}>
@@ -1161,10 +1161,10 @@ function StoryDetails({
   return (
     <>
       <Badge
-        platform="isk"
+        platform={storyPlatform(story)}
         meta={[story.rating, ...story.tags]}
         extra={
-          <span className="flex items-center gap-1.5" title="Messages players have sent in this story on IsekaiZero">
+          <span className="flex items-center gap-1.5" title={`Messages players have sent in this story on ${storyPlatformName(story)}`}>
             <LiveDot />
             <LiveCount key={`${story.slug}:messages`} value={countOf(live, story, 'messages')} /> messages
           </span>
@@ -1196,7 +1196,7 @@ function StoryDetails({
             ))}
             <p className="pt-1 text-xs font-semibold text-white/55">
               ♥ <LiveCount key={`${story.slug}:likes`} value={countOf(live, story, 'likes')} /> likes · <LiveCount key={`${story.slug}:chats`} value={countOf(live, story, 'chats')} /> chats ·{' '}
-              <LiveCount key={`${story.slug}:messages`} value={countOf(live, story, 'messages')} /> messages on IsekaiZero
+              <LiveCount key={`${story.slug}:messages`} value={countOf(live, story, 'messages')} /> messages on {storyPlatformName(story)}
             </p>
             {STORY_MUSIC[story.slug]?.ost && (
               <p className="text-xs text-white/55">

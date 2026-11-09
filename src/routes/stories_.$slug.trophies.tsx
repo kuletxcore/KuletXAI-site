@@ -1,7 +1,7 @@
 import { Link, createFileRoute, notFound, useNavigate } from '@tanstack/react-router'
 import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { MotionConfig } from 'motion/react'
-import { STORIES } from '#/data/content'
+import { STORIES, storyPlatformName, storyUrl } from '#/data/content'
 import { STORY_MUSIC } from '#/data/music'
 import { TROPHIES } from '#/data/trophies'
 import type { Trophy, TrophyGrade } from '#/data/trophies'
@@ -28,7 +28,7 @@ export const Route = createFileRoute('/stories_/$slug/trophies')({
     meta: loaderData
       ? [
           { title: `Trophies · ${loaderData.story.title} | KuletX AI` },
-          { name: 'description', content: `All ${loaderData.set.trophies.length} trophies in ${loaderData.story.title}, an interactive story on IsekaiZero.` },
+          { name: 'description', content: `All ${loaderData.set.trophies.length} trophies in ${loaderData.story.title}, an interactive story on ${storyPlatformName(loaderData.story)}.` },
           { name: 'theme-color', content: '#05070c' },
         ]
       : [],
@@ -209,7 +209,7 @@ function TrophyPage() {
           </ol>
 
           <p className="mt-8 text-xs text-white/45">
-            Trophies come from the story's codex on IsekaiZero and unlock as you play. Grades and the Platinum are this site's own.
+            Trophies come from the story's codex on {storyPlatformName(story)} and unlock as you play. Grades and the Platinum are this site's own.
           </p>
         </div>
 
@@ -235,8 +235,8 @@ function TrophyPage() {
                 </span>
               </>
             )}
-            <a href={`https://www.isekaizero.ai/storylines/${story.id}?referralCode=95OBGFQX`} target="_blank" rel="noreferrer" onClick={() => sfx('enter')} className="ml-auto rounded-full bg-white px-4 py-1.5 font-bold text-black hover:scale-[1.03]">
-              ▶ Play on IsekaiZero
+            <a href={storyUrl(story)} target="_blank" rel="noreferrer" onClick={() => sfx('enter')} className="ml-auto rounded-full bg-white px-4 py-1.5 font-bold text-black hover:scale-[1.03]">
+              ▶ Play on {storyPlatformName(story)}
             </a>
           </div>
         </footer>

@@ -301,6 +301,15 @@ a:focus-visible {
 .ps5-chip-trimz img {
   height: 18px;
 }
+/* PS4-style: black pill, white logo, for 18+ storylines on KageSekai */
+.ps5-chip-kage {
+  border-color: rgba(255, 255, 255, 0.9);
+  background: #000;
+}
+.ps5-chip-kage img {
+  height: 19px;
+  filter: none;
+}
 .ps5-chip svg {
   width: 17px;
   height: 12px;

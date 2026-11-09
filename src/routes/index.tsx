@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Footer, Header, SectionHead } from '#/components/site'
 import { play as sfx } from '#/lib/sfx'
-import { LINKS, STORIES, TRIMZ, trimzSeriesUrl } from '#/data/content'
+import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
 import { LiveCount, LiveDot } from '#/components/live-count'
 import { countOf, totalOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
 
@@ -141,7 +141,7 @@ function Stories() {
                     ))}
                   </div>
                   <div className="mt-5 flex items-center justify-between border-t border-line pt-4 font-gamer text-xs">
-                    <span className="text-mute" title="Likes · chats · messages on IsekaiZero">
+                    <span className="text-mute" title={`Likes · chats · messages on ${storyPlatformName(s)}`}>
                       ♥ <LiveCount value={countOf(live, s, 'likes')} /> · ✉ <LiveCount value={countOf(live, s, 'chats')} /> ·{' '}
                       <LiveCount value={countOf(live, s, 'messages')} compact /> MSG
                     </span>

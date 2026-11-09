@@ -9,6 +9,11 @@ export const LINKS = {
 }
 
 export const isekaiStoryUrl = (id: string) => `https://www.isekaizero.ai/storylines/${id}${ISEKAI_REF}`
+/** 18+ storylines live on KageSekai, IsekaiZero's adult sister site (same accounts and storyline ids). */
+export const storyPlatform = (s: { rating: Story['rating'] }): 'kage' | 'isk' => (s.rating === '18+' ? 'kage' : 'isk')
+export const storyPlatformName = (s: { rating: Story['rating'] }) => (s.rating === '18+' ? 'KageSekai' : 'IsekaiZero')
+export const storyUrl = (s: { id: string; rating: Story['rating'] }) =>
+  s.rating === '18+' ? `https://www.kagesekai.ai/storylines/${s.id}` : isekaiStoryUrl(s.id)
 export const trimzSeriesUrl = (slug: string) => `https://trimz.tv/${slug}`
 
 export type TrimzSeries = {
@@ -75,7 +80,7 @@ export type Story = {
   title: string
   logline: string
   cover: string
-  rating: 'SFW' | '17+'
+  rating: 'SFW' | '17+' | '18+'
   tags: string[]
   /** IsekaiZero counts baked in at build time; useIskStats() swaps in live numbers */
   likes: number
