@@ -1,0 +1,22 @@
+# Static files keep their names between deploys, so they can't be cached forever like /assets/*.
+# A day without asking the server, then the cached copy is used at once while a fresh one is fetched.
+/covers/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/soft/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/tiles/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/titles/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/trimz/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/isk/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/brand/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/fonts/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/music/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/sfx/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800

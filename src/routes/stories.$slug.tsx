@@ -1,12 +1,12 @@
 import { Link, createFileRoute, notFound, useNavigate } from '@tanstack/react-router'
-import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { memo, startTransition, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { ReactNode } from 'react'
 import { STORIES, TRIMZ, castTrimz, isekaiStoryUrl, trimzSeriesUrl } from '#/data/content'
 import type { Logo as TitleArt, Story } from '#/data/content'
 import { ISK } from '#/data/isk'
 import { LiveCount, LiveDot } from '#/components/live-count'
 import { countOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
-import { BOOT_HEAD_SCRIPT, BootScreen } from '#/components/boot-screen'
+import { BOOT_HEAD_SCRIPT, BootScreen, useBootActive } from '#/components/boot-screen'
 import { Logo } from '#/components/site'
 import { isMuted, play as sfx, setMuted, useMuted } from '#/lib/sfx'
 import { glideIntoView, glideTo, stopAllGlides } from '#/lib/smooth-scroll'
@@ -151,8 +151,14 @@ function StoryHub() {
   const activeVideo: YtVideo | undefined = videos[ytIdx]
 
   const storyIdx = STORIES.findIndex((s) => s.slug === story.slug)
-  // Backdrops worth loading now: each tab's current item (so a tab switch is instant), plus the visible tab's neighbours
-  const warm = (t: HubTab, i: number, cur: number) => i === cur || (tab === t && Math.abs(i - cur) <= 1)
+  const settled = useHubSettled()
+  // Backdrops worth loading now: each tab's current item (so a tab switch is instant), plus the visible tab's neighbours.
+  // Once the hub settles, all story and series art too (it's small), so a fast swipe never lands on an empty background
+  // YouTube thumbnails are large, so a hidden YouTube tab waits for the hub to settle
+  const warm = (t: HubTab, i: number, cur: number) =>
+    (i === cur && (t !== 'youtube' || tab === t || settled)) ||
+    (tab === t && Math.abs(i - cur) <= (settled ? 2 : 1)) ||
+    (settled && t !== 'youtube')
   const series = TRIMZ.filter((t) => story.trimz?.includes(t.slug))
   const isk = ISK[story.slug]
   const sections: Section[] = [
@@ -170,6 +176,7 @@ function StoryHub() {
     if (!sections.includes(section)) setSection('overview')
   }, [sections.join(), section])
 
+  const wantTab = useRef(tab)
   // Address and hub state follow each other: our own changes use replace (so Back still leaves the page),
   // and an address we didn't write (Back/Forward, a pasted link) drives the state
   const searchKey = (q: HubSearch) => [q.tab ?? '', q.series ?? '', q.v ?? '', q.section ?? ''].join('|')
@@ -178,7 +185,8 @@ function StoryHub() {
     const current = searchKey(search)
     if (current !== written.current) {
       written.current = current
-      setTab(search.tab === 'trimz' ? 'series' : search.tab === 'youtube' ? 'youtube' : 'stories')
+      wantTab.current = search.tab === 'trimz' ? 'series' : search.tab === 'youtube' ? 'youtube' : 'stories'
+      setTab(wantTab.current)
       setSeriesIdx(Math.max(0, TRIMZ.findIndex((t) => t.key === search.series)))
       setYtIdx(Math.max(0, videos.findIndex((v) => v.id === search.v)))
       setSection(search.section && search.section in SECTION_LABEL ? (search.section as Section) : 'overview')
@@ -191,10 +199,13 @@ function StoryHub() {
           ? { tab: 'youtube', v: videos[ytIdx]?.id }
           : { section: section !== 'overview' ? section : undefined }
     const nextKey = searchKey(next)
-    if (nextKey !== current) {
+    if (nextKey === current) return
+    // Written once the switching stops: each write re-renders the whole hub through the router
+    const id = window.setTimeout(() => {
       written.current = nextKey
       navigate({ to: '/stories/$slug', params: { slug: story.slug }, search: next, replace: true, resetScroll: false })
-    }
+    }, 350)
+    return () => clearTimeout(id)
   }, [search, tab, section, seriesIdx, ytIdx, story.slug])
   const play = isekaiStoryUrl(story.id)
   const activeSeries = TRIMZ[seriesIdx]
@@ -220,20 +231,24 @@ function StoryHub() {
       const next = STORIES[(storyIdx + dir + STORIES.length) % STORIES.length]
       navigate({ to: '/stories/$slug', params: { slug: next.slug }, resetScroll: false })
     } else if (tab === 'series') {
-      setSeriesIdx((i) => (i + dir + TRIMZ.length) % TRIMZ.length)
+      // a transition, like the router's story changes: fast presses skip drawing the items in between
+      startTransition(() => setSeriesIdx((i) => (i + dir + TRIMZ.length) % TRIMZ.length))
     } else if (videos.length) {
-      setYtIdx((i) => (i + dir + videos.length) % videos.length)
+      startTransition(() => setYtIdx((i) => (i + dir + videos.length) % videos.length))
     }
   }
 
+  // The tab last asked for. The swap renders as a transition, so a quick run of taps skips the tabs in between
+  // instead of drawing each one; the top bar lights up the tapped tab straight away (see TopBar)
   const switchTab = (next: HubTab) => {
-    if (next === tab) return
+    if (next === wantTab.current) return
     sfx('tab')
-    setTab(next)
+    wantTab.current = next
+    startTransition(() => setTab(next))
   }
   const cycleTab = (dir: 1 | -1) => {
     navHint.current = dir
-    switchTab(TAB_ORDER[(TAB_ORDER.indexOf(tab) + dir + TAB_ORDER.length) % TAB_ORDER.length])
+    switchTab(TAB_ORDER[(TAB_ORDER.indexOf(wantTab.current) + dir + TAB_ORDER.length) % TAB_ORDER.length])
   }
   // X / Square: "enter" the highlighted section and move between its items
   const [subIdx, setSubIdx] = useState<number | null>(null)
@@ -323,8 +338,8 @@ function StoryHub() {
     if (tab === 'stories') {
       // One history entry per swipe, not one per tile it passes
       navigate({ to: '/stories/$slug', params: { slug: STORIES[i].slug }, resetScroll: false, replace: !first })
-    } else if (tab === 'series') setSeriesIdx(i)
-    else setYtIdx(i)
+    } else if (tab === 'series') startTransition(() => setSeriesIdx(i))
+    else startTransition(() => setYtIdx(i))
   })
 
   // The backdrop pans the way the selection moved, as on the console. Worked out during render so the direction
@@ -646,7 +661,43 @@ function loadPlan(): LoadPlan {
   return { preview: webm, full: !webm || !slow }
 }
 
-/** Tiny pre-blurred copy of a local backdrop (public/soft), used in lite mode instead of a live blur. */
+/** True a few seconds after the hub mounts, in idle time and after the start screen, for loading what can wait. */
+function useHubSettled() {
+  const [settled, setSettled] = useState(false)
+  useEffect(() => {
+    let timer = 0
+    let gone = false
+    const check = () => {
+      if (gone) return
+      if (window.__kxBootActive || document.hidden) {
+        timer = window.setTimeout(check, 1000)
+        return
+      }
+      const go = () => !gone && setSettled(true)
+      if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(go, { timeout: 2000 })
+      else go()
+    }
+    timer = window.setTimeout(check, 2500)
+    return () => {
+      gone = true
+      clearTimeout(timer)
+    }
+  }, [])
+  useEffect(() => {
+    if (!settled) return
+    // Title logos and platform wordmarks: fetched and decoded ahead, so they appear with the text, not after it
+    const srcs = [...STORIES, ...TRIMZ].flatMap((x) => (x.logo ? [x.logo.src] : []))
+    for (const src of [...srcs, '/brand/isk-wordmark-360.webp', '/brand/trimz-wordmark-320.webp']) {
+      const img = new Image()
+      img.decoding = 'async'
+      img.src = src
+      void img.decode().catch(() => {})
+    }
+  }, [settled])
+  return settled
+}
+
+/** Tiny pre-blurred copy of a local backdrop (public/soft), used in lite mode and on touch screens instead of a live blur. */
 const softOf = (src: string) => (src.startsWith('/') ? `/soft/${src.slice(1).replace(/\//g, '-')}` : undefined)
 
 /**
@@ -674,6 +725,10 @@ const Backdrop = memo(function Backdrop({
   // Lite graphics: the still image only
   const lite = useLite()
   const video = lite ? undefined : videoSrc
+  // Phones and tablets get the glow from a tiny pre-blurred image too: a live 36px blur at 3x pixel density
+  // redrew a whole screen of blur on every switch
+  const touch = useTouchScreen()
+  const glow = lite || touch ? (softSrc ?? softOf(src)) : undefined
   const [plan, setPlan] = useState<LoadPlan | null>(null)
   const [stage, setStage] = useState(0) // 0 still, 1 preview, 2 full
   // Set once the top layer has faded in; the layers under it are then hidden, since the art's faded edges
@@ -687,6 +742,14 @@ const Backdrop = memo(function Backdrop({
   const previewRef = useRef<HTMLVideoElement>(null)
   const fullRef = useRef<HTMLVideoElement>(null)
   const synced = useRef(false)
+  const artRef = useRef<HTMLImageElement>(null)
+  const softRef = useRef<HTMLImageElement>(null)
+  // A warmed layer is hidden, so the browser wouldn't decode its art until it's shown: decode it now instead
+  useEffect(() => {
+    if (!wanted || active) return
+    void artRef.current?.decode().catch(() => {})
+    void softRef.current?.decode().catch(() => {})
+  }, [wanted, active, glow])
   // Lite graphics dropped the videos: start over from the still when they come back
   useEffect(() => {
     if (video) return
@@ -695,24 +758,37 @@ const Backdrop = memo(function Backdrop({
     synced.current = false
   }, [video])
 
+  // Video starts once the selection rests here, as on the console, so a fast swipe past an item
+  // doesn't download and decode its video
+  const [dwelt, setDwelt] = useState(false)
+  if (!active && dwelt) setDwelt(false)
+  useEffect(() => {
+    if (!active || !video) return
+    const id = window.setTimeout(() => setDwelt(true), 700)
+    return () => clearTimeout(id)
+  }, [active, video])
+  // Nobody sees the hub behind the start screen, so its video waits for that too
+  const booting = useBootActive()
+  const live = active && dwelt && !booting
+
   // Only start loading video the first time this item is highlighted; keep it afterwards
   useEffect(() => {
-    if (active && video && !plan) setPlan(loadPlan())
-  }, [active, video, plan])
+    if (live && video && !plan) setPlan(loadPlan())
+  }, [live, video, plan])
 
   // Play only while highlighted; once the full video shows, the preview can rest
   useEffect(() => {
     const preview = previewRef.current
     const full = fullRef.current
     if (preview) {
-      if (active && stage < 2) void preview.play().catch(() => {})
+      if (live && stage < 2) void preview.play().catch(() => {})
       else preview.pause()
     }
     if (full) {
-      if (active) void full.play().catch(() => {})
+      if (live) void full.play().catch(() => {})
       else full.pause()
     }
-  }, [active, stage, plan, video])
+  }, [live, stage, plan, video])
 
   const webm = video?.replace(/\.mp4$/, '.webm')
   const loadFull = !!video && !!plan?.full && (stage >= 1 || !plan.preview)
@@ -720,10 +796,13 @@ const Backdrop = memo(function Backdrop({
   if (!wanted) return <div className="ps5-layer" />
   return (
     <div className={`ps5-layer ${active ? 'is-active' : ''}`}>
-      <img className="ps5-layer-blur" src={blurSrc ?? src} alt="" loading={active ? 'eager' : 'lazy'} />
-      {/* Lite: the same soft glow from a ~500-byte pre-blurred image, scaled up with no filter */}
-      {lite && (softSrc ?? softOf(src)) && <img className="ps5-layer-soft" src={softSrc ?? softOf(src)} alt="" loading={active ? 'eager' : 'lazy'} />}
-      <img className={`ps5-layer-art ${settled >= 1 && video ? 'invisible' : ''}`} src={src} alt="" loading={active ? 'eager' : 'lazy'} />
+      {/* The same soft glow either way; the small one is a ~500-byte pre-blurred image scaled up with no filter */}
+      {glow ? (
+        <img ref={softRef} className="ps5-layer-soft" src={glow} alt="" loading={active ? 'eager' : 'lazy'} />
+      ) : (
+        <img className="ps5-layer-blur" src={blurSrc ?? src} alt="" loading={active ? 'eager' : 'lazy'} />
+      )}
+      <img ref={artRef} className={`ps5-layer-art ${settled >= 1 && video ? 'invisible' : ''}`} src={src} alt="" loading={active ? 'eager' : 'lazy'} />
       {plan?.preview && webm && (
         <video
           ref={previewRef}
@@ -732,7 +811,7 @@ const Backdrop = memo(function Backdrop({
           muted
           loop
           playsInline
-          autoPlay={active}
+          autoPlay={live}
           preload="auto"
           onPlaying={() => setStage((s) => Math.max(s, 1))}
         />
@@ -745,7 +824,7 @@ const Backdrop = memo(function Backdrop({
           muted
           loop
           playsInline
-          autoPlay={active}
+          autoPlay={live}
           preload="auto"
           onCanPlayThrough={(e) => {
             // Pick up where the preview is, so the swap is seamless
@@ -762,6 +841,14 @@ const Backdrop = memo(function Backdrop({
 })
 
 const COARSE = '(pointer: coarse)'
+const onCoarseChange = (cb: () => void) => {
+  const mq = window.matchMedia(COARSE)
+  mq.addEventListener('change', cb)
+  return () => mq.removeEventListener('change', cb)
+}
+function useTouchScreen() {
+  return useSyncExternalStore(onCoarseChange, () => window.matchMedia(COARSE).matches, () => false)
+}
 const SHORT_LANDSCAPE = '(orientation: landscape) and (max-height: 540px)'
 
 /** Short landscape screens scroll the page (see styles.css): after the D-pad or arrow keys change section, bring the pills and panel into view. */
@@ -820,15 +907,14 @@ function useTouchReel(
     // the selected tile is drawn 1.45× (see .ps5-tile.is-active)
     end.style.width = `${Math.max(0, Math.ceil(inner - (step - gap) * 1.45 - gap) + 1)}px`
   }
-  // Sizes change only with the window or the set of tiles. Measuring on every selection
-  // forced two page layouts per press, so it's cached; reads all happen before the one write
-  const measured = useRef<{ key: string; step: number } | null>(null)
+  // Every tab's tiles are the same size, so this changes only with the window. Measuring on each press
+  // (or each tab switch) forced two page layouts, so it's cached; reads all happen before the one write
+  const measured = useRef(0)
   const measure = () => {
-    const key = `${scope}:${countRef.current}`
-    if (measured.current?.key === key) return measured.current.step
+    if (measured.current > 0) return measured.current
     const step = stepPx()
     sizeSpacer(step)
-    measured.current = { key, step }
+    measured.current = step
     return step
   }
 
@@ -884,23 +970,26 @@ function useTouchReel(
     }, ms)
   }
 
-  // Selection changed by anything other than this row's own scrolling: glide to it
-  const first = useRef(true)
+  // Selection changed by anything other than this row's own scrolling: glide to it.
+  // A new tab is a new row, so it starts in place rather than gliding over the old row's position
+  const shownScope = useRef<string | null>(null)
   useEffect(() => {
     const s = st.current
     s.picked = index
-    if (index === s.fromScroll) {
+    const fresh = shownScope.current !== scope
+    shownScope.current = scope
+    if (index === s.fromScroll && !fresh) {
       s.fromScroll = -1
       return
     }
-    if (s.touching) return
-    glideTo(index, first.current)
-    first.current = false
+    s.fromScroll = -1
+    if (s.touching && !fresh) return
+    glideTo(index, fresh)
   }, [index, scope, count])
 
   useEffect(() => {
     const onResize = () => {
-      measured.current = null
+      measured.current = 0
       glideTo(st.current.picked, true)
     }
     window.addEventListener('resize', onResize)
@@ -985,13 +1074,30 @@ function Tile({ active, label, children }: { active: boolean; label: string; chi
 
 function TopBar({ tab, setTab, pad, nowPlaying }: { tab: HubTab; setTab: (t: HubTab) => void; pad: { connected: boolean; kind: PadKind }; nowPlaying: Track | null }) {
   const labels = PAD_LABEL[pad.kind]
+  // Lit at once on a tap, while the hub renders the new tab behind it; follows the hub's tab otherwise
+  const [lit, setLit] = useState(tab)
+  const [hubTab, setHubTab] = useState(tab)
+  if (hubTab !== tab) {
+    setHubTab(tab)
+    setLit(tab)
+  }
   return (
     <header className="ps5-top flex flex-col-reverse gap-4 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-3 md:gap-4">
         <ShoulderHint label={pad.connected ? labels.lb : 'Q'} />
         <nav className="ps5-tabs flex gap-6 md:gap-8" role="tablist" aria-label="Hub">
           {TAB_ORDER.map((t) => (
-            <button key={t} type="button" role="tab" aria-selected={tab === t} className={`ps5-tab ${tab === t ? 'is-active' : ''}`} onClick={() => setTab(t)}>
+            <button
+              key={t}
+              type="button"
+              role="tab"
+              aria-selected={lit === t}
+              className={`ps5-tab ${lit === t ? 'is-active' : ''}`}
+              onClick={() => {
+                setLit(t)
+                setTab(t)
+              }}
+            >
               <PlatformIcon platform={TAB_PLATFORM[t]} />
               {TAB_LABEL[t]}
             </button>
@@ -1060,7 +1166,7 @@ function StoryDetails({
         extra={
           <span className="flex items-center gap-1.5" title="Messages players have sent in this story on IsekaiZero">
             <LiveDot />
-            <LiveCount value={countOf(live, story, 'messages')} /> messages
+            <LiveCount key={`${story.slug}:messages`} value={countOf(live, story, 'messages')} /> messages
           </span>
         }
       />
@@ -1089,8 +1195,8 @@ function StoryDetails({
               <p key={p.slice(0, 24)}>{p}</p>
             ))}
             <p className="pt-1 text-xs font-semibold text-white/55">
-              ♥ <LiveCount value={countOf(live, story, 'likes')} /> likes · <LiveCount value={countOf(live, story, 'chats')} /> chats ·{' '}
-              <LiveCount value={countOf(live, story, 'messages')} /> messages on IsekaiZero
+              ♥ <LiveCount key={`${story.slug}:likes`} value={countOf(live, story, 'likes')} /> likes · <LiveCount key={`${story.slug}:chats`} value={countOf(live, story, 'chats')} /> chats ·{' '}
+              <LiveCount key={`${story.slug}:messages`} value={countOf(live, story, 'messages')} /> messages on IsekaiZero
             </p>
             {STORY_MUSIC[story.slug]?.ost && (
               <p className="text-xs text-white/55">
@@ -1192,7 +1298,7 @@ function StoryDetails({
                   <img src={t.poster} alt={`Poster for ${t.title}`} className="aspect-[2/3] w-full rounded-xl border-2 border-transparent object-cover group-hover:border-white" />
                   <p className="mt-2 text-xs font-semibold leading-snug text-white/85 group-hover:text-white">{t.title}</p>
                   <p className="text-[11px] text-white/55">
-                    <LiveCount value={trimzCountOf(live, t, 'episodes')} /> ep · <LiveCount value={trimzCountOf(live, t, 'views')} /> views
+                    <LiveCount key={`${t.slug}:episodes`} value={trimzCountOf(live, t, 'episodes')} /> ep · <LiveCount key={`${t.slug}:views`} value={trimzCountOf(live, t, 'views')} /> views
                   </p>
                 </a>
               </li>
@@ -1217,7 +1323,7 @@ function SeriesDetails({ idx, onOpenStory }: { idx: number; onOpenStory: (slug: 
         extra={
           <span className="flex items-center gap-1.5" title="Total views on Trimz">
             <LiveDot />
-            <LiveCount value={trimzCountOf(live, t, 'views')} /> views
+            <LiveCount key={`${t.slug}:views`} value={trimzCountOf(live, t, 'views')} /> views
           </span>
         }
       />

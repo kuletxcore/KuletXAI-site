@@ -144,7 +144,8 @@ export function useCountUp(value: number) {
     const t0 = performance.now()
     const dur = 900
     let raf = requestAnimationFrame(function tick(now) {
-      const p = Math.min(1, (now - t0) / dur)
+      // a frame's timestamp can be a little before t0; unclamped, the ease swings the number below the start (even negative)
+      const p = Math.max(0, Math.min(1, (now - t0) / dur))
       const eased = 1 - (1 - p) ** 3
       setShown(Math.round(start + (value - start) * eased))
       if (p < 1) raf = requestAnimationFrame(tick)

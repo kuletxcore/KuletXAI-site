@@ -21,6 +21,8 @@ type Profile = {
 }
 
 const HQ: Profile = { atmoScale: 0.5, fieldW: 480, maxDpr: 1.5, pale: 14, gold: 180, orbs: 6, specks: 1100, motes: 520, drifters: 14, sprite: 128, fps: 0, streaks: true }
+// Phones in full mode: the same burst on a screen a sixth the size, so less dust keeps the same density
+const PHONE: Profile = { atmoScale: 0.35, fieldW: 360, maxDpr: 1.25, pale: 12, gold: 130, orbs: 5, specks: 700, motes: 320, drifters: 10, sprite: 96, fps: 0, streaks: true }
 // Lite: a quarter-resolution light pass, about a third of the dust, 30 fps
 const LITE: Profile = { atmoScale: 0.25, fieldW: 240, maxDpr: 1, pale: 9, gold: 80, orbs: 3, specks: 360, motes: 170, drifters: 6, sprite: 64, fps: 30, streaks: false }
 
@@ -401,7 +403,8 @@ const SPECK_A = [1, 1, 0.42] // the discs are fainter
  * clock() gives seconds since the sound started, or null before it starts.
  */
 export function runSting(atmo: HTMLCanvasElement, dust: HTMLCanvasElement, clock: StingClock, opts: { lite: boolean; still: boolean }) {
-  const P = opts.lite ? LITE : HQ
+  const phone = window.matchMedia('(pointer: coarse)').matches && Math.min(window.innerWidth, window.innerHeight) <= 520
+  const P = opts.lite ? LITE : phone ? PHONE : HQ
   const still = opts.still
   const actx = atmo.getContext('2d', { alpha: false })
   const dctx = dust.getContext('2d')

@@ -1,8 +1,8 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { audioContext, isMuted } from '#/lib/sfx'
 import { holdMusic } from '#/lib/music'
-import { useLite } from '#/lib/perf'
+import { isLite, useLite } from '#/lib/perf'
 import { runSting } from '#/components/boot-sting'
 
 /**
@@ -38,7 +38,7 @@ let bootMode: BootMode | null = null
 
 /** Inline script for <head>. On a direct load it blacks the page out before first paint,
  * preloads the KX mark, and starts downloading both sounds so the press has them ready. */
-export const BOOT_HEAD_SCRIPT = `try{if(typeof window.__kxBoot!=='boolean'){var n=performance.getEntriesByType('navigation')[0];window.__kxBoot=!sessionStorage.getItem('${SESSION_KEY}')&&!(n&&n.type==='reload');if(window.__kxBoot){document.documentElement.classList.add('kx-boot');window.__kxBootDirect=true;var l=document.createElement('link');l.rel='preload';l.as='image';l.href='/brand/kx-mark.webp';document.head.appendChild(l);if(localStorage.getItem('kx_sound')!=='off'){var b=window.__kxBootBytes={};['${STING_SRC}','${STARTUP_SRC}'].forEach(function(u){b[u]=fetch(u).then(function(r){return r.ok?r.arrayBuffer():null}).catch(function(){return null})})}}}}catch(e){}`
+export const BOOT_HEAD_SCRIPT = `try{if(typeof window.__kxBoot!=='boolean'){var n=performance.getEntriesByType('navigation')[0];window.__kxBoot=!sessionStorage.getItem('${SESSION_KEY}')&&!(n&&n.type==='reload');if(window.__kxBoot){document.documentElement.classList.add('kx-boot');window.__kxBootDirect=true;var l=document.createElement('link');l.rel='preload';l.as='image';l.href='/brand/kx-mark.webp';document.head.appendChild(l);if(localStorage.getItem('kx_sound')!=='off'){var b=window.__kxBootBytes={};['${STING_SRC}','${STARTUP_SRC}'].forEach(function(u){b[u]=fetch(u,{priority:'low'}).then(function(r){return r.ok?r.arrayBuffer():null}).catch(function(){return null})})}}}}catch(e){}`
 
 declare global {
   interface Window {
@@ -60,6 +60,34 @@ declare global {
 }
 
 const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
+
+const BOOT_EVENT = 'kxboot'
+
+function setBootActive(on: boolean) {
+  if (!!window.__kxBootActive === on) return
+  window.__kxBootActive = on
+  window.dispatchEvent(new Event(BOOT_EVENT))
+}
+
+function onBootChange(cb: () => void) {
+  window.addEventListener(BOOT_EVENT, cb)
+  return () => window.removeEventListener(BOOT_EVENT, cb)
+}
+
+/** True while the start screen is up (or about to be, on a first visit), so heavy hub media can wait for it. */
+export function useBootActive() {
+  return useSyncExternalStore(
+    onBootChange,
+    () => !!window.__kxBootActive || bootPending(),
+    () => false,
+  )
+}
+
+/** A first visit before the start screen has mounted: the head script decided to show it. */
+function bootPending() {
+  if (bootMode) return false
+  return window.__kxBoot === true
+}
 
 function decideBoot() {
   // Full page load: the head script already decided (first visit, not a reload)
@@ -89,7 +117,7 @@ function takeBoot(): BootMode {
 
 function soundBytes(src: string) {
   const cache = (window.__kxBootBytes ??= {})
-  return (cache[src] ??= fetch(src)
+  return (cache[src] ??= fetch(src, { priority: 'low' })
     .then((r) => (r.ok ? r.arrayBuffer() : null))
     .catch(() => null))
 }
@@ -351,8 +379,8 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
     if (mode === 'direct') {
       setPhase((p) => (p === 'off' ? 'mark' : p))
       timers.current.push(window.setTimeout(() => setPhase((p) => (p === 'mark' ? 'waiting' : p)), MARK_MS))
-      // Fetch the WebGL scene's script while the screen waits; it starts after the press
-      if (!document.querySelector(`link[href="${UNICORN_SRC}"]`)) {
+      // Fetch the WebGL scene's script while the screen waits; it starts after the press (lite never runs it)
+      if (!isLite() && !document.querySelector(`link[href="${UNICORN_SRC}"]`)) {
         const l = document.createElement('link')
         l.rel = 'preload'
         l.as = 'script'
@@ -382,12 +410,10 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
     }
   }, [armStartup, begin])
 
-  // Lets other input (the gamepad) know the start screen is up
+  // Lets other input (the gamepad) and the hub's media know the start screen is up
   useEffect(() => {
-    window.__kxBootActive = phase !== 'off' && phase !== 'lifting'
-    return () => {
-      window.__kxBootActive = false
-    }
+    setBootActive(phase !== 'off' && phase !== 'lifting')
+    return () => setBootActive(false)
   }, [phase])
 
   // Hub music waits until the start screen is gone, and until the startup sound ends
@@ -473,7 +499,11 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
   const stingOn = launched.current && (phase === 'sting' || phase === 'playing' || (phase === 'leaving' && fast))
   // The WebGL scene only runs once it's about to be seen (it renders every frame)
   const stageOn = !reduce && !lite && phase !== 'mark' && phase !== 'waiting'
-  const line = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches ? 'Tap to continue' : 'Click to continue'
+  const touch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+  const line = touch ? 'Tap to continue' : 'Click to continue'
+  // A blur on the 1200px wordmark redraws it every frame; phones get the fade and scale only
+  const titleFrom = lite || reduce ? { opacity: 0 } : touch ? { opacity: 0, scale: 0.96 } : { opacity: 0, scale: 0.96, filter: 'blur(6px)' }
+  const titleTo = lite || reduce ? { opacity: 1 } : touch ? { opacity: 1, scale: 1 } : { opacity: 1, scale: 1, filter: 'blur(0px)' }
 
   return (
     <div className="kx-boot-root" data-phase={phase} aria-hidden={phase === 'lifting'}>
@@ -539,11 +569,11 @@ export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
               if (phase === 'leaving') setPhase('lifting')
             }}
           >
-            {stageOn && <UnicornStage />}
+            {stageOn && <UnicornStage live={sceneVisible || phase === 'leaving'} />}
             <motion.h1
               className="kx-boot-title"
-              initial={lite || reduce ? { opacity: 0 } : { opacity: 0, scale: 0.96, filter: 'blur(6px)' }}
-              animate={sceneVisible ? (lite || reduce ? { opacity: 1 } : { opacity: 1, scale: 1, filter: 'blur(0px)' }) : { opacity: 0 }}
+              initial={titleFrom}
+              animate={sceneVisible ? titleTo : { opacity: 0 }}
               transition={{ duration: sceneVisible ? fadeIn : outDur, ease: EASE, delay: sceneVisible && !lite && !reduce ? 0.35 : 0 }}
             >
               <img src="/brand/kuletx-ai-1200.webp" alt={wordmark} className="kx-boot-logo" width={1200} height={412} />
@@ -631,27 +661,55 @@ function stopUnicorn() {
   window.__kxUnicorn = undefined
 }
 
+type UnicornScene = { paused?: boolean }
+
+/** Phones draw the scene at about 60k pixels (0.46 on a 360x780 screen); it is all soft gradients, so it looks the same. */
+function phoneDpi() {
+  return Math.min(0.8, Math.max(0.35, Math.sqrt(60000 / (window.innerWidth * window.innerHeight))))
+}
+
 /** WebGL startup scene from the PS5 boot (Unicorn Studio). Fades with the wordmark. */
-function UnicornStage() {
+function UnicornStage({ live }: { live: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
+  const liveRef = useRef(live)
+  liveRef.current = live
+  const scenes = useRef<UnicornScene[] | null>(null)
   useEffect(() => {
     const project = ref.current
     if (!project) return
     const mobile = window.matchMedia('(max-width: 880px)').matches
-    project.setAttribute('data-us-dpi', mobile ? '0.8' : '1')
+    project.setAttribute('data-us-dpi', mobile ? phoneDpi().toFixed(2) : '1')
     project.setAttribute('data-us-fps', mobile ? '30' : '35')
     project.setAttribute('data-us-disablemobile', 'false')
     let alive = true
-    void loadUnicorn().then(() => {
-      if (!alive) stopUnicorn() // closed while it was still loading
+    let raf = 0
+    void loadUnicorn().then((list) => {
+      if (!alive) return stopUnicorn() // closed while it was still loading
+      // Draw a couple of frames so it's ready, then rest until it's on screen; its clock only moves per frame drawn
+      let frames = 0
+      const settle = () => {
+        if (!alive) return
+        if (++frames < 3) {
+          raf = requestAnimationFrame(settle)
+          return
+        }
+        scenes.current = Array.isArray(list) ? (list as UnicornScene[]) : []
+        scenes.current.forEach((sc) => (sc.paused = !liveRef.current))
+      }
+      raf = requestAnimationFrame(settle)
     })
     // The scene renders every frame until destroyed, even after its canvas is
     // gone, so shut it down as soon as the start screen closes
     return () => {
       alive = false
+      cancelAnimationFrame(raf)
+      scenes.current = null
       stopUnicorn()
     }
   }, [])
+  useEffect(() => {
+    scenes.current?.forEach((sc) => (sc.paused = !live))
+  }, [live])
   return (
     <div className="kx-boot-stage" aria-hidden>
       <div className="kx-boot-studio">
