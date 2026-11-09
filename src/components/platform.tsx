@@ -34,11 +34,16 @@ export function PlatformChip({ platform }: { platform: Platform }) {
   )
 }
 
+const ICON: Record<Exclude<Platform, 'youtube'>, { src: string; w: number }> = {
+  isk: { src: '/brand/isk-icon-64.webp', w: 72 },
+  kage: { src: '/brand/kage-icon-64.webp', w: 64 }, // Mitsuki, from the KageSekai splash
+  trimz: { src: '/brand/trimz-mark-64.webp', w: 56 },
+}
+
 /** Square-ish app icon, sized by the surrounding font (1em tall by default). */
-export function PlatformIcon({ platform, className = '' }: { platform: Exclude<Platform, 'kage'>; className?: string }) {
+export function PlatformIcon({ platform, className = '' }: { platform: Platform; className?: string }) {
   if (platform === 'youtube') return <YouTubeGlyph className={`ps5-picon ${className}`} />
-  const src = platform === 'isk' ? '/brand/isk-icon-64.webp' : '/brand/trimz-mark-64.webp'
-  const w = platform === 'isk' ? 72 : 56
+  const { src, w } = ICON[platform]
   return <img src={src} alt="" aria-hidden width={w} height={64} decoding="async" className={`ps5-picon ${className}`} />
 }
 

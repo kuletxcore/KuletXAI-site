@@ -84,7 +84,7 @@ export const Route = createFileRoute('/stories/$slug')({
 type HubTab = 'stories' | 'series' | 'youtube'
 const TAB_ORDER: HubTab[] = ['stories', 'series', 'youtube']
 const TAB_LABEL: Record<HubTab, string> = { stories: 'Storylines', series: 'Trimz Series', youtube: 'YouTube' }
-const TAB_PLATFORM: Record<HubTab, Exclude<Platform, 'kage'>> = { stories: 'isk', series: 'trimz', youtube: 'youtube' }
+const TAB_PLATFORM: Record<HubTab, Platform> = { stories: 'isk', series: 'trimz', youtube: 'youtube' }
 type Section = 'overview' | 'intro' | 'cast' | 'gallery' | 'ost' | 'trophies' | 'world' | 'watch'
 
 const SECTION_LABEL: Record<Section, string> = {
@@ -417,10 +417,9 @@ function StoryHub() {
   // Background music for whatever is highlighted; the YouTube tab stays quiet for the videos
   const nowPlaying: Track | null =
     tab === 'stories' ? (STORY_MUSIC[story.slug] ?? null) : tab === 'series' ? (SERIES_MUSIC[activeSeries.slug] ?? null) : null
-  // music.ts times the switch like the console; a story without music keeps the current track, the YouTube tab goes quiet
+  // music.ts times the switch like the console; an item without its own track stops the music
   const musicSrc = nowPlaying?.src ?? null
-  const keepMusic = tab !== 'youtube'
-  useEffect(() => setMusic(musicSrc, { keepIfNone: keepMusic }), [musicSrc, keepMusic])
+  useEffect(() => setMusic(musicSrc), [musicSrc])
   useEffect(() => () => setMusic(null), [])
   // Auto graphics: drop to Lite if this PC can't hold a decent frame rate
   useEffect(() => watchFrameRate(), [])
@@ -521,7 +520,7 @@ function StoryHub() {
       </div>
 
       <div className="ps5-app">
-        <TopBar tab={tab} setTab={switchTab} pad={pad} nowPlaying={menuTrack} />
+        <TopBar tab={tab} setTab={switchTab} pad={pad} nowPlaying={menuTrack} storiesPlatform={storyPlatform(story)} />
         {padToast && (
           <div role="status" className="ps5-glass fixed top-5 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 px-4 py-2.5 text-sm font-semibold">
             <PadIcon /> {padToast}
@@ -1072,7 +1071,20 @@ function Tile({ active, label, children }: { active: boolean; label: string; chi
   )
 }
 
-function TopBar({ tab, setTab, pad, nowPlaying }: { tab: HubTab; setTab: (t: HubTab) => void; pad: { connected: boolean; kind: PadKind }; nowPlaying: Track | null }) {
+function TopBar({
+  tab,
+  setTab,
+  pad,
+  nowPlaying,
+  storiesPlatform,
+}: {
+  tab: HubTab
+  setTab: (t: HubTab) => void
+  pad: { connected: boolean; kind: PadKind }
+  nowPlaying: Track | null
+  /** The Storylines tab shows the selected story's platform: Mitsuki for KageSekai, the open book for IsekaiZero */
+  storiesPlatform: Platform
+}) {
   const labels = PAD_LABEL[pad.kind]
   // Lit at once on a tap, while the hub renders the new tab behind it; follows the hub's tab otherwise
   const [lit, setLit] = useState(tab)
@@ -1098,7 +1110,7 @@ function TopBar({ tab, setTab, pad, nowPlaying }: { tab: HubTab; setTab: (t: Hub
                 setTab(t)
               }}
             >
-              <PlatformIcon platform={TAB_PLATFORM[t]} />
+              <PlatformIcon platform={t === 'stories' ? storiesPlatform : TAB_PLATFORM[t]} />
               {TAB_LABEL[t]}
             </button>
           ))}

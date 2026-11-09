@@ -179,15 +179,8 @@ function startWanted(ctx: AudioContext) {
   ramp(next, gainFor(), SWITCH_FADE_IN)
 }
 
-/**
- * Music for the highlighted item, switched like the PS5 home screen (or silence with null).
- * keepIfNone: an item with no music of its own leaves the current track playing, as the console does.
- */
-export function setMusic(src: string | null, { keepIfNone = false } = {}) {
-  if (src === null && keepIfNone) {
-    if (current && !switchingFrom) setWanted(current.src)
-    return
-  }
+/** Music for the highlighted item, switched like the PS5 home screen; null stops it. */
+export function setMusic(src: string | null) {
   setWanted(src)
   if (typeof window === 'undefined' || switchTimer || switchingFrom) return
   if ((current?.src ?? null) === wanted) return
