@@ -40,17 +40,31 @@ EXTRA_CAST = {
     ],
     'i-am-the-table': ['6aa34777c884cdcde7806cac'],  # Lord Splinterfang
 }
-# Intros that talk about {{user}} as "she": after the you/your swap, these phrases are put in the second person too
-INTRO_FIXES = {
-    'godsmarked': [
-        ('that was hers', 'that was yours'),
-        ('She games, writes', 'You game, write'),
-        ('and has a job search she stopped checking', 'and have a job search you stopped checking'),
-        ('She knows every panel', 'You know every panel'),
-        ('She has never been', 'You have never been'),
-        ('Now she has the costume', 'Now you have the costume'),
+# Stories whose player is written as "she": {{user}} becomes this noun there instead of you/your
+PLAYER_NOUN = {
+    'colossus-protocol': '[your character]',
+    'queen-bee': 'the new girl',
+}
+# Raw card text that needs more than the {{user}} swap: name slots, and pronouns that have to follow the player
+CARD_FIXES = {
+    'acolytes': [
+        ('line-height:1.3;">{{user}}</div>', 'line-height:1.3;">[Your character]</div>'),
+    ],
+    'colossus-protocol': [
+        ('FILE CONTINUES AS {{user}}', 'FILE CONTINUES AS [YOUR CHARACTER]'),
+    ],
+    'queen-bee': [
+        ('Can {{user}} force', 'Can she force'),
+        ('acknowledge {{user}}</span>', 'acknowledge her</span>'),
+    ],
+    'problem-spawner': [
+        ('behind their own thoughts', 'behind your own thoughts'),
+        ('before Meridian decides for them', 'before Meridian decides for you'),
+        ("doesn't exist for anyone but them", "doesn't exist for anyone but you"),
     ],
 }
+IRREGULAR = {'is': 'are', 'was': 'were', 'has': 'have', 'does': 'do', "isn't": "aren't", "wasn't": "weren't", "hasn't": "haven't", "doesn't": "don't"}
+NOT_VERBS = {'always', 'perhaps', 'sometimes', 'besides', 'afterwards', 'towards', 'upstairs', 'downstairs', 'whereas', 'yours', 'hers', 'ours', 'theirs', 'plus', 'versus'}
 GALLERY_CAP = 24
 MAX_VIDEO = 6 * 1024 * 1024
 
@@ -85,14 +99,53 @@ def save_file(url, path, limit=None):
     return True
 
 
-def fill_user(text, char_name=''):
+def you_verb(verb):
+    """The verb that followed {{user}}, made to agree with "you": lives -> live, has -> have."""
+    low = verb.lower().replace('’', "'")
+    if low in IRREGULAR:
+        return IRREGULAR[low]
+    if len(low) < 4 or low in NOT_VERBS or not low.endswith('s') or low.endswith(('ss', 'us', 'is')):
+        return verb
+    if low.endswith('ies'):
+        return low[:-3] + 'y'
+    if low.endswith(('ches', 'shes', 'sses', 'xes', 'zes', 'oes')):
+        return low[:-2]
+    return low[:-1]
+
+
+def cap_first(word):
+    return re.sub(r'[a-z]', lambda m: m.group(0).upper(), word, count=1)
+
+
+def fill_user(text, char_name='', noun=''):
     def rep(m):
-        before = text[: m.start()].rstrip()
+        before = re.sub(r'&(ldquo|lsquo|quot|apos|#8220|#8216|#34|#39);$', '"', text[: m.start()].rstrip())
         cap = not before or before[-1] in '.!?>"“:\n' or before.endswith('<br>')
+        if noun:
+            word = noun + (m.group(1) or '')
+            return (cap_first(word) if cap else word) + (m.group(2) or '') + (m.group(3) or '')
         word = 'your' if m.group(1) else 'you'
-        return word.capitalize() if cap else word
-    text = re.sub(r"\{\{\s*user\s*\}\}(['’]s\b)?", rep, text)
+        word = word.capitalize() if cap else word
+        if not m.group(3):
+            return word
+        verb = you_verb(m.group(3))
+        if verb != m.group(3):
+            print(f'  agreement: you {m.group(3)} -> you {verb}')
+        return word + m.group(2) + verb
+    text = re.sub(r"\{\{\s*user\s*\}\}(?:(['’]s\b)|(\s+)([A-Za-z]+(?:['’]t)?\b))?", rep, text)
     return re.sub(r'\{\{\s*char\s*\}\}', char_name or 'they', text)
+
+
+FIX_HITS = set()
+
+
+def story_text(slug, text, char_name=''):
+    """Card or summary text with the story's fixes applied and {{user}} filled in."""
+    for old, new in CARD_FIXES.get(slug, ()):
+        if old in text:
+            FIX_HITS.add((slug, old))
+            text = text.replace(old, new)
+    return fill_user(text, char_name, PLAYER_NOUN.get(slug, ''))
 
 
 def sanitize(markup):
@@ -121,19 +174,11 @@ a{{color:#9cc7ff}}
 """
 
 
-def write_card(path, title, body, char_name='', fixes=()):
+def write_card(slug, name, title, body, char_name=''):
+    path = os.path.join(PUB, slug, 'cards', f'{name}.html')
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    body = fill_user(body, char_name)
-    for old, new in fixes:
-        if old not in body:
-            print('intro fix no longer matches:', repr(old), file=sys.stderr)
-        body = body.replace(old, new)
     with open(path, 'w', encoding='utf-8') as f:
-        f.write(CARD_DOC.format(title=htmllib.escape(title), body=sanitize(body)))
-
-
-def plain(text, char_name=''):
-    return fill_user(text or '', char_name).strip()
+        f.write(CARD_DOC.format(title=htmllib.escape(title), body=sanitize(story_text(slug, body, char_name))))
 
 
 def cast_entry(slug, c, role):
@@ -142,7 +187,7 @@ def cast_entry(slug, c, role):
     out = {
         'id': cid,
         'name': name,
-        'summary': plain(c.get('descriptionSummary'), name),
+        'summary': story_text(slug, c.get('descriptionSummary') or '', name).strip(),
         'rating': c.get('contentRating') or 'sfw',
         'role': role,
     }
@@ -151,9 +196,21 @@ def cast_entry(slug, c, role):
         save_image(cover, os.path.join(PUB, slug, 'cast', f'{cid}.webp'), 600, 800)
         out['portrait'] = f'/isk/{slug}/cast/{cid}.webp'
     if c.get('description'):
-        write_card(os.path.join(PUB, slug, 'cards', f'{cid}.html'), name, c['description'], name)
+        write_card(slug, cid, name, c['description'], name)
         out['card'] = f'/isk/{slug}/cards/{cid}.html'
     return out
+
+
+def tidy_caption(cap):
+    if cap.lower().startswith('cover art:'):
+        return 'Cover art'
+    # Some captions are the whole image prompt: keep only what the picture shows
+    if cap.startswith('References, in order:'):
+        cap = re.sub(r'^.*?cinematic background art\.\s*', '', cap, flags=re.S)
+        cap = re.sub(r'^Vertical 9:16\s+(establishing shot of\s+)?', '', cap)
+        cap = re.split(r'[:.]', cap, maxsplit=1)[0]
+    # Captions double as scene-picker notes ("Use for...", "Use when..."), which are not for readers
+    return re.sub(r'\.\s*Use (for|when)\b.*$', '.', cap, flags=re.S | re.I).strip()
 
 
 ISK_TS = os.path.join(SITE, 'src', 'data', 'isk.ts')
@@ -189,7 +246,7 @@ def main():
             entry['videoCover'] = f'/isk/{slug}/cover.mp4'
 
         if d.get('plot'):
-            write_card(os.path.join(PUB, slug, 'cards', 'intro.html'), d['title'], d['plot'], fixes=INTRO_FIXES.get(slug, ()))
+            write_card(slug, 'intro', d['title'], d['plot'])
             entry['introCard'] = f'/isk/{slug}/cards/intro.html'
 
         seen = set()
@@ -212,9 +269,7 @@ def main():
             if len(entry['gallery']) >= GALLERY_CAP:
                 break
             mid = m['_id']
-            cap = (m.get('description') or '').strip()
-            if cap.lower().startswith('cover art:'):
-                cap = 'Cover art'
+            cap = tidy_caption((m.get('description') or '').strip())
             if cap.startswith('BG_'):
                 cap = cap[3:].replace('_', ' ')
                 cap = re.sub(r'(?<=[a-z])(?=[A-Z])', ' ', cap)
@@ -236,6 +291,9 @@ def main():
             except Exception as e:  # skip one bad asset, keep going
                 print('skip', slug, mid, e, file=sys.stderr)
         result[slug] = entry
+        for old, _ in CARD_FIXES.get(slug, ()):
+            if (slug, old) not in FIX_HITS:
+                print('card fix no longer matches:', slug, repr(old), file=sys.stderr)
         print(slug, 'cast', len(entry['cast']), 'gallery', len(entry['gallery']), 'video', bool(entry.get('videoCover')))
 
     result = {slug: result[slug] for slug in STORIES if slug in result}

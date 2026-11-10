@@ -480,5 +480,102 @@ export const OSTS: Record<string, Ost> = {
         "instrumental": false
       }
     ]
+  },
+  "godsmarked": {
+    "title": "GodSmarked: Borrowed Divinity (Unaired Anime Soundtrack)",
+    "url": "https://www.isekaizero.ai/music/playlist/6af3348e2ba120b7482cfc44?referralCode=95OBGFQX",
+    "image": "https://s3.alterworld.ai/uploads/audios/6af334812ba120b7482cf4a4.webp",
+    "tracks": [
+      {
+        "id": "6af2d71588e9d39f9a533a16",
+        "title": "Cinder Row",
+        "src": "https://s3.alterworld.ai/uploads/music/337a8178-4920-4dd6-9c32-ca63532b7e49_rtmwakx4r7.mp3",
+        "duration": 166,
+        "image": "https://s3.alterworld.ai/uploads/images/e89c0e8d-4bec-49a4-9117-acd4b85b84fe.webp",
+        "url": "https://www.isekaizero.ai/music/track/6af2d71588e9d39f9a533a16?referralCode=95OBGFQX",
+        "instrumental": true
+      },
+      {
+        "id": "6af2d71a7039bd66688bb178",
+        "title": "Violet",
+        "src": "https://s3.alterworld.ai/uploads/music/e04155ce-cc5f-4791-87ed-4fef5662dad8_rtmwatjv7y.mp3",
+        "duration": 210,
+        "image": "https://s3.alterworld.ai/uploads/images/e89c0e8d-4bec-49a4-9117-acd4b85b84fe.webp",
+        "url": "https://www.isekaizero.ai/music/track/6af2d71a7039bd66688bb178?referralCode=95OBGFQX",
+        "instrumental": true
+      },
+      {
+        "id": "6af2d7116b539af6d37f3736",
+        "title": "Three Raps, a Pause, Two More",
+        "src": "https://s3.alterworld.ai/uploads/music/b0a55554-8dd4-40a2-8876-5588d8fb6a6e.mp3",
+        "duration": 110,
+        "image": "https://s3.alterworld.ai/uploads/images/e89c0e8d-4bec-49a4-9117-acd4b85b84fe.webp",
+        "url": "https://www.isekaizero.ai/music/track/6af2d7116b539af6d37f3736?referralCode=95OBGFQX",
+        "instrumental": true
+      },
+      {
+        "id": "6af2d71bd2929bd28928b389",
+        "title": "Borrowed Divinity",
+        "src": "https://s3.alterworld.ai/uploads/music/34954301-4595-4ce3-9d7f-e1f1f21c08d5_rtmwaksofi.mp3",
+        "duration": 161,
+        "image": "https://s3.alterworld.ai/uploads/images/e89c0e8d-4bec-49a4-9117-acd4b85b84fe.webp",
+        "url": "https://www.isekaizero.ai/music/track/6af2d71bd2929bd28928b389?referralCode=95OBGFQX",
+        "instrumental": false
+      },
+      {
+        "id": "6af2d71f47688240b297f1d5",
+        "title": "What It Costs",
+        "src": "https://s3.alterworld.ai/uploads/music/579af1fa-e349-4ac9-acc4-c8498d840e3d_rtmwatw8ap.mp3",
+        "duration": 160,
+        "image": "https://s3.alterworld.ai/uploads/images/e89c0e8d-4bec-49a4-9117-acd4b85b84fe.webp",
+        "url": "https://www.isekaizero.ai/music/track/6af2d71f47688240b297f1d5?referralCode=95OBGFQX",
+        "instrumental": true
+      },
+      {
+        "id": "6af2d7282276c3dd4182974a",
+        "title": "Get Behind Me!",
+        "src": "https://s3.alterworld.ai/uploads/music/a2aa5e58-b73c-4d52-9f4f-0318a6782a1e_rtmwatuoe5.mp3",
+        "duration": 187,
+        "image": "https://s3.alterworld.ai/uploads/images/e89c0e8d-4bec-49a4-9117-acd4b85b84fe.webp",
+        "url": "https://www.isekaizero.ai/music/track/6af2d7282276c3dd4182974a?referralCode=95OBGFQX",
+        "instrumental": true
+      },
+      {
+        "id": "6af2d72de4d8c7d86458e39c",
+        "title": "It's Just a Comic",
+        "src": "https://s3.alterworld.ai/uploads/music/7830a0d6-099e-4e37-9a04-1824a711dcf0.mp3",
+        "duration": 182,
+        "image": "https://s3.alterworld.ai/uploads/images/e89c0e8d-4bec-49a4-9117-acd4b85b84fe.webp",
+        "url": "https://www.isekaizero.ai/music/track/6af2d72de4d8c7d86458e39c?referralCode=95OBGFQX",
+        "instrumental": true
+      },
+      {
+        "id": "6af2d72dd2929bd28928c759",
+        "title": "Kestrel After Dark",
+        "src": "https://s3.alterworld.ai/uploads/music/b03cfd99-349b-4503-bf73-d886fe2b38ef_rtmwats65m.mp3",
+        "duration": 169,
+        "image": "https://s3.alterworld.ai/uploads/images/e89c0e8d-4bec-49a4-9117-acd4b85b84fe.webp",
+        "url": "https://www.isekaizero.ai/music/track/6af2d72dd2929bd28928c759?referralCode=95OBGFQX",
+        "instrumental": true
+      },
+      {
+        "id": "6af2d73275833a042665b059",
+        "title": "Pier 9",
+        "src": "https://s3.alterworld.ai/uploads/music/1c310347-6aad-44f7-9345-55d5921f625e_rtmwatpg2k.mp3",
+        "duration": 202,
+        "image": "https://s3.alterworld.ai/uploads/images/e89c0e8d-4bec-49a4-9117-acd4b85b84fe.webp",
+        "url": "https://www.isekaizero.ai/music/track/6af2d73275833a042665b059?referralCode=95OBGFQX",
+        "instrumental": true
+      },
+      {
+        "id": "6af2d73cb08cee4724c8bb4b",
+        "title": "Panel by Panel",
+        "src": "https://s3.alterworld.ai/uploads/music/697a1d31-cdc8-4280-beeb-bb70a9a11c9a_rtmwato30s.mp3",
+        "duration": 193,
+        "image": "https://s3.alterworld.ai/uploads/images/e89c0e8d-4bec-49a4-9117-acd4b85b84fe.webp",
+        "url": "https://www.isekaizero.ai/music/track/6af2d73cb08cee4724c8bb4b?referralCode=95OBGFQX",
+        "instrumental": false
+      }
+    ]
   }
 }

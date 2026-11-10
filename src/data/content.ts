@@ -153,7 +153,7 @@ export const STORIES: Story[] = [
     kicker: 'Rift Response Division · Eyes only',
     pitch: [
       '214 people were caught in the discharge pulse. 213 of them died. The last one was a Coast Guard rescue swimmer holding a drowning woman at the surface.',
-      'Forty-one nights in a sealed ward later, the city had learned the word “kaiju”, and you had a new callsign: Colossus Actual.',
+      'Forty-one nights in a sealed ward later, the city had learned the word “kaiju”, and she had a new callsign: Colossus Actual.',
     ],
     world: [
       { label: 'The Shift', text: '1.7 m to 300 m in about sixty seconds. Every size in between fights differently.' },
@@ -161,9 +161,9 @@ export const STORIES: Story[] = [
       { label: 'Doctrine', text: 'Tier Three needs a flag officer, and a form with one blank line: ACCEPTABLE LOSSES.' },
     ],
     cast: [
-      { name: 'Reyes', role: 'Your ground-station handler. The one voice you trust above 20 meters.' },
+      { name: 'Reyes', role: 'Colossus Actual’s ground-station handler. The one voice she trusts above 20 meters.' },
     ],
-    hook: 'They are going somewhere. You are the only thing in the way.',
+    hook: 'They are going somewhere. She is the only thing in the way.',
   },
   {
     slug: 'queen-bee',
@@ -183,7 +183,7 @@ export const STORIES: Story[] = [
     kicker: 'Kingsmere Academy · The vacant seat',
     pitch: [
       'Kingsmere doesn’t run on grades. It runs on bloodlines, and on the currency every bloodline defends: status.',
-      'The Queen Bee’s seat has been empty since June. Two girls declared themselves heir. Kingsmere ate them both. You walk in this morning: unranked, unprotected, unknown.',
+      'The Queen Bee’s seat has been empty since June. Two girls declared themselves heir. Kingsmere ate them both. The new girl walks in this morning: unranked, unprotected, unknown.',
     ],
     world: [
       { label: 'The Vanguard', text: 'Old money and legacy. The crown isn’t won, it’s inherited.' },
@@ -194,7 +194,7 @@ export const STORIES: Story[] = [
     ],
     castTitle: 'The ladder',
     cast: [
-      { name: 'Unranked', role: 'Nobody. Where you start.' },
+      { name: 'Unranked', role: 'Nobody. Where the new girl starts.' },
       { name: 'Affiliate → Made', role: 'Useful to a faction, then a seat at its table.' },
       { name: 'Lieutenant → Head', role: 'The right hand, then one of five.' },
       { name: 'Queen Bee', role: 'Undisputed. One at a time. Nowhere left to climb.' },
@@ -276,15 +276,15 @@ export const STORIES: Story[] = [
       'A cancelled comic’s costume bonds to you, a fan, granting goddess powers you never earned, in a world with no heroes.',
     cover: '/covers/6.webp',
     rating: '17+',
-    tags: ['Superpower', 'Transformation', 'Slice of Life'],
+    tags: ['Superpower', 'Transformation', 'Mystery'],
     likes: 0,
     chats: 0,
     messages: 0,
     accent: '#c77dff',
     kicker: 'Kestrel City · The box under the floorboard',
     pitch: [
-      'You came up to the attic to clear it out. Under a loose floorboard sits a plain cardboard box, its tape gone yellow, and inside it Astralita’s costume. The real one, from panels you have stared at for years.',
-      'It looks too good to be real, which is the reason you put it on. The fabric clings. It tightens. It becomes you. Now you have eyes that flash violet and a power set built for a demigoddess, and you have never been in a fight.',
+      'You found Astralita’s real costume folded in a cardboard box under a loose attic floorboard. You put it on for thirty seconds of pretending, alone in a house full of boxes.',
+      'It bonded. Your eyes flooded violet. The seams sealed under your fingers. Downstairs, your phone is already buzzing with Ren’s name.',
     ],
     world: [
       { label: 'The costume', text: 'The only object from GodSmarked’s reality on Earth. It bonds to whoever puts it on.' },

@@ -171,7 +171,7 @@ export const ISK: Record<string, IskStory> = {
         "thumb": "/isk/acolytes/gallery/thumbs/6ae332cf31da3b20a532273e.webp",
         "w": 787,
         "h": 1400,
-        "caption": "bright multi-floor mall with a skylight, escalators and glass storefronts. use for errands, meetups, shopping and casual daytime scenes."
+        "caption": "bright multi-floor mall with a skylight, escalators and glass storefronts."
       },
       {
         "type": "image",
@@ -179,7 +179,7 @@ export const ISK: Record<string, IskStory> = {
         "thumb": "/isk/acolytes/gallery/thumbs/6ae332cf31da3b20a532273f.webp",
         "w": 787,
         "h": 1400,
-        "caption": "rainy lantern-lit food stalls with steam and neon signs. use for lively, fun, high-energy scenes."
+        "caption": "rainy lantern-lit food stalls with steam and neon signs."
       },
       {
         "type": "image",
@@ -687,7 +687,7 @@ export const ISK: Record<string, IskStory> = {
       {
         "id": "6a98238d70d67d14de65570f",
         "name": "Sera",
-        "summary": "A flickering digital construct wearing Seraphine's face — sharp, helpful, and a little too pleased with herself. Manifests only in you's vision.",
+        "summary": "A flickering digital construct wearing Seraphine's face — sharp, helpful, and a little too pleased with herself. Manifests only in your vision.",
         "rating": "sfw",
         "role": "character",
         "portrait": "/isk/problem-spawner/cast/6a98238d70d67d14de65570f.webp",
@@ -1130,7 +1130,7 @@ export const ISK: Record<string, IskStory> = {
         "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d628a.webp",
         "w": 1344,
         "h": 768,
-        "caption": "The attic of a small Cinder Row house, dusty and half-cleared, with a lifted floorboard and a yellow-taped cardboard box in the gap."
+        "caption": "The attic of a small worn house on Cinder Row, dusty and half-cleared, with a lifted loose floorboard and a yellow-taped cardboard box sitting in the gap."
       },
       {
         "type": "image",
@@ -1138,7 +1138,7 @@ export const ISK: Record<string, IskStory> = {
         "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d6241.webp",
         "w": 1344,
         "h": 768,
-        "caption": "The empty Coldwater cannery: a vast brick factory hall, broken windows, rusted pipes and vats, moonlight through dust."
+        "caption": "The empty Coldwater cannery: a vast brick factory hall, broken windows, rusted pipes and vats, and moonlight coming through the dust."
       },
       {
         "type": "image",
@@ -1146,7 +1146,7 @@ export const ISK: Record<string, IskStory> = {
         "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d6267.webp",
         "w": 1344,
         "h": 768,
-        "caption": "The lobby of the Kestrel Ledger building: stone floor, old wooden desks, framed front pages, brass elevators."
+        "caption": "The lobby of the Kestrel Ledger building: stone floor, old wooden desks, framed front pages on the walls, brass elevators and revolving doors."
       },
       {
         "type": "image",
@@ -1154,7 +1154,7 @@ export const ISK: Record<string, IskStory> = {
         "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d6279.webp",
         "w": 1344,
         "h": 768,
-        "caption": "Halloran Library reading room at Bellweather College, oak tables, green lamps, and the newspaper archive corner."
+        "caption": "Halloran Library reading room at Bellweather College: long oak tables, green lamps, high shelves, and the newspaper archive corner with its boxes of bound papers."
       },
       {
         "type": "image",
@@ -1162,7 +1162,7 @@ export const ISK: Record<string, IskStory> = {
         "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d6298.webp",
         "w": 1344,
         "h": 768,
-        "caption": "The half-unpacked living room on Cinder Row, boxes everywhere, a dented wall, a counter with a phone and stacked comics."
+        "caption": "The half-unpacked living room of the house on Cinder Row: cardboard boxes everywhere, a dent in the plaster wall where a box hit it, a counter with a phone and stacked GodSmarked volumes, and boxes still taped shut."
       },
       {
         "type": "image",
@@ -1170,7 +1170,7 @@ export const ISK: Record<string, IskStory> = {
         "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d62a6.webp",
         "w": 1344,
         "h": 768,
-        "caption": "Marrow Street in the Trackside Strip at night, bars and pawn shops under the elevated line in the drizzle."
+        "caption": "Marrow Street in the Trackside Strip at night: bars and pawn shops under the elevated rail line, wet asphalt, a flickering sign and deep shadow between the doorways."
       },
       {
         "type": "image",
@@ -1178,7 +1178,7 @@ export const ISK: Record<string, IskStory> = {
         "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d62bc.webp",
         "w": 1344,
         "h": 768,
-        "caption": "Commerce Street in the Downtown Core at dawn, office buildings, awnings and street cameras, the busiest part of Kestrel City."
+        "caption": "Commerce Street in the Downtown Core at dawn: office buildings with awnings, street cameras on the poles, delivery vans, and the early morning crowd on the pavement."
       },
       {
         "type": "image",
@@ -1186,7 +1186,7 @@ export const ISK: Record<string, IskStory> = {
         "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d62b3.webp",
         "w": 1344,
         "h": 768,
-        "caption": "A secondhand comic and book shop on Ash Lane at night, warm light spilling onto wet pavement."
+        "caption": "A secondhand comic and book shop on Ash Lane at night: shelves crammed with used volumes, warm light spilling out onto wet pavement, and the print shop next door."
       },
       {
         "type": "image",
@@ -1194,7 +1194,111 @@ export const ISK: Record<string, IskStory> = {
         "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d622d.webp",
         "w": 1344,
         "h": 768,
-        "caption": "Pier 9 rail yard at night: rows of freight cars, grain elevators and gantry cranes under a violet sky, wet asphalt and harbour fog."
+        "caption": "Pier 9 rail yard at night: rows of freight cars, grain elevators, gantry cranes, wet asphalt and harbour fog under a violet sky."
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af2b9832276c3dd4178465b.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af2b9832276c3dd4178465b.webp",
+        "w": 768,
+        "h": 1024,
+        "caption": "Cover art"
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af312e6ef6bf36f8f4cd21d.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af312e6ef6bf36f8f4cd21d.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "A flat rooftop high above the Downtown Core at night: a rusted water tower, the edge of a chain-link fence, a tarp snapping in the wind, and the lit street grid and harbour far below under a violet and rose sky."
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af312e6ef6bf36f8f4cd1ac.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af312e6ef6bf36f8f4cd1ac.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "a narrow worn residential street at late afternoon"
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af312e6ef6bf36f8f4cd1c5.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af312e6ef6bf36f8f4cd1c5.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "interior of a vast grain elevator silo"
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af312e6ef6bf36f8f4cd1d9.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af312e6ef6bf36f8f4cd1d9.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "night view of a working harbour waterfront"
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af312e6ef6bf36f8f4cd208.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af312e6ef6bf36f8f4cd208.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "Straight-on view of the front of a small worn house on Cinder Row at night: a wooden porch with one worn step, a chipped front door with a brass letterbox and mail slot, a bare bulb burning warm above the door, geraniums on the sill, an envelope on the doormat, and lace curtains glowing in the ground-floor window."
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af312e6ef6bf36f8f4cd230.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af312e6ef6bf36f8f4cd230.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "Dusk view of the old Bellweather College campus in the University Quarter: ivy-covered stone halls with lit windows, a clock tower, wide lawns with autumn leaves, gas lamps just flickering on, a winding stone path, a bicycle against a railing, empty benches, and a red-brick lecture hall with a copper dome behind."
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af31b71561dfe04105bf7d3.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af31b71561dfe04105bf7d3.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "First person view of the wearer's own gauntleted hands raised palm-up, violet light pooling between the fingers, the Astralita costume's gold filigree catching the light."
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af31b71561dfe04105bf800.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af31b71561dfe04105bf800.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "First person view of the attic bonding: hands pressing a sealed seam of the violet and gold costume, filigree glowing along the forearm, open cardboard box and dusty floorboards."
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af31b71561dfe04105bf80d.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af31b71561dfe04105bf80d.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "Kestrel City at night from the harbour: cranes, grain elevators, black water and low fog, with a single pinpoint of violet light above the downtown rooftops."
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af31b72561dfe04105bf815.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af31b72561dfe04105bf815.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "First person view of a desk at 3am: a fanfic page in a squared notebook, a pen in hand, a GodSmarked volume face down, a cold mug, a phone face down."
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af31b71561dfe04105bf7ed.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af31b71561dfe04105bf7ed.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "Ren Webb standing in the doorway of the house on Cinder Row at night, denim jacket with enamel pins, a wary half-smirk, warm bulb above the door."
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af31b71561dfe04105bf7de.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af31b71561dfe04105bf7de.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "First person view of a phone buzzing on a kitchen counter at night, violet light spilling over the screen, a gauntleted forearm at the edge of frame."
       }
     ],
     "videoCover": "/isk/godsmarked/cover.mp4",
