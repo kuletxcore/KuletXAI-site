@@ -887,11 +887,15 @@ function useTouchReel(
   const list = () => ref.current?.firstElementChild as HTMLElement | null | undefined
   // Width of one small tile plus the gap: tile i is in the first slot at scrollLeft = i * step
   const stepPx = () => {
+    const row = ref.current
     const l = list()
-    if (!l) return 0
+    if (!row || !l) return 0
     const slots = Array.from(l.querySelectorAll<HTMLElement>(':scope > .ps5-tile-slot'))
     if (!slots.length) return 0
+    // Tiles animate their size, so just after a rotation they are still the old size: read them with that animation off
+    row.classList.add('is-measuring')
     const small = Math.min(...slots.map((el) => el.offsetWidth))
+    row.classList.remove('is-measuring')
     return small + (parseFloat(getComputedStyle(l).columnGap) || 0)
   }
   // Room after the last tile, so every tile can reach the first slot
@@ -909,11 +913,14 @@ function useTouchReel(
   // Every tab's tiles are the same size, so this changes only with the window. Measuring on each press
   // (or each tab switch) forced two page layouts, so it's cached; reads all happen before the one write
   const measured = useRef(0)
+  const viewSize = () => `${window.innerWidth}x${window.innerHeight}`
+  const measuredAt = useRef('')
   const measure = () => {
     if (measured.current > 0) return measured.current
     const step = stepPx()
     sizeSpacer(step)
     measured.current = step
+    measuredAt.current = viewSize()
     return step
   }
 
@@ -1004,6 +1011,8 @@ function useTouchReel(
       const row = ref.current
       const s = st.current
       if (!row || !coarse() || s.gliding) return
+      // The screen just rotated or resized: this scroll is the browser re-laying the row, not a swipe. onResize re-pins it
+      if (measured.current > 0 && measuredAt.current !== viewSize()) return
       const step = measure()
       if (step <= 0) return
       const i = Math.min(countRef.current - 1, Math.max(0, Math.round(row.scrollLeft / step)))

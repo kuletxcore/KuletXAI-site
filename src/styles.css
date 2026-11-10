@@ -1001,6 +1001,10 @@ html.kx-boot body::before {
   width: 0;
   height: 1px;
 }
+/* useTouchReel reads tile sizes with their size animation off, so a rotation is measured at the new size */
+.ps5-ribbon.is-measuring .ps5-tile {
+  transition: none;
+}
 @media (pointer: coarse) {
   .ps5-ribbon {
     scroll-snap-type: none;
