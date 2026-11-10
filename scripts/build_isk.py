@@ -2,7 +2,8 @@
 
 Fetches each storyline from the public API, downloads covers,
 gallery media, cast portraits and cover videos, writes sanitized HTML cards,
-and emits src/data/isk.ts. Run: python3 scripts/build_isk.py
+and emits src/data/isk.ts. Run: python3 scripts/build_isk.py [slug ...]
+Naming slugs refreshes only those stories and keeps the rest of isk.ts as it is.
 """
 import html as htmllib
 import io
@@ -24,6 +25,7 @@ STORIES = {
     'queen-bee': '6a9ae1c5a66365ba9f1523f1',
     'problem-spawner': '6a9504a149fd840d6d383b33',
     'i-am-the-table': '6a9d1ba30b414546e54a59aa',
+    'godsmarked': '6ab416c09949716a1b4e333b',
 }
 # Public characters that belong to a story but aren't attached as cast
 EXTRA_CAST = {
@@ -37,6 +39,17 @@ EXTRA_CAST = {
         '6a9da1f93af63830cda37299',  # Jaime Holt
     ],
     'i-am-the-table': ['6aa34777c884cdcde7806cac'],  # Lord Splinterfang
+}
+# Intros that talk about {{user}} as "she": after the you/your swap, these phrases are put in the second person too
+INTRO_FIXES = {
+    'godsmarked': [
+        ('that was hers', 'that was yours'),
+        ('She games, writes', 'You game, write'),
+        ('and has a job search she stopped checking', 'and have a job search you stopped checking'),
+        ('She knows every panel', 'You know every panel'),
+        ('She has never been', 'You have never been'),
+        ('Now she has the costume', 'Now you have the costume'),
+    ],
 }
 GALLERY_CAP = 24
 MAX_VIDEO = 6 * 1024 * 1024
@@ -76,8 +89,9 @@ def fill_user(text, char_name=''):
     def rep(m):
         before = text[: m.start()].rstrip()
         cap = not before or before[-1] in '.!?>"“:\n' or before.endswith('<br>')
-        return 'You' if cap else 'you'
-    text = re.sub(r'\{\{\s*user\s*\}\}', rep, text)
+        word = 'your' if m.group(1) else 'you'
+        return word.capitalize() if cap else word
+    text = re.sub(r"\{\{\s*user\s*\}\}(['’]s\b)?", rep, text)
     return re.sub(r'\{\{\s*char\s*\}\}', char_name or 'they', text)
 
 
@@ -107,10 +121,15 @@ a{{color:#9cc7ff}}
 """
 
 
-def write_card(path, title, body, char_name=''):
+def write_card(path, title, body, char_name='', fixes=()):
     os.makedirs(os.path.dirname(path), exist_ok=True)
+    body = fill_user(body, char_name)
+    for old, new in fixes:
+        if old not in body:
+            print('intro fix no longer matches:', repr(old), file=sys.stderr)
+        body = body.replace(old, new)
     with open(path, 'w', encoding='utf-8') as f:
-        f.write(CARD_DOC.format(title=htmllib.escape(title), body=sanitize(fill_user(body, char_name))))
+        f.write(CARD_DOC.format(title=htmllib.escape(title), body=sanitize(body)))
 
 
 def plain(text, char_name=''):
@@ -137,9 +156,20 @@ def cast_entry(slug, c, role):
     return out
 
 
+ISK_TS = os.path.join(SITE, 'src', 'data', 'isk.ts')
+ISK_DECL = 'export const ISK: Record<string, IskStory> = '
+
+
 def main():
+    only = sys.argv[1:]
     result = {}
+    if only:
+        with open(ISK_TS, encoding='utf-8') as f:
+            src = f.read()
+        result = json.loads(src[src.index(ISK_DECL) + len(ISK_DECL):])
     for slug, sid in STORIES.items():
+        if only and slug not in only:
+            continue
         d = json.loads(fetch(f'{API}/storylines/{sid}?excludeOwner=true&src=direct'))['data']
         entry = {'cast': [], 'gallery': []}
 
@@ -159,7 +189,7 @@ def main():
             entry['videoCover'] = f'/isk/{slug}/cover.mp4'
 
         if d.get('plot'):
-            write_card(os.path.join(PUB, slug, 'cards', 'intro.html'), d['title'], d['plot'])
+            write_card(os.path.join(PUB, slug, 'cards', 'intro.html'), d['title'], d['plot'], fixes=INTRO_FIXES.get(slug, ()))
             entry['introCard'] = f'/isk/{slug}/cards/intro.html'
 
         seen = set()
@@ -183,6 +213,8 @@ def main():
                 break
             mid = m['_id']
             cap = (m.get('description') or '').strip()
+            if cap.lower().startswith('cover art:'):
+                cap = 'Cover art'
             if cap.startswith('BG_'):
                 cap = cap[3:].replace('_', ' ')
                 cap = re.sub(r'(?<=[a-z])(?=[A-Z])', ' ', cap)
@@ -206,13 +238,13 @@ def main():
         result[slug] = entry
         print(slug, 'cast', len(entry['cast']), 'gallery', len(entry['gallery']), 'video', bool(entry.get('videoCover')))
 
-    out = os.path.join(SITE, 'src', 'data', 'isk.ts')
-    with open(out, 'w', encoding='utf-8') as f:
+    result = {slug: result[slug] for slug in STORIES if slug in result}
+    with open(ISK_TS, 'w', encoding='utf-8') as f:
         f.write('// Generated from public IsekaiZero storyline data. Re-run build_isk.py to refresh.\n')
         f.write('export type IskCast = { id: string; name: string; summary: string; rating: string; role: "persona" | "character"; portrait?: string; card?: string }\n')
         f.write('export type IskMedia = { type: "image" | "video"; src: string; thumb?: string; w: number; h: number; caption: string }\n')
         f.write('export type IskStory = { videoCover?: string; introCard?: string; cast: IskCast[]; gallery: IskMedia[] }\n\n')
-        f.write('export const ISK: Record<string, IskStory> = ')
+        f.write(ISK_DECL)
         f.write(json.dumps(result, indent=2, ensure_ascii=False))
         f.write('\n')
 

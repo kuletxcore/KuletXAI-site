@@ -26,6 +26,7 @@ export const STORY_MUSIC: Record<string, Track> = {
   'colossus-protocol': { title: 'The Water Breaks', src: '/music/colossus-protocol.mp3', trackUrl: track('6ac20b6e84529233e1497717'), ost: OST.colossus },
   'queen-bee': { title: 'Head of The Table', src: '/music/queen-bee.mp3', trackUrl: track('6a9e1d1372ebb84c7ab632cd'), ost: OST.queenBee },
   'i-am-the-table': { title: 'I AM THE TABLE!!!!', src: '/music/i-am-the-table.mp3', trackUrl: track('6aa21c468b7d8de8b5d193f2'), ost: OST.table },
+  godsmarked: { title: 'Cinder Row', src: '/music/godsmarked.mp3', trackUrl: track('6af2d71588e9d39f9a533a16') },
 }
 
 // Keyed by Trimz series slug

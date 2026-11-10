@@ -266,6 +266,41 @@ export const STORIES: Story[] = [
     ],
     hook: 'The tables are turning. You are the tables.',
   },
+  {
+    slug: 'godsmarked',
+    logo: { src: '/titles/godsmarked.webp', w: 1100, h: 218 },
+    tile: '/tiles/godsmarked.webp',
+    id: '6ab416c09949716a1b4e333b',
+    title: 'Godsmarked: Borrowed Divinity',
+    logline:
+      'A cancelled comic’s costume bonds to you, a fan, granting goddess powers you never earned, in a world with no heroes.',
+    cover: '/covers/6.webp',
+    rating: '17+',
+    tags: ['Superpower', 'Transformation', 'Slice of Life'],
+    likes: 0,
+    chats: 0,
+    messages: 0,
+    accent: '#c77dff',
+    kicker: 'Kestrel City · The box under the floorboard',
+    pitch: [
+      'You came up to the attic to clear it out. Under a loose floorboard sits a plain cardboard box, its tape gone yellow, and inside it Astralita’s costume. The real one, from panels you have stared at for years.',
+      'It looks too good to be real, which is the reason you put it on. The fabric clings. It tightens. It becomes you. Now you have eyes that flash violet and a power set built for a demigoddess, and you have never been in a fight.',
+    ],
+    world: [
+      { label: 'The costume', text: 'The only object from GodSmarked’s reality on Earth. It bonds to whoever puts it on.' },
+      { label: 'Power, no skill', text: 'Flight, strength, elite magic, divine arms. Every use leaves a mark: injury, noise, witnesses, damage.' },
+      { label: 'Kestrel City', text: 'No hero has ever been recorded. The unexplained reads as a stunt or a hoax until someone produces proof.' },
+    ],
+    cast: [
+      { name: 'Ren Webb', role: 'Your best friend. Knocks three times, pauses, knocks twice, lets herself in.' },
+      { name: 'Asuka Tomo', role: 'Wrote and drew GodSmarked as K. Komi. Believes she made it all up.' },
+      { name: 'Evelyn Hollis', role: 'Kestrel Ledger reporter. Asks the same question three ways and waits out the silence.' },
+      { name: 'Sadie Porter', role: 'Next door on Cinder Row. Jam on the doorstep at six, questions at the fence by seven.' },
+      { name: 'Wanda Una', role: 'Hiring manager downtown. Has reread your application four times.' },
+      { name: 'Dexter Radley', role: 'Runs the last GodSmarked forum. Names the issue off one blurred frame.' },
+    ],
+    hook: 'You put it on as a joke. It did not come off.',
+  },
 ]
 
 export const totalLikes = STORIES.reduce((n, s) => n + s.likes, 0)

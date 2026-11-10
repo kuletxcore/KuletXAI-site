@@ -1048,5 +1048,156 @@ export const ISK: Record<string, IskStory> = {
     ],
     "videoCover": "/isk/i-am-the-table/cover.mp4",
     "introCard": "/isk/i-am-the-table/cards/intro.html"
+  },
+  "godsmarked": {
+    "cast": [
+      {
+        "id": "6af1a10781748bd393ac6351",
+        "name": "Juniper \"Juno\" Caldwell",
+        "summary": "Twenty-eight, new homeowner, lifelong GodSmarked fan. Put on her favorite heroine's costume as a joke. It did not come off.",
+        "rating": "m17",
+        "role": "persona",
+        "portrait": "/isk/godsmarked/cast/6af1a10781748bd393ac6351.webp",
+        "card": "/isk/godsmarked/cards/6af1a10781748bd393ac6351.html"
+      },
+      {
+        "id": "6aeb542f44f269935f99cacc",
+        "name": "Ren Webb",
+        "summary": "Your best friend. Knocks three times, pauses, knocks twice, lets herself in. First person to see the powers.",
+        "rating": "m17",
+        "role": "character",
+        "portrait": "/isk/godsmarked/cast/6aeb542f44f269935f99cacc.webp",
+        "card": "/isk/godsmarked/cards/6aeb542f44f269935f99cacc.html"
+      },
+      {
+        "id": "6aeb555cfd13c503f0c82463",
+        "name": "Asuka Tomo",
+        "summary": "Wrote and drew GodSmarked as K. Komi. Ended it, moved on, does freelance work now. Believes she made it all up.",
+        "rating": "m17",
+        "role": "character",
+        "portrait": "/isk/godsmarked/cast/6aeb555cfd13c503f0c82463.webp",
+        "card": "/isk/godsmarked/cards/6aeb555cfd13c503f0c82463.html"
+      },
+      {
+        "id": "6af2bbbbf5c1b5f43868ae28",
+        "name": "Evelyn Hollis",
+        "summary": "Kestrel Ledger reporter on the harbor beat. Asks the same question three ways and waits out the silence.",
+        "rating": "m17",
+        "role": "character",
+        "portrait": "/isk/godsmarked/cast/6af2bbbbf5c1b5f43868ae28.webp",
+        "card": "/isk/godsmarked/cards/6af2bbbbf5c1b5f43868ae28.html"
+      },
+      {
+        "id": "6af2bc87e4d8c7d86445cb30",
+        "name": "Sadie Porter",
+        "summary": "Next-door neighbor on Cinder Row. Jam on the doorstep at six a.m., questions at the fence by seven.",
+        "rating": "m17",
+        "role": "character",
+        "portrait": "/isk/godsmarked/cast/6af2bc87e4d8c7d86445cb30.webp",
+        "card": "/isk/godsmarked/cards/6af2bc87e4d8c7d86445cb30.html"
+      },
+      {
+        "id": "6af2be080265c665a0dbf8fd",
+        "name": "Wanda Una",
+        "summary": "Hiring manager at a downtown logistics firm. Her last hire lasted eleven days. She has reread your application four times.",
+        "rating": "m17",
+        "role": "character",
+        "portrait": "/isk/godsmarked/cast/6af2be080265c665a0dbf8fd.webp",
+        "card": "/isk/godsmarked/cards/6af2be080265c665a0dbf8fd.html"
+      },
+      {
+        "id": "6af2bf9e7039bd66687b8df8",
+        "name": "Dexter Radley",
+        "summary": "Runs the last active GodSmarked forum. Can name the issue a costume detail came from off one blurred frame.",
+        "rating": "m17",
+        "role": "character",
+        "portrait": "/isk/godsmarked/cast/6af2bf9e7039bd66687b8df8.webp",
+        "card": "/isk/godsmarked/cards/6af2bf9e7039bd66687b8df8.html"
+      }
+    ],
+    "gallery": [
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af2b9d5d868c5e7cbccc547.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af2b9d5d868c5e7cbccc547.webp",
+        "w": 768,
+        "h": 1024,
+        "caption": "Cover art"
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af2ca9c224736f2b16d628a.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d628a.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "The attic of a small Cinder Row house, dusty and half-cleared, with a lifted floorboard and a yellow-taped cardboard box in the gap."
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af2ca9c224736f2b16d6241.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d6241.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "The empty Coldwater cannery: a vast brick factory hall, broken windows, rusted pipes and vats, moonlight through dust."
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af2ca9c224736f2b16d6267.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d6267.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "The lobby of the Kestrel Ledger building: stone floor, old wooden desks, framed front pages, brass elevators."
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af2ca9c224736f2b16d6279.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d6279.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "Halloran Library reading room at Bellweather College, oak tables, green lamps, and the newspaper archive corner."
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af2ca9c224736f2b16d6298.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d6298.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "The half-unpacked living room on Cinder Row, boxes everywhere, a dented wall, a counter with a phone and stacked comics."
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af2ca9c224736f2b16d62a6.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d62a6.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "Marrow Street in the Trackside Strip at night, bars and pawn shops under the elevated line in the drizzle."
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af2ca9c224736f2b16d62bc.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d62bc.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "Commerce Street in the Downtown Core at dawn, office buildings, awnings and street cameras, the busiest part of Kestrel City."
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af2ca9c224736f2b16d62b3.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d62b3.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "A secondhand comic and book shop on Ash Lane at night, warm light spilling onto wet pavement."
+      },
+      {
+        "type": "image",
+        "src": "/isk/godsmarked/gallery/6af2ca9c224736f2b16d622d.webp",
+        "thumb": "/isk/godsmarked/gallery/thumbs/6af2ca9c224736f2b16d622d.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "Pier 9 rail yard at night: rows of freight cars, grain elevators and gantry cranes under a violet sky, wet asphalt and harbour fog."
+      }
+    ],
+    "videoCover": "/isk/godsmarked/cover.mp4",
+    "introCard": "/isk/godsmarked/cards/intro.html"
   }
 }
