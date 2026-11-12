@@ -1688,7 +1688,7 @@ function CardFrame({
   }, [src])
 
   useEffect(() => {
-    ref.current?.contentDocument?.documentElement.classList.toggle('kx-unredacted', open)
+    ref.current?.contentDocument?.documentElement?.classList.toggle('kx-unredacted', open)
   }, [open, count])
   useEffect(() => {
     const onToggle = (e: Event) => {
