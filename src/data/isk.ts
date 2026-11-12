@@ -1,4 +1,4 @@
-// Generated from public IsekaiZero storyline data. Re-run build_isk.py to refresh.
+// Generated from public IsekaiZero and KageSekai storyline data. Re-run build_isk.py to refresh.
 export type IskCast = { id: string; name: string; summary: string; rating: string; role: "persona" | "character"; portrait?: string; card?: string }
 export type IskMedia = { type: "image" | "video"; src: string; thumb?: string; w: number; h: number; caption: string }
 export type IskStory = { videoCover?: string; introCard?: string; cast: IskCast[]; gallery: IskMedia[] }
@@ -1303,5 +1303,159 @@ export const ISK: Record<string, IskStory> = {
     ],
     "videoCover": "/isk/godsmarked/cover.mp4",
     "introCard": "/isk/godsmarked/cards/intro.html"
+  },
+  "wristbound": {
+    "cast": [
+      {
+        "id": "6af3c850bea386ba0462cf46",
+        "name": "Lena Hoshino",
+        "summary": "Best friend who was there when the device bonded. Practical, sharp, tries to help.",
+        "rating": "18+",
+        "role": "character",
+        "portrait": "/isk/wristbound/cast/6af3c850bea386ba0462cf46.webp",
+        "card": "/isk/wristbound/cards/6af3c850bea386ba0462cf46.html"
+      },
+      {
+        "id": "6af3c910f475b5dfb9c1696f",
+        "name": "Mitsuki",
+        "summary": "Maker of the Feminizing Matrix, Femmetrix for short. She holds The Key shut and hands over nothing until you have earned it.",
+        "rating": "18+",
+        "role": "character",
+        "portrait": "/isk/wristbound/cast/6af3c910f475b5dfb9c1696f.webp",
+        "card": "/isk/wristbound/cards/6af3c910f475b5dfb9c1696f.html"
+      }
+    ],
+    "gallery": [
+      {
+        "type": "image",
+        "src": "/isk/wristbound/gallery/6af424e1f090e6de3612fd43.webp",
+        "thumb": "/isk/wristbound/gallery/thumbs/6af424e1f090e6de3612fd43.webp",
+        "w": 768,
+        "h": 1024,
+        "caption": "Cover art"
+      },
+      {
+        "type": "image",
+        "src": "/isk/wristbound/gallery/6af3e1e82a25659dfa4b4aad.webp",
+        "thumb": "/isk/wristbound/gallery/thumbs/6af3e1e82a25659dfa4b4aad.webp",
+        "w": 768,
+        "h": 1024,
+        "caption": "Key visual: the open pod standing in the dark lab, violet light spilling across the wet floor, the hooded figure in the left foreground with the band on their wrist and white veins of light on the forearm, the tool trolley, the single amber lamp."
+      },
+      {
+        "type": "image",
+        "src": "/isk/wristbound/gallery/6af437e4f7468c3c15656ec5.webp",
+        "thumb": "/isk/wristbound/gallery/thumbs/6af437e4f7468c3c15656ec5.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "The pod chamber in the lab under the farmhouse: the tall cylindrical pod standing open, spilling violet light, the black band resting on its threshold, cables and wet concrete floor."
+      },
+      {
+        "type": "image",
+        "src": "/isk/wristbound/gallery/6af4382906512bb6b360f1ce.webp",
+        "thumb": "/isk/wristbound/gallery/thumbs/6af4382906512bb6b360f1ce.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "Ordinary life after the bond: the black band on a wrist in a sunlit kitchen, a mug and a plant on the counter, the pale face of the device glowing faintly."
+      },
+      {
+        "type": "image",
+        "src": "/isk/wristbound/gallery/6af447a932b6b7757ae32576.webp",
+        "thumb": "/isk/wristbound/gallery/thumbs/6af447a932b6b7757ae32576.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "The corridor under the farmhouse: wet concrete, a row of buzzing fluorescent tubes, cables looped in arcs across the floor, a steel door at the end."
+      },
+      {
+        "type": "image",
+        "src": "/isk/wristbound/gallery/6af447a932b6b7757ae32589.webp",
+        "thumb": "/isk/wristbound/gallery/thumbs/6af447a932b6b7757ae32589.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "The service lift under the farmhouse: a rusted iron grate gate open onto a concrete shaft, cables going up into darkness, violet light from below."
+      },
+      {
+        "type": "image",
+        "src": "/isk/wristbound/gallery/6af447a932b6b7757ae32568.webp",
+        "thumb": "/isk/wristbound/gallery/thumbs/6af447a932b6b7757ae32568.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "A back alley car park at night: wet asphalt, chain link fence, dumpsters, orange sodium lamps, a propped stairwell door, something left on the ground."
+      },
+      {
+        "type": "image",
+        "src": "/isk/wristbound/gallery/6af447a932b6b7757ae3246e.webp",
+        "thumb": "/isk/wristbound/gallery/thumbs/6af447a932b6b7757ae3246e.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "The farmhouse front room above the shaft: peeling wallpaper, torn-up floorboards exposing a rusted steel grate, dust in the sunlight."
+      },
+      {
+        "type": "image",
+        "src": "/isk/wristbound/gallery/6af447a932b6b7757ae32487.webp",
+        "thumb": "/isk/wristbound/gallery/thumbs/6af447a932b6b7757ae32487.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "An ordinary town street at night after rain: convenience store glow, vending machines, bicycles, wet asphalt reflecting the lights, shutters down."
+      },
+      {
+        "type": "image",
+        "src": "/isk/wristbound/gallery/6af447a932b6b7757ae32593.webp",
+        "thumb": "/isk/wristbound/gallery/thumbs/6af447a932b6b7757ae32593.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "The lab workbench in the underground lab: a metal table with one clean square in the dust, a cloth-covered tool trolley, coiled cables, one hanging bulb, violet spill from the pod."
+      },
+      {
+        "type": "image",
+        "src": "/isk/wristbound/gallery/6af447a932b6b7757ae32542.webp",
+        "thumb": "/isk/wristbound/gallery/thumbs/6af447a932b6b7757ae32542.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "Mitsuki's shop between worlds: a dark wood counter, shelves of strange books and jars, paper lanterns, a steaming kettle, a curtained door onto the night."
+      },
+      {
+        "type": "image",
+        "src": "/isk/wristbound/gallery/6af447a932b6b7757ae3244e.webp",
+        "thumb": "/isk/wristbound/gallery/thumbs/6af447a932b6b7757ae3244e.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "The farmhouse in the dead grass at dusk: an abandoned two-storey house, the front door ajar, one amber lamp lit upstairs."
+      },
+      {
+        "type": "image",
+        "src": "/isk/wristbound/gallery/6af447a932b6b7757ae32525.webp",
+        "thumb": "/isk/wristbound/gallery/thumbs/6af447a932b6b7757ae32525.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "The drained swimming pool of an old sports hall: cracked blue tiles, chrome ladders, empty wooden benches along the rim, dead leaves in the dry bottom, one caged amber bulb hanging over the deep end."
+      },
+      {
+        "type": "image",
+        "src": "/isk/wristbound/gallery/6af449020adc435bd79b0750.webp",
+        "thumb": "/isk/wristbound/gallery/thumbs/6af449020adc435bd79b0750.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "The stairwell of an ordinary apartment building at night: concrete steps turning between landings, a steel handrail, a caged bulb on each landing, a bicycle chained to the rail, a wire-glass fire door at the bottom."
+      },
+      {
+        "type": "image",
+        "src": "/isk/wristbound/gallery/6af449020adc435bd79b075f.webp",
+        "thumb": "/isk/wristbound/gallery/thumbs/6af449020adc435bd79b075f.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "A flat rooftop above the town at night: a steel water tank on legs, vent pipes, a low parapet, the town's lights spread out below under a deep blue sky, the rooftop door propped open with warm light spilling out."
+      },
+      {
+        "type": "image",
+        "src": "/isk/wristbound/gallery/6af449020adc435bd79b0771.webp",
+        "thumb": "/isk/wristbound/gallery/thumbs/6af449020adc435bd79b0771.webp",
+        "w": 1344,
+        "h": 768,
+        "caption": "A pedestrian underpass at night: tiled walls with old graffiti, a row of fluorescent tubes on the ceiling, a puddle reflecting the light, a drain grate in the wet floor, steps up to the street at the far end."
+      }
+    ],
+    "videoCover": "/isk/wristbound/cover.mp4",
+    "introCard": "/isk/wristbound/cards/intro.html"
   }
 }

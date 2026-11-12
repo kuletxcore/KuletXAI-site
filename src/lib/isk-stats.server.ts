@@ -1,4 +1,4 @@
-import { STORIES, TRIMZ } from '#/data/content'
+import { STORIES, TRIMZ, storyPlatform, type Story } from '#/data/content'
 import type { IskCounts, IskStats, TrimzCounts } from '#/lib/isk-stats'
 
 /**
@@ -8,7 +8,8 @@ import type { IskCounts, IskStats, TrimzCounts } from '#/lib/isk-stats'
 export const REFRESH_S = 60 * 60
 const GRACE_S = 10 * 60 // the hourly run lands a little after its slot
 const KEEP_S = 30 * 24 * 60 * 60
-const API = 'https://api-global.isekaizero.ai/api/storylines/'
+// 18+ storylines are only on KageSekai's API; the IsekaiZero one answers "not found" for them
+const API = { isk: 'https://api-global.isekaizero.ai/api/storylines/', kage: 'https://api.kagesekai.ai/api/storylines/' }
 // One public listing covers every series on trimz.tv/u/kuletxcore
 const TRIMZ_API = 'https://api.trimz.tv/api/ms/public-series?limit=50&order=updated_desc&owner_username=kuletxcore&locale=en'
 const UA = 'kuletx-hub/1.0 (+https://kuletxai.whop.site)'
@@ -22,8 +23,8 @@ const edgeCache = () => (globalThis as { caches?: { default?: Cache } }).caches?
 
 const count = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.round(v) : undefined)
 
-async function readStory(id: string): Promise<IskCounts> {
-  const res = await fetch(API + id, {
+async function readStory({ id, rating }: Pick<Story, 'id' | 'rating'>): Promise<IskCounts> {
+  const res = await fetch(API[storyPlatform({ rating })] + id, {
     headers: { accept: 'application/json', 'user-agent': UA },
     signal: AbortSignal.timeout(10_000),
   })
@@ -77,7 +78,7 @@ async function writeCached(key: string, stats: IskStats, maxAge: number) {
 }
 
 async function pull(previous: IskStats | null): Promise<IskStats | null> {
-  const [trimzResult, ...results] = await Promise.allSettled([readTrimz(), ...STORIES.map((s) => readStory(s.id))] as const)
+  const [trimzResult, ...results] = await Promise.allSettled([readTrimz(), ...STORIES.map((s) => readStory(s))] as const)
   const stories: IskStats['stories'] = {}
   let fresh = 0
   results.forEach((r, i) => {

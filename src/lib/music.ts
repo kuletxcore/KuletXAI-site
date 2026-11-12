@@ -45,6 +45,9 @@ const setWanted = (src: string | null) => {
   wantedListeners.forEach((l) => l())
 }
 
+// A streamed track plays as uploaded, louder than the hosted copies: its trim levels it with them
+const trims = new Map<string, number>()
+
 function channel(ctx: AudioContext, src: string) {
   let ch = channels.get(src)
   if (!ch) {
@@ -53,7 +56,9 @@ function channel(ctx: AudioContext, src: string) {
     el.preload = 'auto'
     const gain = ctx.createGain()
     gain.gain.value = 0
-    ctx.createMediaElementSource(el).connect(gain).connect(ctx.destination)
+    const trim = ctx.createGain()
+    trim.gain.value = trims.get(src) ?? 1
+    ctx.createMediaElementSource(el).connect(gain).connect(trim).connect(ctx.destination)
     ch = { src, el, gain }
     channels.set(src, ch)
   }
@@ -180,7 +185,8 @@ function startWanted(ctx: AudioContext) {
 }
 
 /** Music for the highlighted item, switched like the PS5 home screen; null stops it. */
-export function setMusic(src: string | null) {
+export function setMusic(src: string | null, trim = 1) {
+  if (src) trims.set(src, trim)
   setWanted(src)
   if (typeof window === 'undefined' || switchTimer || switchingFrom) return
   if ((current?.src ?? null) === wanted) return
