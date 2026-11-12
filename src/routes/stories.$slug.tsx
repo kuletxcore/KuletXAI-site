@@ -1312,7 +1312,7 @@ function StoryDetails({
             ))}
           </ul>
         )}
-        {section === 'ost' && OSTS[story.slug] && <OstPanel slug={story.slug} />}
+        {section === 'ost' && OSTS[story.slug] && <OstPanel slug={story.slug} platform={storyPlatformName(story)} />}
         {section === 'trophies' && TROPHIES[story.slug] && <TrophiesPanel slug={story.slug} />}
         {section === 'watch' && (
           <ul className="flex gap-4">
@@ -1391,7 +1391,7 @@ const fmtLen = (secs: number) => {
   return `${m}:${String(sec).padStart(2, '0')}`
 }
 
-function OstPanel({ slug }: { slug: string }) {
+function OstPanel({ slug, platform }: { slug: string; platform: string }) {
   const album = OSTS[slug]
   const state = useOstState()
   const total = album.tracks.reduce((n, t) => n + t.duration, 0)
@@ -1408,7 +1408,7 @@ function OstPanel({ slug }: { slug: string }) {
             {album.title}
           </a>
           <p className="text-xs text-white/55">
-            {album.tracks.length} track{album.tracks.length === 1 ? '' : 's'} · {Math.round(total / 60)} min · streams from IsekaiZero
+            {album.tracks.length} track{album.tracks.length === 1 ? '' : 's'} · {Math.round(total / 60)} min · streams from {platform}
           </p>
         </div>
       </div>

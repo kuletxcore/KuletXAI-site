@@ -66,6 +66,9 @@ CARD_FIXES = {
         ('before Meridian decides for them', 'before Meridian decides for you'),
         ("doesn't exist for anyone but them", "doesn't exist for anyone but you"),
     ],
+    'wristbound': [
+        ('width:100%; max-width:640px; background', 'width:100%; max-width:640px; margin:0 auto; background'),
+    ],
 }
 IRREGULAR = {'is': 'are', 'was': 'were', 'has': 'have', 'does': 'do', "isn't": "aren't", "wasn't": "weren't", "hasn't": "haven't", "doesn't": "don't"}
 NOT_VERBS = {'always', 'perhaps', 'sometimes', 'besides', 'afterwards', 'towards', 'upstairs', 'downstairs', 'whereas', 'yours', 'hers', 'ours', 'theirs', 'plus', 'versus'}

@@ -205,7 +205,7 @@ export function useWantedMusic() {
   )
 }
 
-// Soundtrack player: OST files stream through /api/ost (IsekaiZero's CDN sends no CORS headers) so Web Audio can give
+// Soundtrack player: OST files stream through /api/ost (the platforms' CDNs send no CORS headers) so Web Audio can give
 // them the music's volume, fades and mute. The background music fades out while one plays and back when it stops
 const ost = { el: null as HTMLAudioElement | null, gain: null as GainNode | null, src: null as string | null, active: false, playing: false, onEnded: null as null | (() => void) }
 const ostListeners = new Set<() => void>()
