@@ -584,12 +584,12 @@ export const OSTS: Record<string, Ost> = {
     "image": "https://media.kagesekai.ai/uploads/audios/6af48890ef81c1bfe977413e.webp",
     "tracks": [
       {
-        "id": "6af4896e16be14e0d13073d0",
+        "id": "6af4896e16be14e0d13073dd",
         "title": "Wristbound",
-        "src": "https://media.kagesekai.ai/uploads/music/f38bfc60-748b-4a53-a627-0027ef17bd4c.mp3",
-        "duration": 149,
+        "src": "https://media.kagesekai.ai/uploads/music/b27cfd65-56ba-4a3b-a266-a6c2eec3c1d2_rtmwdl8hkh.mp3",
+        "duration": 148,
         "image": "https://media.kagesekai.ai/uploads/galleries/6abfe628578c81ac93f9e0dd/6af4877dfdf52e31223ed2fb.webp",
-        "url": "https://www.kagesekai.ai/music/track/6af4896e16be14e0d13073d0",
+        "url": "https://www.kagesekai.ai/music/track/6af4896e16be14e0d13073dd",
         "instrumental": true
       },
       {
