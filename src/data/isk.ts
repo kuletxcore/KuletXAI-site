@@ -13,7 +13,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "m17",
         "role": "persona",
         "portrait": "/isk/acolytes/cast/6aa9130cbda2b3fef5ba8e8d.webp",
-        "card": "/isk/acolytes/cards/6aa9130cbda2b3fef5ba8e8d.html"
+        "card": "/isk/acolytes/cards/6aa9130cbda2b3fef5ba8e8d.html?v=a48f6d38"
       },
       {
         "id": "6aede2da070968d7a79850ec",
@@ -22,7 +22,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "m17",
         "role": "persona",
         "portrait": "/isk/acolytes/cast/6aede2da070968d7a79850ec.webp",
-        "card": "/isk/acolytes/cards/6aede2da070968d7a79850ec.html"
+        "card": "/isk/acolytes/cards/6aede2da070968d7a79850ec.html?v=6dcd636f"
       },
       {
         "id": "6aa9162d3e6d56af8773211b",
@@ -31,7 +31,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "m17",
         "role": "character",
         "portrait": "/isk/acolytes/cast/6aa9162d3e6d56af8773211b.webp",
-        "card": "/isk/acolytes/cards/6aa9162d3e6d56af8773211b.html"
+        "card": "/isk/acolytes/cards/6aa9162d3e6d56af8773211b.html?v=9995e7ed"
       },
       {
         "id": "6aa917f77f8d763ffaf18e3a",
@@ -40,7 +40,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "m17",
         "role": "character",
         "portrait": "/isk/acolytes/cast/6aa917f77f8d763ffaf18e3a.webp",
-        "card": "/isk/acolytes/cards/6aa917f77f8d763ffaf18e3a.html"
+        "card": "/isk/acolytes/cards/6aa917f77f8d763ffaf18e3a.html?v=43ae1bca"
       },
       {
         "id": "6aa918c148ef1abab022fc3d",
@@ -49,7 +49,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "m17",
         "role": "character",
         "portrait": "/isk/acolytes/cast/6aa918c148ef1abab022fc3d.webp",
-        "card": "/isk/acolytes/cards/6aa918c148ef1abab022fc3d.html"
+        "card": "/isk/acolytes/cards/6aa918c148ef1abab022fc3d.html?v=45b06613"
       },
       {
         "id": "6aa91a1b4cc214a73c9ce806",
@@ -58,7 +58,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "m17",
         "role": "character",
         "portrait": "/isk/acolytes/cast/6aa91a1b4cc214a73c9ce806.webp",
-        "card": "/isk/acolytes/cards/6aa91a1b4cc214a73c9ce806.html"
+        "card": "/isk/acolytes/cards/6aa91a1b4cc214a73c9ce806.html?v=7e6a68e3"
       }
     ],
     "gallery": [
@@ -230,7 +230,7 @@ export const ISK: Record<string, IskStory> = {
       }
     ],
     "videoCover": "/isk/acolytes/cover.mp4",
-    "introCard": "/isk/acolytes/cards/intro.html"
+    "introCard": "/isk/acolytes/cards/intro.html?v=adeff88b"
   },
   "colossus-protocol": {
     "cast": [
@@ -241,7 +241,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "m17",
         "role": "persona",
         "portrait": "/isk/colossus-protocol/cast/6aa60206db7d2a53541a698d.webp",
-        "card": "/isk/colossus-protocol/cards/6aa60206db7d2a53541a698d.html"
+        "card": "/isk/colossus-protocol/cards/6aa60206db7d2a53541a698d.html?v=78b875c2"
       },
       {
         "id": "6aa61d71ef4f47ff9d10c887",
@@ -250,7 +250,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "sfw",
         "role": "character",
         "portrait": "/isk/colossus-protocol/cast/6aa61d71ef4f47ff9d10c887.webp",
-        "card": "/isk/colossus-protocol/cards/6aa61d71ef4f47ff9d10c887.html"
+        "card": "/isk/colossus-protocol/cards/6aa61d71ef4f47ff9d10c887.html?v=b6ed53da"
       }
     ],
     "gallery": [
@@ -448,7 +448,7 @@ export const ISK: Record<string, IskStory> = {
       }
     ],
     "videoCover": "/isk/colossus-protocol/cover.mp4",
-    "introCard": "/isk/colossus-protocol/cards/intro.html"
+    "introCard": "/isk/colossus-protocol/cards/intro.html?v=a2a28687"
   },
   "queen-bee": {
     "cast": [
@@ -459,7 +459,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "sfw",
         "role": "character",
         "portrait": "/isk/queen-bee/cast/6a9e3c1c2dca1fb6fca472c4.webp",
-        "card": "/isk/queen-bee/cards/6a9e3c1c2dca1fb6fca472c4.html"
+        "card": "/isk/queen-bee/cards/6a9e3c1c2dca1fb6fca472c4.html?v=35dcd231"
       },
       {
         "id": "6a9d7368a7f26b6487ee9ca7",
@@ -468,7 +468,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "sfw",
         "role": "character",
         "portrait": "/isk/queen-bee/cast/6a9d7368a7f26b6487ee9ca7.webp",
-        "card": "/isk/queen-bee/cards/6a9d7368a7f26b6487ee9ca7.html"
+        "card": "/isk/queen-bee/cards/6a9d7368a7f26b6487ee9ca7.html?v=e4a11856"
       },
       {
         "id": "6aa0329a7abcf01112e98eff",
@@ -477,7 +477,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "sfw",
         "role": "character",
         "portrait": "/isk/queen-bee/cast/6aa0329a7abcf01112e98eff.webp",
-        "card": "/isk/queen-bee/cards/6aa0329a7abcf01112e98eff.html"
+        "card": "/isk/queen-bee/cards/6aa0329a7abcf01112e98eff.html?v=276af3e2"
       },
       {
         "id": "6a9e61637aa095c0d822083c",
@@ -486,7 +486,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "sfw",
         "role": "character",
         "portrait": "/isk/queen-bee/cast/6a9e61637aa095c0d822083c.webp",
-        "card": "/isk/queen-bee/cards/6a9e61637aa095c0d822083c.html"
+        "card": "/isk/queen-bee/cards/6a9e61637aa095c0d822083c.html?v=7b1a7f5a"
       },
       {
         "id": "6a9c27f2fabff9218f256e03",
@@ -495,7 +495,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "sfw",
         "role": "character",
         "portrait": "/isk/queen-bee/cast/6a9c27f2fabff9218f256e03.webp",
-        "card": "/isk/queen-bee/cards/6a9c27f2fabff9218f256e03.html"
+        "card": "/isk/queen-bee/cards/6a9c27f2fabff9218f256e03.html?v=c99096d9"
       },
       {
         "id": "6a9d8c2d575120de7e370026",
@@ -504,7 +504,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "sfw",
         "role": "character",
         "portrait": "/isk/queen-bee/cast/6a9d8c2d575120de7e370026.webp",
-        "card": "/isk/queen-bee/cards/6a9d8c2d575120de7e370026.html"
+        "card": "/isk/queen-bee/cards/6a9d8c2d575120de7e370026.html?v=d78f8358"
       },
       {
         "id": "6a9da1f93af63830cda37299",
@@ -513,7 +513,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "sfw",
         "role": "character",
         "portrait": "/isk/queen-bee/cast/6a9da1f93af63830cda37299.webp",
-        "card": "/isk/queen-bee/cards/6a9da1f93af63830cda37299.html"
+        "card": "/isk/queen-bee/cards/6a9da1f93af63830cda37299.html?v=75272a25"
       }
     ],
     "gallery": [
@@ -671,7 +671,7 @@ export const ISK: Record<string, IskStory> = {
       }
     ],
     "videoCover": "/isk/queen-bee/cover.mp4",
-    "introCard": "/isk/queen-bee/cards/intro.html"
+    "introCard": "/isk/queen-bee/cards/intro.html?v=1a7267fb"
   },
   "problem-spawner": {
     "cast": [
@@ -682,7 +682,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "sfw",
         "role": "character",
         "portrait": "/isk/problem-spawner/cast/6a98247b57c2a4f78783b3c5.webp",
-        "card": "/isk/problem-spawner/cards/6a98247b57c2a4f78783b3c5.html"
+        "card": "/isk/problem-spawner/cards/6a98247b57c2a4f78783b3c5.html?v=26c08824"
       },
       {
         "id": "6a98238d70d67d14de65570f",
@@ -691,7 +691,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "sfw",
         "role": "character",
         "portrait": "/isk/problem-spawner/cast/6a98238d70d67d14de65570f.webp",
-        "card": "/isk/problem-spawner/cards/6a98238d70d67d14de65570f.html"
+        "card": "/isk/problem-spawner/cards/6a98238d70d67d14de65570f.html?v=581fc2fb"
       },
       {
         "id": "6a95cda509673ee6dfbcdb3b",
@@ -700,7 +700,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "sfw",
         "role": "character",
         "portrait": "/isk/problem-spawner/cast/6a95cda509673ee6dfbcdb3b.webp",
-        "card": "/isk/problem-spawner/cards/6a95cda509673ee6dfbcdb3b.html"
+        "card": "/isk/problem-spawner/cards/6a95cda509673ee6dfbcdb3b.html?v=fcae4ae6"
       }
     ],
     "gallery": [
@@ -897,7 +897,7 @@ export const ISK: Record<string, IskStory> = {
         "caption": "Forest Rail Road"
       }
     ],
-    "introCard": "/isk/problem-spawner/cards/intro.html"
+    "introCard": "/isk/problem-spawner/cards/intro.html?v=69346224"
   },
   "i-am-the-table": {
     "cast": [
@@ -908,7 +908,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "sfw",
         "role": "persona",
         "portrait": "/isk/i-am-the-table/cast/6a9ea940d80e241ca6aa7c9a.webp",
-        "card": "/isk/i-am-the-table/cards/6a9ea940d80e241ca6aa7c9a.html"
+        "card": "/isk/i-am-the-table/cards/6a9ea940d80e241ca6aa7c9a.html?v=84bf97da"
       },
       {
         "id": "6aa3491f089ea96e5f12d010",
@@ -917,7 +917,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "sfw",
         "role": "character",
         "portrait": "/isk/i-am-the-table/cast/6aa3491f089ea96e5f12d010.webp",
-        "card": "/isk/i-am-the-table/cards/6aa3491f089ea96e5f12d010.html"
+        "card": "/isk/i-am-the-table/cards/6aa3491f089ea96e5f12d010.html?v=56e0c123"
       },
       {
         "id": "6aa41e25815f2d83ceb27098",
@@ -926,7 +926,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "sfw",
         "role": "character",
         "portrait": "/isk/i-am-the-table/cast/6aa41e25815f2d83ceb27098.webp",
-        "card": "/isk/i-am-the-table/cards/6aa41e25815f2d83ceb27098.html"
+        "card": "/isk/i-am-the-table/cards/6aa41e25815f2d83ceb27098.html?v=97da7d01"
       },
       {
         "id": "6aa3486b1754138b294a6100",
@@ -935,7 +935,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "sfw",
         "role": "character",
         "portrait": "/isk/i-am-the-table/cast/6aa3486b1754138b294a6100.webp",
-        "card": "/isk/i-am-the-table/cards/6aa3486b1754138b294a6100.html"
+        "card": "/isk/i-am-the-table/cards/6aa3486b1754138b294a6100.html?v=a6d0521b"
       },
       {
         "id": "6aa41daf2676cdb41e2adff2",
@@ -944,7 +944,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "sfw",
         "role": "character",
         "portrait": "/isk/i-am-the-table/cast/6aa41daf2676cdb41e2adff2.webp",
-        "card": "/isk/i-am-the-table/cards/6aa41daf2676cdb41e2adff2.html"
+        "card": "/isk/i-am-the-table/cards/6aa41daf2676cdb41e2adff2.html?v=392528fc"
       },
       {
         "id": "6aa34777c884cdcde7806cac",
@@ -953,7 +953,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "sfw",
         "role": "character",
         "portrait": "/isk/i-am-the-table/cast/6aa34777c884cdcde7806cac.webp",
-        "card": "/isk/i-am-the-table/cards/6aa34777c884cdcde7806cac.html"
+        "card": "/isk/i-am-the-table/cards/6aa34777c884cdcde7806cac.html?v=13c6589e"
       }
     ],
     "gallery": [
@@ -1047,7 +1047,7 @@ export const ISK: Record<string, IskStory> = {
       }
     ],
     "videoCover": "/isk/i-am-the-table/cover.mp4",
-    "introCard": "/isk/i-am-the-table/cards/intro.html"
+    "introCard": "/isk/i-am-the-table/cards/intro.html?v=01250bb3"
   },
   "godsmarked": {
     "cast": [
@@ -1058,7 +1058,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "m17",
         "role": "persona",
         "portrait": "/isk/godsmarked/cast/6af1a10781748bd393ac6351.webp",
-        "card": "/isk/godsmarked/cards/6af1a10781748bd393ac6351.html"
+        "card": "/isk/godsmarked/cards/6af1a10781748bd393ac6351.html?v=66c54ab6"
       },
       {
         "id": "6aeb542f44f269935f99cacc",
@@ -1067,7 +1067,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "m17",
         "role": "character",
         "portrait": "/isk/godsmarked/cast/6aeb542f44f269935f99cacc.webp",
-        "card": "/isk/godsmarked/cards/6aeb542f44f269935f99cacc.html"
+        "card": "/isk/godsmarked/cards/6aeb542f44f269935f99cacc.html?v=b363baf9"
       },
       {
         "id": "6aeb555cfd13c503f0c82463",
@@ -1076,7 +1076,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "m17",
         "role": "character",
         "portrait": "/isk/godsmarked/cast/6aeb555cfd13c503f0c82463.webp",
-        "card": "/isk/godsmarked/cards/6aeb555cfd13c503f0c82463.html"
+        "card": "/isk/godsmarked/cards/6aeb555cfd13c503f0c82463.html?v=3bd3cc76"
       },
       {
         "id": "6af2bbbbf5c1b5f43868ae28",
@@ -1085,7 +1085,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "m17",
         "role": "character",
         "portrait": "/isk/godsmarked/cast/6af2bbbbf5c1b5f43868ae28.webp",
-        "card": "/isk/godsmarked/cards/6af2bbbbf5c1b5f43868ae28.html"
+        "card": "/isk/godsmarked/cards/6af2bbbbf5c1b5f43868ae28.html?v=af2b83ec"
       },
       {
         "id": "6af2bc87e4d8c7d86445cb30",
@@ -1094,7 +1094,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "m17",
         "role": "character",
         "portrait": "/isk/godsmarked/cast/6af2bc87e4d8c7d86445cb30.webp",
-        "card": "/isk/godsmarked/cards/6af2bc87e4d8c7d86445cb30.html"
+        "card": "/isk/godsmarked/cards/6af2bc87e4d8c7d86445cb30.html?v=b10e0703"
       },
       {
         "id": "6af2be080265c665a0dbf8fd",
@@ -1103,7 +1103,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "m17",
         "role": "character",
         "portrait": "/isk/godsmarked/cast/6af2be080265c665a0dbf8fd.webp",
-        "card": "/isk/godsmarked/cards/6af2be080265c665a0dbf8fd.html"
+        "card": "/isk/godsmarked/cards/6af2be080265c665a0dbf8fd.html?v=d940f21b"
       },
       {
         "id": "6af2bf9e7039bd66687b8df8",
@@ -1112,7 +1112,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "m17",
         "role": "character",
         "portrait": "/isk/godsmarked/cast/6af2bf9e7039bd66687b8df8.webp",
-        "card": "/isk/godsmarked/cards/6af2bf9e7039bd66687b8df8.html"
+        "card": "/isk/godsmarked/cards/6af2bf9e7039bd66687b8df8.html?v=0838fbd4"
       }
     ],
     "gallery": [
@@ -1302,7 +1302,7 @@ export const ISK: Record<string, IskStory> = {
       }
     ],
     "videoCover": "/isk/godsmarked/cover.mp4",
-    "introCard": "/isk/godsmarked/cards/intro.html"
+    "introCard": "/isk/godsmarked/cards/intro.html?v=9bf9da8b"
   },
   "wristbound": {
     "cast": [
@@ -1313,7 +1313,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "18+",
         "role": "character",
         "portrait": "/isk/wristbound/cast/6af3c850bea386ba0462cf46.webp",
-        "card": "/isk/wristbound/cards/6af3c850bea386ba0462cf46.html"
+        "card": "/isk/wristbound/cards/6af3c850bea386ba0462cf46.html?v=6df8756e"
       },
       {
         "id": "6af3c910f475b5dfb9c1696f",
@@ -1322,7 +1322,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "18+",
         "role": "character",
         "portrait": "/isk/wristbound/cast/6af3c910f475b5dfb9c1696f.webp",
-        "card": "/isk/wristbound/cards/6af3c910f475b5dfb9c1696f.html"
+        "card": "/isk/wristbound/cards/6af3c910f475b5dfb9c1696f.html?v=89097519"
       }
     ],
     "gallery": [
@@ -1456,6 +1456,6 @@ export const ISK: Record<string, IskStory> = {
       }
     ],
     "videoCover": "/isk/wristbound/cover.mp4",
-    "introCard": "/isk/wristbound/cards/intro.html"
+    "introCard": "/isk/wristbound/cards/intro.html?v=5a05b72b"
   }
 }

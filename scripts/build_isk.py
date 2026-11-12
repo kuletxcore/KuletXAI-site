@@ -5,6 +5,7 @@ gallery media, cast portraits and cover videos, writes sanitized HTML cards,
 and emits src/data/isk.ts. Run: python3 scripts/build_isk.py [slug ...]
 Naming slugs refreshes only those stories and keeps the rest of isk.ts as it is.
 """
+import hashlib
 import html as htmllib
 import io
 import json
@@ -184,8 +185,11 @@ a{{color:#9cc7ff}}
 def write_card(slug, name, title, body, char_name=''):
     path = os.path.join(PUB, slug, 'cards', f'{name}.html')
     os.makedirs(os.path.dirname(path), exist_ok=True)
+    doc = CARD_DOC.format(title=htmllib.escape(title), body=sanitize(story_text(slug, body, char_name)))
     with open(path, 'w', encoding='utf-8') as f:
-        f.write(CARD_DOC.format(title=htmllib.escape(title), body=sanitize(story_text(slug, body, char_name))))
+        f.write(doc)
+    # Cards are cached for a day, so a content hash in the URL makes edits show up at once
+    return f'/isk/{slug}/cards/{name}.html?v={hashlib.sha1(doc.encode()).hexdigest()[:8]}'
 
 
 def cast_entry(slug, c, role):
@@ -203,8 +207,7 @@ def cast_entry(slug, c, role):
         save_image(cover, os.path.join(PUB, slug, 'cast', f'{cid}.webp'), 600, 800)
         out['portrait'] = f'/isk/{slug}/cast/{cid}.webp'
     if c.get('description'):
-        write_card(slug, cid, name, c['description'], name)
-        out['card'] = f'/isk/{slug}/cards/{cid}.html'
+        out['card'] = write_card(slug, cid, name, c['description'], name)
     return out
 
 
@@ -257,8 +260,7 @@ def main():
             entry['videoCover'] = f'/isk/{slug}/cover.mp4'
 
         if d.get('plot'):
-            write_card(slug, 'intro', d['title'], d['plot'])
-            entry['introCard'] = f'/isk/{slug}/cards/intro.html'
+            entry['introCard'] = write_card(slug, 'intro', d['title'], d['plot'])
 
         seen = set()
         for c in d.get('personas', []):
