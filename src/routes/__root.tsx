@@ -1,10 +1,11 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 
 import appCss from '../styles.css?url'
+import { siteOrigin } from '#/lib/origin'
 import { PERF_HEAD_SCRIPT } from '#/lib/perf'
 
 const DESCRIPTION =
-  'KuletX AI: interactive AI stories on IsekaiZero, series on Trimz and videos on YouTube.'
+  'KuletX AI: interactive AI stories on IsekaiZero and KageSekai, series on Trimz and videos on YouTube.'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -16,7 +17,10 @@ export const Route = createRootRoute({
       { name: 'theme-color', content: '#050806' },
       { property: 'og:title', content: 'KuletX AI — AI Storytelling' },
       { property: 'og:description', content: DESCRIPTION },
-      { property: 'og:image', content: '/covers/1.webp' },
+      { property: 'og:image', content: `${siteOrigin()}/covers/1.webp` },
+      { property: 'og:type', content: 'website' },
+      { property: 'og:site_name', content: 'KuletX AI' },
+      { name: 'twitter:card', content: 'summary_large_image' },
     ],
     links: [
       { rel: 'stylesheet', href: appCss },

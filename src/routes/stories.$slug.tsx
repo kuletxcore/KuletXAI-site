@@ -13,6 +13,7 @@ import { glideIntoView, glideTo, stopAllGlides } from '#/lib/smooth-scroll'
 import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
 import { KeyLabel } from '#/components/pad-glyph'
 import { PlatformChip, PlatformIcon, type Platform } from '#/components/platform'
+import { siteOrigin } from '#/lib/origin'
 import { setPerfMode, useLite, usePerfMode, watchFrameRate } from '#/lib/perf'
 import type { LiteReason } from '#/lib/perf'
 import { holdForMedia, playOst, setMusic, setMusicVolume, stopOst, useMusicVolume, useOstState, useWantedMusic } from '#/lib/music'
@@ -62,7 +63,8 @@ export const Route = createFileRoute('/stories/$slug')({
           { name: 'description', content: loaderData.story.logline },
           { property: 'og:title', content: loaderData.story.title },
           { property: 'og:description', content: loaderData.story.logline },
-          { property: 'og:image', content: loaderData.story.cover },
+          { property: 'og:image', content: siteOrigin() + loaderData.story.cover },
+          { property: 'og:url', content: `${siteOrigin()}/stories/${loaderData.story.slug}` },
           { name: 'theme-color', content: '#030508' },
         ]
       : [],
@@ -419,7 +421,8 @@ function StoryHub() {
     tab === 'stories' ? (STORY_MUSIC[story.slug] ?? null) : tab === 'series' ? (SERIES_MUSIC[activeSeries.slug] ?? null) : null
   // music.ts times the switch like the console; an item without its own track stops the music
   const musicSrc = nowPlaying?.src ?? null
-  useEffect(() => setMusic(musicSrc), [musicSrc])
+  const musicGain = nowPlaying?.gain
+  useEffect(() => setMusic(musicSrc, musicGain), [musicSrc, musicGain])
   useEffect(() => () => setMusic(null), [])
   // Auto graphics: drop to Lite if this PC can't hold a decent frame rate
   useEffect(() => watchFrameRate(), [])
@@ -1685,7 +1688,7 @@ function CardFrame({
   }, [src])
 
   useEffect(() => {
-    ref.current?.contentDocument?.documentElement.classList.toggle('kx-unredacted', open)
+    ref.current?.contentDocument?.documentElement?.classList.toggle('kx-unredacted', open)
   }, [open, count])
   useEffect(() => {
     const onToggle = (e: Event) => {

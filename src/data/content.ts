@@ -4,6 +4,7 @@ export const LINKS = {
   isekai: `https://www.isekaizero.ai/${ISEKAI_REF}`,
   isekaiProfile:
     'https://www.isekaizero.ai/creator/6a9457a462f8f09c667828f7?utm_campaign=share&utm_medium=creator&utm_content=kuletxcore&referralCode=95OBGFQX',
+  kageProfile: 'https://www.kagesekai.ai/creator/6a9457a462f8f09c667828f7',
   trimz: 'https://trimz.tv/u/kuletxcore',
   youtube: 'https://youtube.com/@kuletxai',
 }
@@ -45,7 +46,7 @@ export const TRIMZ: TrimzSeries[] = [
     poster: '/trimz/acolytes.webp',
     video: '/trimz/acolytes.mp4',
     episodes: 4,
-    views: 159,
+    views: 163,
   },
   {
     slug: 'acolytes-maid-for-your-protection-side-b',
@@ -99,7 +100,7 @@ export type Story = {
   tile?: string
 }
 
-// Public storylines from the kuletxcore account on IsekaiZero (Nov 2026)
+// Storylines from the kuletxcore account on IsekaiZero and KageSekai (Nov 2026)
 export const STORIES: Story[] = [
   {
     slug: 'acolytes',
@@ -112,9 +113,9 @@ export const STORIES: Story[] = [
     cover: '/covers/1.webp',
     rating: '17+',
     tags: ['Spy', 'Thriller', 'Undercover'],
-    likes: 158,
-    chats: 132,
-    messages: 3104,
+    likes: 170,
+    chats: 139,
+    messages: 3400,
     accent: '#ff3b5c',
     kicker: 'Acolyte Consultancy · Agent 00 file',
     pitch: [
@@ -146,9 +147,9 @@ export const STORIES: Story[] = [
     cover: '/covers/3.webp',
     rating: '17+',
     tags: ['Kaiju', 'Giantess', 'Apocalypse'],
-    likes: 33,
-    chats: 38,
-    messages: 726,
+    likes: 36,
+    chats: 40,
+    messages: 752,
     accent: '#38bdf8',
     kicker: 'Rift Response Division · Eyes only',
     pitch: [
@@ -213,8 +214,8 @@ export const STORIES: Story[] = [
     rating: 'SFW',
     tags: ['Academy', 'Superpower', 'Comedy'],
     likes: 11,
-    chats: 10,
-    messages: 1296,
+    chats: 11,
+    messages: 1348,
     accent: '#a78bfa',
     kicker: 'Meridian · Rolling…',
     pitch: [
@@ -277,9 +278,9 @@ export const STORIES: Story[] = [
     cover: '/covers/6.webp',
     rating: '17+',
     tags: ['Superpower', 'Transformation', 'Mystery'],
-    likes: 0,
-    chats: 0,
-    messages: 0,
+    likes: 6,
+    chats: 2,
+    messages: 22,
     accent: '#c77dff',
     kicker: 'Kestrel City · The box under the floorboard',
     pitch: [
@@ -300,6 +301,36 @@ export const STORIES: Story[] = [
       { name: 'Dexter Radley', role: 'Runs the last GodSmarked forum. Names the issue off one blurred frame.' },
     ],
     hook: 'You put it on as a joke. It did not come off.',
+  },
+  {
+    slug: 'wristbound',
+    logo: { src: '/titles/wristbound.webp', w: 1100, h: 310 },
+    tile: '/tiles/wristbound.webp',
+    id: '6af2da17a519bbd9cf367837',
+    title: 'Wristbound: Zero to Hero',
+    logline: 'You find a device that turns you into different women. Now use that to become a hero.',
+    cover: '/covers/7.webp',
+    rating: '18+',
+    tags: ['Sci-Fi', 'Transformation', 'Body Horror'],
+    likes: 0,
+    chats: 0,
+    messages: 0,
+    accent: '#a05cff',
+    kicker: 'Femmetrix · The lab under the farmhouse',
+    pitch: [
+      'An ordinary afternoon goes wrong in a farmhouse nobody visits. Under the floor there is a lift, and at the bottom a lab, and in the lab something small and patient that has been waiting for you specifically. It does not ask. It jumps.',
+      'Your body becomes someone else’s, and you did not choose who. You get roughly ten minutes before the change runs out and drops you back into yourself, wrung out and ordinary. Then you go home. Then it happens again, worse.',
+    ],
+    world: [
+      { label: 'The Femmetrix', text: 'The Feminizing Matrix: a band on your wrist that turns you into different women. It was built for someone else.' },
+      { label: 'Ten minutes', text: 'Roughly ten minutes per form, then it lets go and leaves you wrecked. Heavy activity burns it faster, and the band has to recharge before it will hold another.' },
+      { label: 'The Key', text: 'Removes the ten minutes and the limits on switching. You do not have it. You earn it.' },
+    ],
+    cast: [
+      { name: 'Lena Hoshino', role: 'Your best friend, there when the device jumped. No powers, very practical hands.' },
+      { name: 'Mitsuki', role: 'Built the Femmetrix and holds The Key. She deletes the threat, then she explains.' },
+    ],
+    hook: 'Ten minutes in a form. A body you did not choose. A world that has started to notice.',
   },
 ]
 

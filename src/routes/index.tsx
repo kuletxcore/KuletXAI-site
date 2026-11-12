@@ -40,7 +40,7 @@ function Hero() {
             <span className="cursor text-neon" />
           </h1>
           <p className="mt-6 max-w-lg text-base leading-relaxed text-mute sm:text-lg">
-            KuletX builds interactive worlds on IsekaiZero, cuts them into series on Trimz, and
+            KuletX builds interactive worlds on IsekaiZero and KageSekai, cuts them into series on Trimz, and
             breaks it all down on YouTube.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
@@ -97,7 +97,7 @@ function Stories() {
     <section id="stories" className="scroll-mt-16 border-b border-line">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
         <SectionHead
-          kicker="01 // IsekaiZero"
+          kicker="01 // IsekaiZero + KageSekai"
           title="Pick a world"
           body="Interactive AI storylines. You make the choices, the storyteller keeps up. Open a world to see its cast and lore."
         />
@@ -118,8 +118,8 @@ function Stories() {
                     className="h-full w-full object-cover"
                   />
                   <span
-                    className={`absolute top-3 left-3 px-2 py-1 font-gamer text-xs text-void ${
-                      s.rating === 'SFW' ? 'bg-neon' : 'bg-warn'
+                    className={`absolute top-3 left-3 px-2 py-1 font-gamer text-xs ${
+                      s.rating === 'SFW' ? 'bg-neon text-void' : s.rating === '18+' ? 'bg-danger text-white' : 'bg-warn text-void'
                     }`}
                   >
                     {s.rating}
@@ -152,13 +152,7 @@ function Stories() {
             </li>
           ))}
           <li>
-            <a
-              href={LINKS.isekaiProfile}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => sfx('enter')}
-              className="group flex h-full flex-col border border-dashed border-line bg-panel hover:border-solid hover:border-neon"
-            >
+            <div className="group relative flex h-full flex-col border border-dashed border-line bg-panel hover:border-solid hover:border-neon">
               {/* Cover slot: the five worlds tiled, dimmed, with the loading line on top */}
               <div className="cover relative aspect-[3/4] overflow-hidden border-b border-line">
                 <div className="grid h-full grid-cols-2 grid-rows-3 gap-px bg-line" aria-hidden>
@@ -183,9 +177,20 @@ function Stories() {
                 <span className="absolute top-3 left-3 bg-ink px-2 py-1 font-gamer text-xs text-void">CREATOR</span>
               </div>
               <div className="flex flex-1 flex-col p-5">
-                <h3 className="font-mono text-lg font-bold leading-snug text-ink group-hover:text-neon">More worlds in the works</h3>
+                <h3 className="font-mono text-lg font-bold leading-snug text-ink group-hover:text-neon">
+                  {/* The stretched ::after makes the whole card open the IsekaiZero profile */}
+                  <a
+                    href={LINKS.isekaiProfile}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => sfx('enter')}
+                    className="after:absolute after:inset-0"
+                  >
+                    More worlds in the works
+                  </a>
+                </h3>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-mute">
-                  Every KuletX storyline lives on IsekaiZero. Follow the creator page to catch new worlds the day they go live.
+                  KuletX storylines live on IsekaiZero, and the 18+ ones on KageSekai. Follow either creator page to catch new worlds the day they go live.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {['AllWorlds', 'NewDrops', 'Follow'].map((t) => (
@@ -195,11 +200,22 @@ function Stories() {
                   ))}
                 </div>
                 <div className="mt-5 flex items-center justify-between border-t border-line pt-4 font-gamer text-xs">
-                  <span className="text-mute">@kuletxcore · {STORIES.length} live</span>
-                  <span className="text-neon">PROFILE →</span>
+                  <span className="text-mute">{STORIES.length} LIVE</span>
+                  <span className="flex gap-3 whitespace-nowrap">
+                    <span className="text-neon">ISEKAIZERO →</span>
+                    <a
+                      href={LINKS.kageProfile}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => sfx('enter')}
+                      className="relative z-10 text-danger hover:text-ink"
+                    >
+                      KAGESEKAI →
+                    </a>
+                  </span>
                 </div>
               </div>
-            </a>
+            </div>
           </li>
         </ul>
       </div>
@@ -282,6 +298,14 @@ const CHANNELS = [
     handle: 'isekaizero.ai/creator/kuletxcore',
   },
   {
+    key: 'kage',
+    name: 'KageSekai',
+    verb: 'Dare',
+    body: 'The 18+ worlds live here, on the adult sister site of IsekaiZero. Same account, darker stories.',
+    href: LINKS.kageProfile,
+    handle: 'kagesekai.ai/creator/kuletxcore',
+  },
+  {
     key: 'trimz',
     name: 'Trimz',
     verb: 'Binge',
@@ -303,8 +327,8 @@ function Channels() {
   return (
     <section id="watch" className="scroll-mt-16 border-b border-line">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <SectionHead kicker="03 // Channels" title="Three ways in" body="Same universe, different screens." />
-        <ul className="mt-12 grid gap-px overflow-hidden border border-line bg-line md:grid-cols-3">
+        <SectionHead kicker="03 // Channels" title="Four ways in" body="Same universe, different screens." />
+        <ul className="mt-12 grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2">
           {CHANNELS.map((c, i) => (
             <li key={c.key} className="bg-void">
               <a href={c.href} target="_blank" rel="noreferrer" className="group flex h-full flex-col p-6 hover:bg-panel sm:p-8">

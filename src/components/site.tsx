@@ -58,6 +58,9 @@ export function Footer() {
           <a href={LINKS.isekai} target="_blank" rel="noreferrer" className="text-mute hover:text-neon">
             IsekaiZero
           </a>
+          <a href={LINKS.kageProfile} target="_blank" rel="noreferrer" className="text-mute hover:text-neon">
+            KageSekai
+          </a>
           <a href={LINKS.trimz} target="_blank" rel="noreferrer" className="text-mute hover:text-neon">
             Trimz
           </a>

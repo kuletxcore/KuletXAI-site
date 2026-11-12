@@ -1,6 +1,6 @@
-"""Pull public IsekaiZero storyline assets into the site.
+"""Pull public IsekaiZero and KageSekai storyline assets into the site.
 
-Fetches each storyline from the public API, downloads covers,
+Fetches each storyline from its platform's public API, downloads covers,
 gallery media, cast portraits and cover videos, writes sanitized HTML cards,
 and emits src/data/isk.ts. Run: python3 scripts/build_isk.py [slug ...]
 Naming slugs refreshes only those stories and keeps the rest of isk.ts as it is.
@@ -18,6 +18,9 @@ from PIL import Image
 SITE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PUB = os.path.join(SITE, 'public', 'isk')
 API = 'https://api-global.isekaizero.ai/api'
+# 18+ storylines are served by KageSekai's own API
+KAGE_API = 'https://api.kagesekai.ai/api'
+KAGE = {'wristbound'}
 
 STORIES = {
     'acolytes': '6aa78f6bd17fe984ab332064',
@@ -26,6 +29,7 @@ STORIES = {
     'problem-spawner': '6a9504a149fd840d6d383b33',
     'i-am-the-table': '6a9d1ba30b414546e54a59aa',
     'godsmarked': '6ab416c09949716a1b4e333b',
+    'wristbound': '6af2da17a519bbd9cf367837',
 }
 # Public characters that belong to a story but aren't attached as cast
 EXTRA_CAST = {
@@ -202,8 +206,10 @@ def cast_entry(slug, c, role):
 
 
 def tidy_caption(cap):
-    if cap.lower().startswith('cover art:'):
+    if cap.lower().startswith(('cover art:', "the story's cover.")):
         return 'Cover art'
+    # "Key visual, same art and scene as the cover but with no lettering: ..." is a note to the scene picker
+    cap = re.sub(r'^(Key visual), same art[^:]*:', r'\1:', cap)
     # Some captions are the whole image prompt: keep only what the picture shows
     if cap.startswith('References, in order:'):
         cap = re.sub(r'^.*?cinematic background art\.\s*', '', cap, flags=re.S)
@@ -227,7 +233,8 @@ def main():
     for slug, sid in STORIES.items():
         if only and slug not in only:
             continue
-        d = json.loads(fetch(f'{API}/storylines/{sid}?excludeOwner=true&src=direct'))['data']
+        api = KAGE_API if slug in KAGE else API
+        d = json.loads(fetch(f'{api}/storylines/{sid}?excludeOwner=true&src=direct'))['data']
         entry = {'cast': [], 'gallery': []}
 
         vc = (d.get('videoCover') or {}).get('url')
@@ -237,7 +244,8 @@ def main():
             if m_orig:
                 vc_orig = vc.replace(m_orig.group(0), f'/videos/{m_orig.group(1)}_original.mp4')
                 try:
-                    fetch_head = urllib.request.urlopen(urllib.request.Request(vc_orig, method='HEAD'), timeout=20)
+                    # The CDN answers 403 to requests without a user agent
+                    fetch_head = urllib.request.urlopen(urllib.request.Request(vc_orig, method='HEAD', headers={'User-Agent': 'kuletx-site-builder'}), timeout=20)
                     if fetch_head.status == 200:
                         vc = vc_orig
                 except Exception:
@@ -260,7 +268,7 @@ def main():
         for cid in EXTRA_CAST.get(slug, []):
             if cid in seen:
                 continue
-            c = json.loads(fetch(f'{API}/characters/{cid}'))['data']
+            c = json.loads(fetch(f'{api}/characters/{cid}'))['data']
             if c.get('visibility') == 'public' and not c.get('nsfw'):
                 entry['cast'].append(cast_entry(slug, c, 'character'))
 
@@ -298,7 +306,7 @@ def main():
 
     result = {slug: result[slug] for slug in STORIES if slug in result}
     with open(ISK_TS, 'w', encoding='utf-8') as f:
-        f.write('// Generated from public IsekaiZero storyline data. Re-run build_isk.py to refresh.\n')
+        f.write('// Generated from public IsekaiZero and KageSekai storyline data. Re-run build_isk.py to refresh.\n')
         f.write('export type IskCast = { id: string; name: string; summary: string; rating: string; role: "persona" | "character"; portrait?: string; card?: string }\n')
         f.write('export type IskMedia = { type: "image" | "video"; src: string; thumb?: string; w: number; h: number; caption: string }\n')
         f.write('export type IskStory = { videoCover?: string; introCard?: string; cast: IskCast[]; gallery: IskMedia[] }\n\n')
