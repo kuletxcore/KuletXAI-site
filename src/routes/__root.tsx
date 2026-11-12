@@ -5,7 +5,7 @@ import { siteOrigin } from '#/lib/origin'
 import { PERF_HEAD_SCRIPT } from '#/lib/perf'
 
 const DESCRIPTION =
-  'KuletX AI: interactive AI stories on IsekaiZero, series on Trimz and videos on YouTube.'
+  'KuletX AI: interactive AI stories on IsekaiZero and KageSekai, series on Trimz and videos on YouTube.'
 
 export const Route = createRootRoute({
   head: () => ({

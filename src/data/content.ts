@@ -4,6 +4,7 @@ export const LINKS = {
   isekai: `https://www.isekaizero.ai/${ISEKAI_REF}`,
   isekaiProfile:
     'https://www.isekaizero.ai/creator/6a9457a462f8f09c667828f7?utm_campaign=share&utm_medium=creator&utm_content=kuletxcore&referralCode=95OBGFQX',
+  kageProfile: 'https://www.kagesekai.ai/creator/6a9457a462f8f09c667828f7',
   trimz: 'https://trimz.tv/u/kuletxcore',
   youtube: 'https://youtube.com/@kuletxai',
 }
