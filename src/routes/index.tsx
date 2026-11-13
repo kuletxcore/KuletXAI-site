@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Footer, Header, SectionHead } from '#/components/site'
@@ -91,8 +92,46 @@ function Stat({ label, value, small }: { label: ReactNode; value: ReactNode; sma
   )
 }
 
+// On phones the worlds sit in a swipeable shelf, not a seven-screen stack; sm and up keep the grid
+const SLOT = 'w-[min(80vw,22rem)] shrink-0 snap-start sm:w-auto sm:shrink'
+const pad2 = (n: number) => String(n).padStart(2, '0')
+
 function Stories() {
   const live = useIskStats()
+  const shelf = useRef<HTMLUListElement>(null)
+  const [at, setAt] = useState(0)
+  const total = STORIES.length + 1
+
+  useEffect(() => {
+    const el = shelf.current
+    if (!el) return
+    let raf = 0
+    const read = () => {
+      raf = 0
+      const first = el.children[0] as HTMLElement
+      const second = el.children[1] as HTMLElement
+      const step = second.offsetLeft - first.offsetLeft
+      const end = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2
+      setAt(end ? el.children.length - 1 : Math.round(el.scrollLeft / step))
+    }
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(read)
+    }
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      el.removeEventListener('scroll', onScroll)
+      cancelAnimationFrame(raf)
+    }
+  }, [])
+
+  const go = (i: number) => {
+    const el = shelf.current
+    const card = el?.children[i] as HTMLElement | undefined
+    if (!el || !card) return
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    el.scrollTo({ left: card.offsetLeft - 16, behavior: calm ? 'auto' : 'smooth' })
+  }
+
   return (
     <section id="stories" className="scroll-mt-16 border-b border-line">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
@@ -101,9 +140,12 @@ function Stories() {
           title="Pick a world"
           body="Interactive AI storylines. You make the choices, the storyteller keeps up. Open a world to see its cast and lore."
         />
-        <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <ul
+          ref={shelf}
+          className="relative mt-12 -mx-4 flex snap-x snap-mandatory scroll-pl-4 gap-4 overflow-x-auto overscroll-x-contain px-4 py-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:scroll-pl-0 sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:px-0 sm:py-0 lg:grid-cols-3 [&::-webkit-scrollbar]:hidden"
+        >
           {STORIES.map((s, i) => (
-            <li key={s.id}>
+            <li key={s.id} className={SLOT}>
               <Link
                 to="/stories/$slug"
                 params={{ slug: s.slug }}
@@ -151,7 +193,7 @@ function Stories() {
               </Link>
             </li>
           ))}
-          <li>
+          <li className={SLOT}>
             <div className="group relative flex h-full flex-col border border-dashed border-line bg-panel hover:border-solid hover:border-neon">
               {/* Cover slot: the five worlds tiled, dimmed, with the loading line on top */}
               <div className="cover relative aspect-[3/4] overflow-hidden border-b border-line">
@@ -218,6 +260,25 @@ function Stories() {
             </div>
           </li>
         </ul>
+        <div className="mt-4 flex items-center justify-between font-gamer text-xs text-mute sm:hidden">
+          <span aria-hidden>
+            <span className="text-neon">{pad2(at + 1)}</span> / {pad2(total)}
+          </span>
+          <div className="flex">
+            {Array.from({ length: total }, (_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => go(i)}
+                aria-label={`World ${i + 1} of ${total}`}
+                aria-current={i === at}
+                className="grid h-8 w-6 place-items-center"
+              >
+                <span className={`h-1 ${i === at ? 'w-5 bg-neon' : 'w-2 bg-mute/50'}`} />
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   )
