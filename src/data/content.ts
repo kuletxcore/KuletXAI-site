@@ -311,7 +311,7 @@ export const STORIES: Story[] = [
     logline: 'You find a device that turns you into different women. Now use that to become a hero.',
     cover: '/covers/7.webp?v=e1e00166',
     rating: '18+',
-    tags: ['Sci-Fi', 'Transformation', 'Body Horror'],
+    tags: ['Supernatural', 'Transformation', 'Body Horror'],
     likes: 0,
     chats: 0,
     messages: 0,
