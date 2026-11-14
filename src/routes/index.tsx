@@ -28,6 +28,7 @@ function Hero() {
   const live = useIskStats()
   return (
     <section id="top" className="relative overflow-hidden border-b border-line">
+      <PosterWall />
       <div className="grid-bg absolute inset-0" aria-hidden />
       <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 md:grid-cols-[1.3fr_1fr] md:items-center md:py-28">
         <div>
@@ -80,6 +81,42 @@ function Hero() {
         </div>
       </div>
     </section>
+  )
+}
+
+// The worlds drift behind the hero, so the first screen shows the stories instead of an empty grid
+function PosterWall() {
+  const wall = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = wall.current
+    if (!el || !('IntersectionObserver' in window)) return
+    const io = new IntersectionObserver(([e]) => el.toggleAttribute('data-paused', !e.isIntersecting))
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  const art = STORIES.map((s) => s.tile ?? s.cover)
+  const rows = [art, [...art.slice(3), ...art.slice(0, 3)], [...art.slice(5), ...art.slice(0, 5)]]
+  return (
+    <div ref={wall} className="kx-wall pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+      <div className="absolute -inset-x-1/4 top-[36%] flex -translate-y-1/2 -rotate-6 flex-col gap-3 opacity-45 md:top-1/2">
+        {rows.map((row, r) => (
+          <div key={r} className={`kx-wall-row flex w-max gap-3 ${r % 2 ? 'is-rev' : ''}`}>
+            {[...row, ...row, ...row, ...row].map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt=""
+                decoding="async"
+                fetchPriority="low"
+                className="size-32 shrink-0 rounded-sm object-cover sm:size-40"
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+      <div className="absolute inset-0 bg-void/65 md:bg-transparent md:bg-linear-to-r md:from-void md:from-25% md:via-void/80 md:to-void/20" />
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-void to-transparent" />
+    </div>
   )
 }
 

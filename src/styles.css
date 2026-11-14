@@ -121,12 +121,34 @@ a:focus-visible {
   outline-offset: 3px;
 }
 
+/* Each row holds its tiles four times over, so sliding by half loops without a seam */
+.kx-wall-row {
+  animation: kxWall 90s linear infinite;
+  will-change: transform;
+}
+.kx-wall-row.is-rev {
+  animation-duration: 110s;
+  animation-direction: reverse;
+}
+.kx-wall[data-paused] .kx-wall-row {
+  animation-play-state: paused;
+}
+@keyframes kxWall {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
   .cursor::after {
     animation: none;
+  }
+  .kx-wall-row {
+    animation: none;
+    will-change: auto;
   }
   .cover img {
     transition: none;
@@ -1020,6 +1042,10 @@ html.kx-boot body::before {
 .kx-lite *::after {
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
+}
+.kx-lite .kx-wall-row {
+  animation: none;
+  will-change: auto;
 }
 .kx-lite .ps5-glass {
   background: rgba(14, 16, 22, 0.9);
