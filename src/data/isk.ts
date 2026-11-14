@@ -1464,6 +1464,6 @@ export const ISK: Record<string, IskStory> = {
       }
     ],
     "videoCover": "/isk/wristbound/cover.mp4?v=79e2b7d5",
-    "introCard": "/isk/wristbound/cards/intro.html?v=ff7ea9e1"
+    "introCard": "/isk/wristbound/cards/intro.html?v=f7ee4d72"
   }
 }
