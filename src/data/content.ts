@@ -308,7 +308,7 @@ export const STORIES: Story[] = [
     tile: '/tiles/wristbound.webp?v=645d4484',
     id: '6af2da17a519bbd9cf367837',
     title: 'Wristbound: Zero to Hero',
-    logline: 'You find a device that turns you into different women. Now use that to become a hero.',
+    logline: 'You find a magical artifact that turns you into different women. Now use that to become a hero.',
     cover: '/covers/7.webp?v=e1e00166',
     rating: '18+',
     tags: ['Supernatural', 'Transformation', 'Body Horror'],
