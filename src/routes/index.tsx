@@ -6,6 +6,8 @@ import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
 import { LiveCount, LiveDot } from '#/components/live-count'
 import { countOf, totalOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
+import { COVER_VIDEOS } from '#/data/cover-videos'
+import { useLite } from '#/lib/perf'
 
 export const Route = createFileRoute('/')({ component: Home })
 
@@ -133,11 +135,70 @@ function Stat({ label, value, small }: { label: ReactNode; value: ReactNode; sma
 const SLOT = 'w-[min(80vw,22rem)] shrink-0 snap-start sm:w-auto sm:shrink'
 const pad2 = (n: number) => String(n).padStart(2, '0')
 
+// A poster's own cover video: fetched the first time it plays, then only paused, and shown once frames arrive
+function CoverVideo({ src, play }: { src: string; play: boolean }) {
+  const ref = useRef<HTMLVideoElement>(null)
+  const [armed, setArmed] = useState(false)
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    if (play) setArmed(true)
+  }, [play])
+  useEffect(() => {
+    const v = ref.current
+    if (!v) return
+    v.muted = true
+    if (play) void v.play().catch(() => {})
+    else v.pause()
+  }, [play, armed])
+  if (!armed) return null
+  return (
+    <video
+      ref={ref}
+      loop
+      muted
+      playsInline
+      preload="auto"
+      aria-hidden
+      onPlaying={() => setReady(true)}
+      className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${play && ready ? 'opacity-100' : 'opacity-0'}`}
+    >
+      <source src={src.replace(/\.mp4(?=\?|$)/, '.webm')} type="video/webm" />
+      <source src={src} type="video/mp4" />
+    </video>
+  )
+}
+
 function Stories() {
   const live = useIskStats()
   const shelf = useRef<HTMLUListElement>(null)
   const [at, setAt] = useState(0)
   const total = STORIES.length + 1
+  const lite = useLite()
+  const [hot, setHot] = useState<number | null>(null)
+  const [shelfLive, setShelfLive] = useState(false)
+  const [motionOk, setMotionOk] = useState(false)
+  const canPlay = motionOk && !lite
+
+  // Posters move only for people who want motion and are not saving data
+  useEffect(() => {
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const saving = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true
+    const sync = () => setMotionOk(!calm.matches && !saving)
+    sync()
+    calm.addEventListener('change', sync)
+    return () => calm.removeEventListener('change', sync)
+  }, [])
+
+  // In the phone shelf the card in view plays by itself, but only while the shelf is on screen
+  useEffect(() => {
+    const el = shelf.current
+    if (!el || !('IntersectionObserver' in window)) return
+    const io = new IntersectionObserver(([e]) => setShelfLive(e.isIntersecting && el.scrollWidth > el.clientWidth), { threshold: 0.6 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  const playing = (i: number) => canPlay && (hot === i || (shelfLive && at === i))
+  const cool = (i: number) => setHot((h) => (h === i ? null : h))
 
   useEffect(() => {
     const el = shelf.current
@@ -187,6 +248,10 @@ function Stories() {
                 to="/stories/$slug"
                 params={{ slug: s.slug }}
                 onClick={() => sfx('enter')}
+                onMouseEnter={() => setHot(i)}
+                onMouseLeave={() => cool(i)}
+                onFocus={() => setHot(i)}
+                onBlur={() => cool(i)}
                 className="group flex h-full flex-col border border-line bg-panel hover:border-neon"
               >
                 <div className="cover relative aspect-[3/4] overflow-hidden border-b border-line">
@@ -196,6 +261,7 @@ function Stories() {
                     loading={i < 3 ? 'eager' : 'lazy'}
                     className="h-full w-full object-cover"
                   />
+                  {COVER_VIDEOS[s.slug] && <CoverVideo src={COVER_VIDEOS[s.slug]} play={playing(i)} />}
                   <span
                     className={`absolute top-3 left-3 px-2 py-1 font-gamer text-xs ${
                       s.rating === 'SFW' ? 'bg-neon text-void' : s.rating === '18+' ? 'bg-danger text-white' : 'bg-warn text-void'

@@ -109,10 +109,12 @@ body {
   }
 }
 
-.cover img {
-  transition: transform 300ms ease;
+.cover img,
+.cover video {
+  transition: transform 300ms ease, opacity 500ms ease;
 }
-.cover:hover img {
+.cover:hover img,
+.cover:hover video {
   transform: scale(1.04);
 }
 
