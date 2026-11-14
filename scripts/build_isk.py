@@ -192,6 +192,12 @@ def write_card(slug, name, title, body, char_name=''):
     return f'/isk/{slug}/cards/{name}.html?v={hashlib.sha1(doc.encode()).hexdigest()[:8]}'
 
 
+def versioned(url):
+    """A public file's URL with a content hash, so a replaced file gets past the day-long cache."""
+    with open(os.path.join(SITE, 'public', url.lstrip('/')), 'rb') as f:
+        return f'{url}?v={hashlib.sha1(f.read()).hexdigest()[:8]}'
+
+
 def cast_entry(slug, c, role):
     cid = c['_id']
     name = c['name']
@@ -257,7 +263,7 @@ def main():
                 except Exception:
                     pass
         if vc and save_file(vc, os.path.join(PUB, slug, 'cover.mp4'), MAX_VIDEO):
-            entry['videoCover'] = f'/isk/{slug}/cover.mp4'
+            entry['videoCover'] = versioned(f'/isk/{slug}/cover.mp4')
 
         if d.get('plot'):
             entry['introCard'] = write_card(slug, 'intro', d['title'], d['plot'])

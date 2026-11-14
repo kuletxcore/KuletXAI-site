@@ -792,7 +792,8 @@ const Backdrop = memo(function Backdrop({
     }
   }, [live, stage, plan, video])
 
-  const webm = video?.replace(/\.mp4$/, '.webm')
+  // The preview .webm is re-encoded alongside the .mp4, so it shares its ?v= version
+  const webm = video?.replace(/\.mp4(?=\?|$)/, '.webm')
   const loadFull = !!video && !!plan?.full && (stage >= 1 || !plan.preview)
 
   if (!wanted) return <div className="ps5-layer" />
