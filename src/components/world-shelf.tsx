@@ -195,7 +195,7 @@ export function WorldShelf() {
             {STORIES.map((s, i) => (
               <li
                 key={s.slug}
-                className="ws-panel"
+                className={`ws-panel${s.trimz?.[0] ? ' has-trimz' : ''}`}
                 style={{ '--accent': s.accent } as CSSProperties}
                 onPointerEnter={() => setHot(i)}
                 onPointerLeave={() => setHot((was) => (was === i ? null : was))}

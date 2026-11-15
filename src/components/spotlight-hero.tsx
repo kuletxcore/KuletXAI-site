@@ -374,25 +374,17 @@ export function SpotlightHero() {
           </span>
         </div>
 
-        <ol className="sp-ticks" aria-label="Choose a world">
+        {/* Progress, not a control: seven segments can never be 44px wide, so tapping is left to
+            the arrows, the poster wall and the CTA */}
+        <div className="sp-ticks" aria-hidden>
           {STORIES.map((s, i) => (
-            <li key={s.slug} className={i === idx ? 'is-on' : undefined}>
-              <button
-                type="button"
-                onClick={() => pick(i)}
-                aria-label={`Spotlight ${s.title}`}
-                aria-current={i === idx ? 'true' : undefined}
-              >
-                <span className="sp-tick" aria-hidden>
-                  <i />
-                </span>
-                <span className="sp-tick-n" aria-hidden>
-                  {pad2(i + 1)}
-                </span>
-              </button>
-            </li>
+            <span key={s.slug} className={i === idx ? 'is-on' : undefined}>
+              <span className="sp-tick">
+                <i />
+              </span>
+            </span>
           ))}
-        </ol>
+        </div>
 
         <div className="sp-nav">
           <span className="sp-hint" aria-hidden>

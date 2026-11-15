@@ -38,7 +38,7 @@ function Trimz() {
             href={LINKS.trimz}
             target="_blank"
             rel="noreferrer"
-            className="shrink-0 self-start border border-neon px-4 py-2 font-gamer text-xs uppercase text-neon hover:bg-neon hover:text-void sm:self-auto"
+            className="inline-flex min-h-11 shrink-0 items-center self-start border border-neon px-4 font-gamer text-xs uppercase text-neon hover:bg-neon hover:text-void sm:self-auto"
           >
             Follow on Trimz →
           </a>

@@ -549,8 +549,10 @@ a:focus-visible {
 .sp-cta {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 9px;
-  padding: 12px 22px;
+  min-height: 44px;
+  padding: 0 22px;
   border: 1px solid var(--accent);
   background: var(--accent);
   color: #040705;
@@ -579,7 +581,8 @@ a:focus-visible {
 .sp-ghost {
   display: inline-flex;
   align-items: center;
-  padding: 12px 20px;
+  min-height: 44px;
+  padding: 0 20px;
   border: 1px solid #294534;
   background: rgba(5, 8, 6, 0.45);
   color: var(--color-ink);
@@ -674,33 +677,15 @@ a:focus-visible {
 }
 .sp-ticks {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 5px;
   flex: 1 1 240px;
   max-width: 420px;
   margin: 0;
   padding: 0;
-  list-style: none;
 }
-.sp-ticks li {
+.sp-ticks > span {
   flex: 1 1 0;
-}
-.sp-ticks button {
-  display: block;
-  width: 100%;
-  padding: 3px 0;
-  border: 0;
-  background: none;
-  color: #3c5a47;
-  text-align: left;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-.sp-ticks button:hover {
-  color: var(--color-ink);
-}
-.sp-ticks li.is-on button {
-  color: var(--accent);
 }
 .sp-tick {
   display: block;
@@ -717,12 +702,12 @@ a:focus-visible {
   transform-origin: left center;
   opacity: 0.55;
 }
-.sp-ticks li.is-on .sp-tick i {
+.sp-ticks > span.is-on .sp-tick i {
   opacity: 1;
   transform: scaleX(1);
 }
 /* While it rotates on its own, the active tick fills like a progress bar */
-.sp[data-auto="on"] .sp-ticks li.is-on .sp-tick i {
+.sp[data-auto="on"] .sp-ticks > span.is-on .sp-tick i {
   animation: spTick var(--sp-rotate) linear both;
 }
 @keyframes spTick {
@@ -732,12 +717,6 @@ a:focus-visible {
   to {
     transform: scaleX(1);
   }
-}
-.sp-tick-n {
-  display: block;
-  margin-top: 4px;
-  font-size: 9px;
-  letter-spacing: 0.08em;
 }
 .sp-nav {
   display: flex;
@@ -769,8 +748,8 @@ a:focus-visible {
 .sp-arrow {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   border: 1px solid #2a4634;
   border-radius: 999px;
   background: rgba(11, 18, 13, 0.62);
@@ -915,6 +894,33 @@ a:focus-visible {
   }
   .sp-corner {
     display: none;
+  }
+}
+/* Tablets: the phone ribbon becomes a four-across poster wall instead of a stretched strip */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .sp-wall-wrap {
+    margin-inline: 0;
+    perspective: none;
+  }
+  .sp-wall {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    overflow: visible;
+    padding: 0;
+  }
+  .sp-wall li,
+  .sp-tile-add {
+    width: auto;
+  }
+  .sp-wall li.is-on .sp-tile {
+    transform: scale(1.03);
+  }
+  .sp-h1 {
+    font-size: clamp(38px, 5.4vw, 52px);
+  }
+  .sp-sub {
+    max-width: 52ch;
   }
 }
 @media (hover: none), (pointer: coarse) {
@@ -2357,6 +2363,9 @@ html.kx-boot body::before {
 .ws-stats {
   color: #7fa78d;
 }
+.ws-panel.has-trimz .ws-body {
+  padding-bottom: 64px;
+}
 .ws-open {
   display: inline-flex;
   align-items: center;
@@ -2380,9 +2389,12 @@ html.kx-boot body::before {
 .ws-trimz {
   position: absolute;
   right: 12px;
-  bottom: 14px;
+  bottom: 12px;
   z-index: 2;
-  padding: 5px 10px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
   border: 1px solid #2f5540;
   background: rgba(4, 7, 5, 0.8);
   color: var(--color-ink);
@@ -2456,6 +2468,21 @@ html.kx-boot body::before {
 .ws-next-sub {
   font-size: 12px;
   color: var(--color-mute);
+}
+
+/* Tablets: bigger panels than a phone, still a swipeable strip */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .ws-panel {
+    width: min(66vw, 460px);
+    height: clamp(400px, 62svh, 560px);
+  }
+  .ws-logo {
+    max-height: 68px;
+    max-width: min(90%, 360px);
+  }
+  .ws-line {
+    -webkit-line-clamp: 3;
+  }
 }
 
 /* Roomy screens: the section pins and scroll glides the shelf sideways */
@@ -2542,5 +2569,42 @@ html.kx-boot body::before {
   }
   .ws-panel:hover .ws-art {
     transform: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Touch targets in the story hub
+   The console chrome is tuned for a mouse: dense pills, tabs and small round
+   buttons. On a coarse pointer every control gets a 44px box, and the ones
+   whose visual size is the point grow an invisible hit area instead.
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (pointer: coarse) {
+  .ps5-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-block: 0;
+    padding-inline: 16px;
+  }
+  .ps5-tab {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .ps5-round {
+    width: 44px;
+    height: 44px;
+  }
+  .ps5-cta {
+    min-height: 48px;
+  }
+  /* A switch is a 24px track by design; the hit box around it is what grows */
+  .ps5-switch {
+    position: relative;
+  }
+  .ps5-switch::before {
+    content: "";
+    position: absolute;
+    inset: -10px -8px;
   }
 }

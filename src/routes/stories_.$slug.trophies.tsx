@@ -196,7 +196,7 @@ function TrophyPage() {
 
           <div className="mt-6 flex items-center justify-between gap-4 text-sm text-white/70">
             <span>All trophies: {set.trophies.length}</span>
-            <button type="button" onClick={flipSort} className="flex items-center gap-2 rounded-full px-3 py-1.5 hover:bg-white/10" aria-label={`Sort by: ${sort === 'default' ? 'Game default' : 'Grade'}. Change sort`}>
+            <button type="button" onClick={flipSort} className="flex min-h-11 items-center gap-2 rounded-full px-3 hover:bg-white/10" aria-label={`Sort by: ${sort === 'default' ? 'Game default' : 'Grade'}. Change sort`}>
               <SortIcon />
               Sort by: {sort === 'default' ? 'Game Default' : 'Grade (Platinum – Bronze)'}
             </button>
@@ -215,7 +215,7 @@ function TrophyPage() {
 
         <footer className="fixed inset-x-0 bottom-0 z-20 border-t border-white/10 bg-[#05070c]/85 backdrop-blur">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 text-[13px] text-white/75 sm:px-8">
-            <Link to="/stories/$slug" params={{ slug: story.slug }} onClick={() => sfx('back')} className="inline-flex items-center gap-1.5 rounded-full border border-white/20 px-3.5 py-1.5 font-semibold text-white hover:bg-white/10">
+            <Link to="/stories/$slug" params={{ slug: story.slug }} onClick={() => sfx('back')} className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-white/20 px-3.5 font-semibold text-white hover:bg-white/10">
               ‹ Back
             </Link>
             {pad.connected ? (
@@ -235,7 +235,7 @@ function TrophyPage() {
                 </span>
               </>
             )}
-            <a href={storyUrl(story)} target="_blank" rel="noreferrer" onClick={() => sfx('enter')} className="ml-auto rounded-full bg-white px-4 py-1.5 font-bold text-black hover:scale-[1.03]">
+            <a href={storyUrl(story)} target="_blank" rel="noreferrer" onClick={() => sfx('enter')} className="ml-auto inline-flex min-h-11 items-center rounded-full bg-white px-4 font-bold text-black hover:scale-[1.03]">
               ▶ Play on {storyPlatformName(story)}
             </a>
           </div>

@@ -1131,7 +1131,7 @@ function TopBar({
         <ShoulderHint label={pad.connected ? labels.rb : 'E'} />
       </div>
       <div className="flex items-center justify-between gap-5 md:justify-end">
-        <Link to="/" onClick={() => sfx('back')} className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur hover:bg-white/20 md:hidden">
+        <Link to="/" onClick={() => sfx('back')} className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur hover:bg-white/20 md:hidden">
           <ChevronLeft /> Back
         </Link>
         <div className="flex items-center gap-4 md:gap-5">
@@ -1405,7 +1405,7 @@ function OstPanel({ slug, platform }: { slug: string; platform: string }) {
       <div className="flex items-center gap-3">
         {album.image && <img src={album.image} alt="" className="size-12 shrink-0 rounded-lg object-cover" />}
         <div className="min-w-0">
-          <a href={album.url} target="_blank" rel="noreferrer" className="block truncate text-sm font-bold text-white hover:underline">
+          <a href={album.url} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center truncate text-sm font-bold text-white hover:underline">
             {album.title}
           </a>
           <p className="text-xs text-white/55">
@@ -1425,7 +1425,7 @@ function OstPanel({ slug, platform }: { slug: string; platform: string }) {
                 onClick={() => playAt(i)}
                 aria-label={`${playing ? 'Pause' : 'Play'} ${t.title}`}
                 aria-current={current ? 'true' : undefined}
-                className={`flex min-w-0 flex-1 items-center gap-3 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-white/10 ${current ? 'bg-white/10' : ''}`}
+                className={`flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-white/10 ${current ? 'bg-white/10' : ''}`}
               >
                 <span className="grid w-5 shrink-0 place-items-center text-xs tabular-nums text-white/50">
                   {playing ? <EqBars /> : current ? '❚❚' : i + 1}
@@ -1438,7 +1438,7 @@ function OstPanel({ slug, platform }: { slug: string; platform: string }) {
                 href={t.url}
                 target="_blank"
                 rel="noreferrer"
-                className="grid size-8 shrink-0 place-items-center rounded-full text-white/45 hover:bg-white/10 hover:text-white"
+                className="grid size-11 shrink-0 place-items-center rounded-full text-white/45 hover:bg-white/10 hover:text-white"
                 aria-label={`Open ${t.title} on IsekaiZero`}
                 title="Open on IsekaiZero"
               >
@@ -1716,7 +1716,7 @@ function CardFrame({
           onClick={toggle}
           aria-pressed={open}
           aria-keyshortcuts="R"
-          className="absolute top-2 right-3 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/70 py-1 pr-3 pl-1.5 text-xs font-semibold text-white backdrop-blur hover:bg-black/85"
+          className="absolute top-2 right-3 flex min-h-11 items-center gap-1.5 rounded-full border border-white/20 bg-black/70 py-1 pr-3 pl-1.5 text-xs font-semibold text-white backdrop-blur hover:bg-black/85"
         >
           {keyHint ? (
             <kbd className={`ps5-key ps5-key-sm ${keyHint.pad ? '' : 'kx-kbm'}`}>
@@ -1780,7 +1780,7 @@ function ModalView({ modal, setModal, padLabel, padX }: { modal: Modal; setModal
       <div className="ps5-glass relative flex max-h-full w-full max-w-5xl flex-col overflow-hidden !bg-[#0b0d12]/90" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between gap-4 border-b border-white/10 px-5 py-3">
           <p className="truncate text-sm font-bold md:text-base">{title}</p>
-          <button ref={closeRef} type="button" onClick={close} className="ps5-round !size-9 text-lg" aria-label="Close">
+          <button ref={closeRef} type="button" onClick={close} className="ps5-round !size-11 text-lg" aria-label="Close">
             ✕
           </button>
         </div>
@@ -1825,11 +1825,11 @@ function ModalView({ modal, setModal, padLabel, padX }: { modal: Modal; setModal
               )
             })()}
             <div className="flex items-center gap-3 text-sm text-white/70">
-              <button type="button" onClick={() => go(-1)} className="ps5-round !size-10" aria-label="Previous image">←</button>
+              <button type="button" onClick={() => go(-1)} className="ps5-round !size-11" aria-label="Previous image">←</button>
               <span className="tabular-nums">
                 {modal.index + 1} / {modal.items.length}
               </span>
-              <button type="button" onClick={() => go(1)} className="ps5-round !size-10" aria-label="Next image">→</button>
+              <button type="button" onClick={() => go(1)} className="ps5-round !size-11" aria-label="Next image">→</button>
             </div>
           </div>
         ) : (
@@ -1965,10 +1965,10 @@ function BottomBar({
           →
         </button>
       </div>
-      <button type="button" onClick={onPrimary} className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 font-semibold text-white md:hidden">
+      <button type="button" onClick={onPrimary} className="min-h-11 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 font-semibold text-white md:hidden">
         Enter
       </button>
-      <button type="button" onClick={toggleTab} className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 font-semibold text-white md:hidden">
+      <button type="button" onClick={toggleTab} className="min-h-11 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 font-semibold text-white md:hidden">
         Switch Tab
       </button>
     </footer>
@@ -2001,7 +2001,7 @@ function SoundMenu({ nowPlaying }: { nowPlaying: Track | null }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="grid size-9 place-items-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+        className="grid size-11 place-items-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
         aria-label="Sound and graphics settings"
         aria-expanded={open}
         title={muted ? 'Sound: off' : 'Sound: on'}
@@ -2030,7 +2030,7 @@ function SoundMenu({ nowPlaying }: { nowPlaying: Track | null }) {
                 setMuted(!muted)
                 if (muted) window.setTimeout(() => sfx('nav'), 30)
               }}
-              className={`relative h-6 w-11 rounded-full transition-colors ${muted ? 'bg-white/20' : 'bg-white'}`}
+              className={`ps5-switch relative h-6 w-11 rounded-full transition-colors ${muted ? 'bg-white/20' : 'bg-white'}`}
             >
               <span className={`absolute top-0.5 size-5 rounded-full transition-all ${muted ? 'left-0.5 bg-white/70' : 'left-[22px] bg-black'}`} />
             </button>
@@ -2112,7 +2112,7 @@ function GraphicsSwitch() {
             sfx('nav')
             setPerfMode(lite ? 'full' : 'lite')
           }}
-          className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${lite ? 'bg-white' : 'bg-white/20'}`}
+          className={`ps5-switch relative h-6 w-11 shrink-0 rounded-full transition-colors ${lite ? 'bg-white' : 'bg-white/20'}`}
         >
           <span className={`absolute top-0.5 size-5 rounded-full transition-all ${lite ? 'left-[22px] bg-black' : 'left-0.5 bg-white/70'}`} />
         </button>
