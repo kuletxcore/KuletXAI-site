@@ -6,6 +6,7 @@ import { countOf, useIskStats } from '#/lib/isk-stats'
 import { useLite } from '#/lib/perf'
 import { play as sfx } from '#/lib/sfx'
 import { KeyLabel } from '#/components/pad-glyph'
+import { readByoc, BYOC_EVENT, type ByocPassport } from '#/lib/byoc'
 
 /**
  * THE HOME SCREEN — the landing page reimagined as the PS5 home screen.
@@ -25,6 +26,7 @@ export function ConsoleHome() {
   const [idx, setIdx] = useState(0)
   const [clock, setClock] = useState<string | null>(null)
   const [inView, setInView] = useState(false)
+  const [passport, setPassport] = useState<ByocPassport | null>(null)
   const sectionRef = useRef<HTMLElement>(null)
   const railRef = useRef<HTMLUListElement>(null)
   const calm = useRef(false)
@@ -42,6 +44,13 @@ export function ConsoleHome() {
 
   useEffect(() => {
     calm.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  }, [])
+
+  useEffect(() => {
+    const sync = () => setPassport(readByoc())
+    sync()
+    window.addEventListener(BYOC_EVENT, sync)
+    return () => window.removeEventListener(BYOC_EVENT, sync)
   }, [])
 
   // Keyboard drives the rail only while the screen is on camera
@@ -119,6 +128,7 @@ export function ConsoleHome() {
           </span>
           <span aria-hidden className="text-white/25">|</span>
           <span className="tabular-nums">{clock ?? '--:--'}</span>
+          {passport && <span className="border border-neon/50 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-neon/90" title={`BYOC passport on file: ${passport.name}`}>BYOC ✓</span>}
           {lite && <span className="border border-white/25 px-1.5 py-0.5 font-mono text-[9px] uppercase text-white/60">Lite</span>}
         </div>
       </div>
@@ -153,8 +163,8 @@ export function ConsoleHome() {
             onClick={() => sfx('enter')}
             className="flex items-center gap-3 rounded-sm bg-white px-5 py-3.5 font-mono text-[13px] font-bold uppercase tracking-wide text-black transition-colors hover:bg-neon sm:px-7 sm:py-4"
           >
-            <svg viewBox="0 0 24 24" className="size-4 fill-black" aria-hidden><path d="M6 4.5v15l13-7.5z" /></svg>
-            Play on {platform}
+            <svg viewBox="0 0 24 24" className="size-4 shrink-0 fill-black" aria-hidden><path d="M6 4.5v15l13-7.5z" /></svg>
+            <span className="max-w-[46vw] truncate sm:max-w-xs">{passport ? `Play as ${passport.name} on ${platform}` : `Play on ${platform}`}</span>
           </a>
           <Link
             to="/stories/$slug"

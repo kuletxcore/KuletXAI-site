@@ -1306,3 +1306,30 @@ html.kx-lite .kx-console-kenburns {
   animation: none;
   will-change: auto;
 }
+
+/* BYOC — the FORGED stamp slams onto the passport card */
+.kx-byoc-stamp {
+  animation: kxByocStamp 650ms var(--ps-ease, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+@keyframes kxByocStamp {
+  0% {
+    opacity: 0;
+    transform: scale(2.6) rotate(-22deg);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.92) rotate(-7deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-9deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kx-byoc-stamp {
+    animation: none;
+  }
+}
+html.kx-lite .kx-byoc-stamp {
+  animation: none;
+}

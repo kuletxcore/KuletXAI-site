@@ -3,6 +3,7 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { Footer, Header, SectionHead } from '#/components/site'
 import { ContinueBand } from '#/components/continue-band'
 import { ConsoleHome } from '#/components/console-home'
+import { ByocSection } from '#/components/byoc-section'
 import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
 import { LiveCount } from '#/components/live-count'
@@ -31,6 +32,7 @@ function Home() {
       <main>
         <ConsoleHome />
         <ContinueBand />
+        <ByocSection />
         <Stories />
         <Trimz />
         <Channels />
@@ -143,7 +145,7 @@ function Stories() {
     <section id="stories" className="scroll-mt-16 border-b border-line">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
         <SectionHead
-          kicker="THE LIBRARY // IsekaiZero + KageSekai"
+          kicker="01 // IsekaiZero + KageSekai"
           title="Pick a world"
           body="Interactive AI storylines. You make the choices, the storyteller keeps up. Open a world to see its cast and lore."
         />

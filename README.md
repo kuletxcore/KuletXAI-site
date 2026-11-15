@@ -8,6 +8,7 @@ Live at [kuletxai.whop.site](https://kuletxai.whop.site), mirrored at [kuletxai.
 
 ## What's in it
 
+- **BYOC Passport.** Stories on IsekaiZero are BYOC — *Bring Your Original Character* — and now the front door says so. A `00 // YOUR CHARACTER` section forges an on-device passport (callsign, archetype, the secret you carry in) with a live card preview, a FORGED stamp animation and a serial number. Nothing leaves the browser; the home-screen CTA upgrades itself to *“PLAY AS {YOUR NAME}”* once forged via a `kx-byoc` window event.
 - **The Home Screen.** The landing page is rebuilt as the KuletX PS5 home screen: full-bleed key art for the focused world, a rail of lifted world tiles (arrow keys navigate, ✕ or Enter opens the world, △ plays it on the platform), live clock, and controller hints — the same visual language as stories/*.
 - **Save State.** The hub remembers you: it writes a memory card on every visit (world, tab, section), and returning players are greeted on the home page with a CONTINUE band — one tap (or the R key) back where they left off. One slot, erase anytime.
 - **Story hub.** Every story gets its own screen with an overview, intro card, cast, gallery, soundtrack player and trophies. It works with a controller, a keyboard or touch.
