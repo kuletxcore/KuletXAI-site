@@ -4,6 +4,7 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { Footer, Header, SectionHead } from '#/components/site'
 import { ContinueBand } from '#/components/continue-band'
 import { WorldDealer } from '#/components/world-dealer'
+import { StoryDemo } from '#/components/story-demo'
 import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
 import { LiveCount, LiveDot } from '#/components/live-count'
@@ -22,6 +23,7 @@ function Home() {
         <ContinueBand />
         <WorldDealer />
         <Stories />
+        <StoryDemo />
         <Trimz />
         <Channels />
       </main>
