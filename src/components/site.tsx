@@ -12,14 +12,14 @@ export function Header() {
         <Link to="/" aria-label="KuletX AI home" className="shrink-0 transition-transform hover:scale-[1.03]">
           <Logo className="h-9 sm:h-10" />
         </Link>
-        <nav className="flex items-center gap-4 font-gamer text-xs uppercase sm:gap-6 sm:text-sm">
-          <Link to="/" hash="stories" className="text-mute hover:text-neon">
+        <nav className="flex items-center gap-1 font-gamer text-xs uppercase sm:gap-6 sm:text-sm">
+          <Link to="/" hash="stories" className="inline-flex min-h-11 items-center px-2 text-mute hover:text-neon">
             Stories
           </Link>
-          <Link to="/" hash="trimz" className="text-mute hover:text-neon">
+          <Link to="/" hash="trimz" className="inline-flex min-h-11 items-center px-2 text-mute hover:text-neon">
             Trimz
           </Link>
-          <Link to="/" hash="watch" className="hidden text-mute hover:text-neon sm:inline">
+          <Link to="/" hash="watch" className="inline-flex min-h-11 items-center px-2 text-mute hover:text-neon">
             Channels
           </Link>
           <a

@@ -27,9 +27,15 @@ export function ConsoleHome() {
   const [clock, setClock] = useState<string | null>(null)
   const [inView, setInView] = useState(false)
   const [passport, setPassport] = useState<ByocPassport | null>(null)
+  const [coarse, setCoarse] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
   const railRef = useRef<HTMLUListElement>(null)
   const calm = useRef(false)
+  // Set on pointerdown (before focus/click) when the tapped tile isn't the focused one —
+  // used to make touch taps select-then-open instead of jumping straight to the hub.
+  const tapUnfocused = useRef(-1)
+  const railTick = useRef(0)
+  const fromScroll = useRef(false)
 
   const story = STORIES[idx]
   const platform = storyPlatformName(story)
@@ -44,6 +50,11 @@ export function ConsoleHome() {
 
   useEffect(() => {
     calm.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const mq = window.matchMedia('(pointer: coarse)')
+    const sync = () => setCoarse(mq.matches)
+    sync()
+    mq.addEventListener?.('change', sync)
+    return () => mq.removeEventListener?.('change', sync)
   }, [])
 
   useEffect(() => {
@@ -64,10 +75,40 @@ export function ConsoleHome() {
 
   // Keep the focused tile centered in the rail
   useEffect(() => {
+    if (fromScroll.current) {
+      fromScroll.current = false
+      return
+    }
     const rail = railRef.current
     const tile = rail?.children[idx] as HTMLElement | undefined
     tile?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: calm.current ? 'auto' : 'smooth' })
   }, [idx])
+
+  // Touch steering: whichever tile is centered by the swipe becomes the focused world
+  const onRailScroll = () => {
+    if (railTick.current) return
+    railTick.current = requestAnimationFrame(() => {
+      railTick.current = 0
+      const rail = railRef.current
+      if (!rail) return
+      const mid = rail.getBoundingClientRect().left + rail.clientWidth / 2
+      let best = -1
+      let bestDist = Infinity
+      for (let i = 0; i < rail.children.length; i++) {
+        const r = (rail.children[i] as HTMLElement).getBoundingClientRect()
+        const d = Math.abs(r.left + r.width / 2 - mid)
+        if (d < bestDist) {
+          bestDist = d
+          best = i
+        }
+      }
+      if (best >= 0) {
+        fromScroll.current = true
+        setIdx((prev) => (prev === best ? prev : best))
+        if (fromScroll.current && best === idx) fromScroll.current = false
+      }
+    })
+  }
 
   useEffect(() => {
     if (!inView) return
@@ -186,6 +227,7 @@ export function ConsoleHome() {
         <ul
           ref={railRef}
           aria-label="Worlds"
+          onScroll={onRailScroll}
           className="flex snap-x snap-mandatory items-end gap-3 overflow-x-auto px-5 pt-9 pb-3 [scrollbar-width:none] sm:gap-4 sm:px-10 sm:pt-11 sm:pb-4 [&::-webkit-scrollbar]:hidden"
         >
           {STORIES.map((s, i) => (
@@ -194,7 +236,21 @@ export function ConsoleHome() {
                 to="/stories/$slug"
                 params={{ slug: s.slug }}
                 search={{}}
-                onClick={() => sfx('enter')}
+                onPointerDown={() => {
+                  tapUnfocused.current = coarse && idx !== i ? i : -1
+                }}
+                onClick={(e) => {
+                  if (coarse && tapUnfocused.current === i) {
+                    // first tap just selects the world; tapping the focused tile opens it
+                    e.preventDefault()
+                    setIdx(i)
+                    sfx('nav')
+                    tapUnfocused.current = -1
+                    return
+                  }
+                  tapUnfocused.current = -1
+                  sfx('enter')
+                }}
                 onMouseEnter={() => focus(i)}
                 onFocus={() => focus(i)}
                 aria-current={i === idx}
@@ -227,9 +283,18 @@ export function ConsoleHome() {
         </ul>
         {/* Controller hints — pure PlayStation home-screen grammar */}
         <div className="flex select-none items-center gap-4 border-t border-white/8 px-5 py-2.5 font-mono text-[9px] font-semibold uppercase tracking-wider text-white/55 sm:gap-7 sm:px-10 sm:text-[10px]">
-          <span className="flex items-center gap-1.5"><KeyLabel k="←" /><KeyLabel k="→" /> navigate</span>
-          <span className="flex items-center gap-1.5"><KeyLabel k="✕" /> resume</span>
-          <span className="flex items-center gap-1.5"><KeyLabel k="△" /> play on {platform}</span>
+          {coarse ? (
+            <>
+              <span className="flex items-center gap-1.5"><svg viewBox="0 0 24 24" width="1.3em" height="1.3em" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 12h16M7 8l-4 4 4 4M17 8l4 4-4 4" /></svg> swipe — navigate</span>
+              <span className="flex items-center gap-1.5"><svg viewBox="0 0 24 24" width="1.3em" height="1.3em" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="12" cy="12" r="7.5" /></svg> tap — open world</span>
+            </>
+          ) : (
+            <>
+              <span className="flex items-center gap-1.5"><KeyLabel k="←" /><KeyLabel k="→" /> navigate</span>
+              <span className="flex items-center gap-1.5"><KeyLabel k="✕" /> resume</span>
+              <span className="flex items-center gap-1.5"><KeyLabel k="△" /> play on {platform}</span>
+            </>
+          )}
           <span className="ml-auto hidden text-white/30 md:inline">KuletX System v7.2 — memory card OK</span>
         </div>
       </div>
