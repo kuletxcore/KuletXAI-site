@@ -1,511 +1,557 @@
-import { useEffect, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { Footer, Header, SectionHead } from '#/components/site'
-import { play as sfx } from '#/lib/sfx'
-import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
+import { STORIES, TRIMZ, LINKS, storyPlatform, storyPlatformName, storyUrl, trimzSeriesUrl } from '#/data/content'
+import { STORY_MUSIC } from '#/data/music'
+import { ISK } from '#/data/isk'
+import { COVER_VIDEOS } from '#/data/cover-videos'
 import { LiveCount, LiveDot } from '#/components/live-count'
 import { countOf, totalOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
-import { COVER_VIDEOS } from '#/data/cover-videos'
-import { useLite } from '#/lib/perf'
+import { PlatformChip, PlatformIcon } from '#/components/platform'
+import { Logo } from '#/components/site'
+import { play as sfx } from '#/lib/sfx'
+import { watchFrameRate, useLite } from '#/lib/perf'
 
 export const Route = createFileRoute('/')({ component: Home })
 
 function Home() {
-  return (
-    <div className="crt min-h-screen">
-      <Header />
-      <main>
-        <Hero />
-        <Stories />
-        <Trimz />
-        <Channels />
-      </main>
-      <Footer />
-    </div>
-  )
-}
-
-function Hero() {
   const live = useIskStats()
-  return (
-    <section id="top" className="relative overflow-hidden border-b border-line">
-      <PosterWall />
-      <div className="grid-bg absolute inset-0" aria-hidden />
-      <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 md:grid-cols-[1.3fr_1fr] md:items-center md:py-28">
-        <div>
-          <p className="font-gamer text-sm text-neon">&gt; boot storyteller.exe</p>
-          <h1 className="pixel mt-5 font-pixel text-5xl leading-[1.05] text-ink sm:text-7xl">
-            AI stories
-            <br />
-            you <span className="text-neon glow">play</span>,
-            <br />
-            watch &amp; <span className="text-neon glow">binge</span>
-            <span className="cursor text-neon" />
-          </h1>
-          <p className="mt-6 max-w-lg text-base leading-relaxed text-mute sm:text-lg">
-            KuletX builds interactive worlds on IsekaiZero and KageSekai, cuts them into series on Trimz, and
-            breaks it all down on YouTube.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <a href="#stories" className="pixel bg-neon px-5 py-3 font-gamer text-sm uppercase text-void hover:bg-ink">
-              ▶ Play a story
-            </a>
-            <a
-              href="#trimz"
-              className="pixel border border-line px-5 py-3 font-gamer text-sm uppercase text-ink hover:border-neon hover:text-neon"
-            >
-              Binge on Trimz
-            </a>
-          </div>
-        </div>
+  const lite = useLite()
+  const [selected, setSelected] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const story = STORIES[selected]
 
-        <div className="border border-line bg-panel/80 p-5 font-mono text-sm">
-          <div className="flex items-center justify-between border-b border-line pb-3 font-gamer text-xs text-mute">
-            <span>STATUS.LOG</span>
-            <span className="text-neon">● ONLINE</span>
-          </div>
-          <dl className="mt-4 space-y-3">
-            <Stat label="public storylines" value={STORIES.length} />
-            <Stat
-              label={
-                <>
-                  messages sent <LiveDot className="ml-1" />
-                </>
-              }
-              value={<LiveCount value={totalOf(live, 'messages')} />}
-            />
-            <Stat label="player likes" value={<LiveCount value={totalOf(live, 'likes')} />} />
-            <Stat label="chats started" value={<LiveCount value={totalOf(live, 'chats')} />} />
-            <Stat label="trimz series" value={TRIMZ.length} />
-            <Stat label="motto" value="outslopping the competition" small />
-          </dl>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// The worlds drift behind the hero, so the first screen shows the stories instead of an empty grid
-function PosterWall() {
-  const wall = useRef<HTMLDivElement>(null)
+  // auto-rotate like a console attract screen — pauses on hover/focus/interaction
   useEffect(() => {
-    const el = wall.current
-    if (!el || !('IntersectionObserver' in window)) return
-    const io = new IntersectionObserver(([e]) => el.toggleAttribute('data-paused', !e.isIntersecting))
-    io.observe(el)
-    return () => io.disconnect()
+    if (paused) return
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (calm) return
+    const id = window.setInterval(() => setSelected((i) => (i + 1) % STORIES.length), 5800)
+    return () => clearInterval(id)
+  }, [paused])
+
+  // watch FPS and drop to lite if needed (same as hub)
+  useEffect(() => watchFrameRate(), [])
+
+  // keyboard: arrows switch story
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      const t = e.target as HTMLElement | null
+      if (t && ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return
+      if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        sfx('nav')
+        setSelected((i) => (i + 1) % STORIES.length)
+        setPaused(true)
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        sfx('nav')
+        setSelected((i) => (i - 1 + STORIES.length) % STORIES.length)
+        setPaused(true)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
   }, [])
-  const art = STORIES.map((s) => s.tile ?? s.cover)
-  const rows = [art, [...art.slice(3), ...art.slice(0, 3)], [...art.slice(5), ...art.slice(0, 5)]]
+
   return (
-    <div ref={wall} className="kx-wall pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      <div className="absolute -inset-x-1/4 top-[36%] flex -translate-y-1/2 -rotate-6 flex-col gap-3 opacity-45 md:top-1/2">
-        {rows.map((row, r) => (
-          <div key={r} className={`kx-wall-row flex w-max gap-3 ${r % 2 ? 'is-rev' : ''}`}>
-            {[...row, ...row, ...row, ...row].map((src, i) => (
-              <img
-                key={i}
-                src={src}
-                alt=""
-                decoding="async"
-                fetchPriority="low"
-                className="size-32 shrink-0 rounded-sm object-cover sm:size-40"
-              />
-            ))}
-          </div>
+    <div className="kx-home ps5 crt" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+      {/* fixed console backdrop — same system as the hub */}
+      <div className="kx-home-backdrop ps5-backdrop" aria-hidden>
+        {STORIES.map((s, i) => (
+          <HomeBackdrop
+            key={s.slug}
+            src={s.cover}
+            video={ISK[s.slug]?.videoCover ?? COVER_VIDEOS[s.slug]}
+            active={i === selected}
+            lite={lite}
+          />
         ))}
+        <div className="ps5-vignette" />
       </div>
-      <div className="absolute inset-0 bg-void/65 md:bg-transparent md:bg-linear-to-r md:from-void md:from-25% md:via-void/80 md:to-void/20" />
-      <div className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-void to-transparent" />
+
+      <div className="kx-home-app ps5-app">
+        <HomeHeader live={live} />
+
+        {/* ── console hero: tile reel + featured story ── */}
+        <section className="kx-home-hero">
+          {/* tile rail — the primary way in */}
+          <div className="kx-home-rail">
+            <div className="kx-home-rail-top">
+              <p className="font-gamer text-[11px] tracking-[0.14em] text-white/60">
+                {String(selected + 1).padStart(2, '0')} / {String(STORIES.length).padStart(2, '0')} · SELECT A WORLD
+              </p>
+              <p className="hidden items-center gap-2 font-gamer text-[11px] text-white/40 md:flex">
+                <span className="ps5-key !h-5 !min-w-6 !rounded-md text-[10px]">←</span>
+                <span className="ps5-key !h-5 !min-w-6 !rounded-md text-[10px]">→</span>
+                <span className="ml-1">navigate</span>
+                <span className="mx-2 h-3 w-px bg-white/15" />
+                <span className="ps5-key !h-5 min-w-6 rounded-md px-1.5 text-[10px]">↵</span>
+                <span className="ml-1">play</span>
+              </p>
+            </div>
+
+            <div className="kx-home-tiles" role="listbox" aria-label="Story worlds">
+              {STORIES.map((s, i) => {
+                const active = i === selected
+                return (
+                  <button
+                    key={s.slug}
+                    role="option"
+                    aria-selected={active}
+                    onClick={() => {
+                      if (!active) sfx('nav')
+                      setSelected(i)
+                      setPaused(true)
+                    }}
+                    onMouseEnter={() => {
+                      if (!active) setSelected(i)
+                    }}
+                    className={`kx-home-tile ${active ? 'is-active' : ''}`}
+                    title={s.title}
+                  >
+                    <img src={s.tile ?? s.cover} alt="" loading={i < 3 ? 'eager' : 'lazy'} />
+                    <span className={`kx-home-tile-badge ${s.rating === '18+' ? 'is-adult' : s.rating === '17+' ? 'is-mature' : 'is-sfw'}`}>{s.rating}</span>
+                    {s.trimz && <span className="kx-home-tile-trimz">▶ TRIMZ</span>}
+                  </button>
+                )
+              })}
+              <Link
+                to="/"
+                hash="how"
+                onClick={() => sfx('nav')}
+                className="kx-home-tile kx-home-tile--more"
+                title="How interactive stories work"
+              >
+                <span className="grid h-full place-items-center p-3 text-center">
+                  <span className="font-pixel text-3xl leading-none text-white/90">+</span>
+                  <span className="mt-1 font-gamer text-[10px] leading-tight text-white/70">
+                    HOW IT
+                    <br />
+                    WORKS
+                  </span>
+                </span>
+              </Link>
+            </div>
+
+            {/* dots for phone */}
+            <div className="kx-home-dots" aria-hidden>
+              {STORIES.map((_, i) => (
+                <span key={i} className={i === selected ? 'is-active' : ''} />
+              ))}
+            </div>
+          </div>
+
+          {/* featured story — the conversion engine */}
+          <div className="kx-home-feature">
+            <div className="kx-home-feature-main">
+              <div className="flex flex-wrap items-center gap-2">
+                <PlatformChip platform={storyPlatform(story)} />
+                <span className={`kx-home-rating ${story.rating === '18+' ? 'is-adult' : story.rating === '17+' ? 'is-mature' : 'is-sfw'}`}>{story.rating}</span>
+                <span className="flex items-center gap-1.5 text-xs text-white/65">
+                  <LiveDot />
+                  <LiveCount value={countOf(live, story, 'messages')} /> messages
+                </span>
+                <span className="hidden items-center gap-1.5 text-xs text-white/40 sm:flex">
+                  <span className="h-2 w-px bg-white/20" />
+                  ♥ <LiveCount value={countOf(live, story, 'likes')} /> · ✉ <LiveCount value={countOf(live, story, 'chats')} />
+                </span>
+              </div>
+
+              {story.logo ? (
+                <h1 className="kx-home-title-logo">
+                  <img src={story.logo.src} alt={story.title} width={story.logo.w} height={story.logo.h} className="ps5-logo" />
+                </h1>
+              ) : (
+                <h1 className="kx-home-title">{story.title}</h1>
+              )}
+
+              <p className="kx-home-logline">{story.logline}</p>
+
+              <p className="hidden max-w-[560px] text-sm leading-relaxed text-white/70 md:block">{story.pitch[0]}</p>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {story.tags.map((t) => (
+                  <span key={t} className="rounded-full border border-white/14 bg-white/8 px-3 py-1 text-xs font-medium text-white/75">
+                    #{t}
+                  </span>
+                ))}
+              </div>
+
+              {/* world at a glance */}
+              <div className="kx-home-world">
+                {story.world.slice(0, 3).map((w) => (
+                  <div key={w.label} className="kx-home-world-item">
+                    <dt>{w.label}</dt>
+                    <dd>{w.text}</dd>
+                  </div>
+                ))}
+              </div>
+
+              {/* dual CTAs: direct play is primary for conversion, explore is secondary */}
+              <div className="kx-home-ctas">
+                <a
+                  href={storyUrl(story)}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => sfx('enter')}
+                  className="kx-home-cta kx-home-cta--primary"
+                >
+                  <span className="grid size-7 place-items-center rounded-full bg-black text-white">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                      <path d="M6 4l15 8-15 8z" />
+                    </svg>
+                  </span>
+                  Play on {storyPlatformName(story)}
+                  <span className="hidden font-mono text-xs font-normal opacity-70 sm:inline">→ {story.chats > 0 ? `${countOf(live, story, 'chats')} chats` : 'start now'}</span>
+                </a>
+                <Link
+                  to="/stories/$slug"
+                  params={{ slug: story.slug }}
+                  onClick={() => sfx('enter')}
+                  className="kx-home-cta kx-home-cta--ghost"
+                >
+                  Explore world
+                  <span aria-hidden>↗</span>
+                </Link>
+              </div>
+
+              <p className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/45">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="size-1.5 rounded-full bg-emerald-400" />
+                  Live on {storyPlatformName(story)}
+                </span>
+                <span>·</span>
+                <span>{story.kicker}</span>
+                {STORY_MUSIC[story.slug] && (
+                  <>
+                    <span>·</span>
+                    <span className="inline-flex items-center gap-1">
+                      ♪ <span className="text-white/65">{STORY_MUSIC[story.slug].title}</span>
+                    </span>
+                  </>
+                )}
+              </p>
+            </div>
+
+            {/* preview card — visible on desktop, the hook that sells the click */}
+            <div className="kx-home-preview">
+              <Link
+                to="/stories/$slug"
+                params={{ slug: story.slug }}
+                onClick={() => sfx('enter')}
+                className="kx-home-preview-card group"
+              >
+                <img src={story.cover} alt="" className="kx-home-preview-img" />
+                {COVER_VIDEOS[story.slug] && !lite && <PreviewVideo src={COVER_VIDEOS[story.slug]} active />}
+                <span className="kx-home-preview-scrim" />
+                <span className="kx-home-preview-meta">
+                  <span className="kx-home-preview-kicker">{story.kicker}</span>
+                  <span className="kx-home-preview-title">{story.title}</span>
+                  <span className="kx-home-preview-cta">
+                    Enter
+                    <span className="grid size-6 place-items-center rounded-full bg-white text-black transition-transform group-hover:scale-110">↗</span>
+                  </span>
+                </span>
+              </Link>
+              <p className="mt-3 text-center font-gamer text-[11px] tracking-wide text-white/40">
+                {selected + 1} / {STORIES.length} · auto-plays in {paused ? 'paused' : '5s'} · move to explore
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* live social proof bar */}
+        <div className="kx-home-proof">
+          <span className="inline-flex items-center gap-2 font-gamer text-xs text-white/55">
+            <span className="size-2 animate-pulse rounded-full bg-emerald-400" />
+            LIVE NOW
+          </span>
+          <span className="h-4 w-px bg-white/10" />
+          <span className="font-mono text-sm text-white">
+            <LiveCount value={totalOf(live, 'messages')} /> messages
+          </span>
+          <span className="font-gamer text-xs text-white/45">sent</span>
+          <span className="h-4 w-px bg-white/10" />
+          <span className="hidden items-center gap-2 sm:inline-flex">
+            <span className="font-mono text-sm text-white">
+              <LiveCount value={totalOf(live, 'likes')} /> likes
+            </span>
+            <span className="font-gamer text-xs text-white/45">·</span>
+            <span className="font-mono text-sm text-white">
+              <LiveCount value={totalOf(live, 'chats')} /> chats
+            </span>
+          </span>
+          <span className="ml-auto hidden font-gamer text-xs text-white/30 sm:inline">updates every 2 min · from IsekaiZero & KageSekai</span>
+        </div>
+
+        {/* how it works — the conversion explainer that the old homepage lacked */}
+        <section id="how" className="kx-home-how">
+          <div className="kx-home-how-head">
+            <p className="font-gamer text-xs tracking-[0.14em] text-white/50">01 — HOW IT WORKS</p>
+            <h2 className="mt-2 font-mono text-2xl font-bold tracking-tight text-white sm:text-3xl">Not a novel. A world that talks back.</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">Every storyline is a character-driven simulation. You chat, you choose, the world remembers. No two playthroughs are the same.</p>
+          </div>
+          <ol className="kx-home-how-grid">
+            <li className="kx-home-how-card">
+              <span className="kx-home-how-num">01</span>
+              <h3>Pick a world</h3>
+              <p>Seven storylines — spy thriller, kaiju defense, prestige high school, comedy isekai, and more. Each has its own cast, lore, and tone.</p>
+              <Link to="/stories/$slug" params={{ slug: story.slug }} onClick={() => sfx('enter')} className="kx-home-how-link">
+                Try {story.title.split(':')[0]} →
+              </Link>
+            </li>
+            <li className="kx-home-how-card">
+              <span className="kx-home-how-num">02</span>
+              <h3>Chat &amp; choose</h3>
+              <p>Talk in natural language. The AI storyteller keeps character, remembers your choices, and advances the plot with you in it.</p>
+              <span className="kx-home-how-link is-muted">No app · runs in browser</span>
+            </li>
+            <li className="kx-home-how-card">
+              <span className="kx-home-how-num">03</span>
+              <h3>Own the story</h3>
+              <p>Your messages shape relationships, unlock scenes, and earn trophies. Come back tomorrow and the world picked up where you left it.</p>
+              <Link to="/stories/$slug/trophies" params={{ slug: story.slug }} onClick={() => sfx('enter')} className="kx-home-how-link">
+                {(() => {
+                  const trophies = STORIES.length * 4
+                  return `${trophies}+ trophies to earn →`
+                })()}
+              </Link>
+            </li>
+          </ol>
+        </section>
+
+        {/* Trimz — re-skinned to console glass */}
+        <section id="trimz" className="kx-home-trimz">
+          <div className="kx-home-section-head">
+            <div>
+              <p className="font-gamer text-xs tracking-[0.14em] text-white/50">02 — TRIMZ</p>
+              <h2 className="mt-2 font-mono text-2xl font-bold text-white sm:text-3xl">Binge the anime</h2>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/60">Short-form series cut from the stories. Watch where the storylines go when the chat ends.</p>
+            </div>
+            <a href={LINKS.trimz} target="_blank" rel="noreferrer" onClick={() => sfx('enter')} className="kx-home-pill">
+              Follow on Trimz →
+            </a>
+          </div>
+          <ul className="kx-home-trimz-grid">
+            {TRIMZ.map((t) => (
+              <li key={t.slug}>
+                <a href={trimzSeriesUrl(t.slug)} target="_blank" rel="noreferrer" onClick={() => sfx('enter')} className="kx-home-trimz-card group">
+                  <div className="kx-home-trimz-cover">
+                    <img src={t.poster} alt="" loading="lazy" />
+                    {t.video && !lite && <video src={t.video} muted loop playsInline preload="metadata" className="kx-home-trimz-video" />}
+                    <span className="kx-home-trimz-play">
+                      <span>▶</span>
+                    </span>
+                  </div>
+                  <div className="kx-home-trimz-body">
+                    <p className="font-gamer text-[11px] tracking-wide text-white/50">SERIES · TRIMZ</p>
+                    <h3 className="mt-1 font-mono text-base font-bold leading-snug text-white group-hover:text-white">{t.title}</h3>
+                    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-white/60">{t.summary}</p>
+                    <p className="mt-4 flex items-center gap-3 border-t border-white/10 pt-3 font-gamer text-xs text-white/45">
+                      <span>
+                        <LiveCount value={trimzCountOf(live, t, 'episodes')} /> EP
+                      </span>
+                      <span className="h-3 w-px bg-white/10" />
+                      <span>
+                        <LiveCount value={trimzCountOf(live, t, 'views')} /> views
+                      </span>
+                      <span className="ml-auto text-white/70 group-hover:text-white">Watch →</span>
+                    </p>
+                  </div>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* channels — four ways in, now glass */}
+        <section id="watch" className="kx-home-channels">
+          <div className="kx-home-section-head">
+            <div>
+              <p className="font-gamer text-xs tracking-[0.14em] text-white/50">03 — CHANNELS</p>
+              <h2 className="mt-2 font-mono text-2xl font-bold text-white sm:text-3xl">Four ways in</h2>
+              <p className="mt-2 text-sm text-white/60">Same universe, different screens. Start wherever you are.</p>
+            </div>
+          </div>
+          <ul className="kx-home-channels-grid">
+            {CHANNELS.map((c, i) => (
+              <li key={c.key}>
+                <a href={c.href} target="_blank" rel="noreferrer" onClick={() => sfx('enter')} className="kx-home-channel">
+                  <span className="font-gamer text-xs text-white/35">0{i + 1}</span>
+                  <span className="mt-2 flex items-baseline gap-2">
+                    <span className="font-mono text-3xl font-black tracking-tight text-white">{c.verb}</span>
+                    <PlatformIcon platform={c.platform as never} />
+                  </span>
+                  <span className="font-mono text-sm font-bold text-white/90">on {c.name}</span>
+                  <p className="mt-3 text-sm leading-relaxed text-white/55">{c.body}</p>
+                  <span className="mt-5 inline-flex items-center gap-1 font-gamer text-xs text-white/70 group-hover:text-white">
+                    {c.handle} <span aria-hidden>→</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <HomeFooter />
+      </div>
+
+      {/* mobile sticky conversion bar — the one-tap play that the old homepage never had */}
+      <div className="kx-home-sticky">
+        <div className="kx-home-sticky-inner">
+          <img src={story.tile ?? story.cover} alt="" className="size-10 rounded-lg object-cover" />
+          <span className="min-w-0">
+            <span className="block truncate font-mono text-sm font-bold leading-none text-white">{story.title.split(':')[0]}</span>
+            <span className="block text-xs text-white/60">on {storyPlatformName(story)} · {story.rating}</span>
+          </span>
+          <a href={storyUrl(story)} target="_blank" rel="noreferrer" onClick={() => sfx('enter')} className="kx-home-cta kx-home-cta--primary !px-4 !py-2 !text-sm">
+            Play
+          </a>
+          <Link to="/stories/$slug" params={{ slug: story.slug }} onClick={() => sfx('enter')} className="kx-home-cta kx-home-cta--ghost !px-3 !py-2 !text-xs">
+            Explore
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }
 
-function Stat({ label, value, small }: { label: ReactNode; value: ReactNode; small?: boolean }) {
+function HomeHeader({ live }: { live: ReturnType<typeof useIskStats> }) {
   return (
-    <div className="flex items-baseline justify-between gap-4">
-      <dt className="flex items-center text-mute">{label}</dt>
-      <dd className={small ? 'text-right text-warn' : 'pixel font-pixel text-2xl text-neon'}>{value}</dd>
+    <header className="kx-home-header">
+      <Link to="/" aria-label="KuletX AI home" className="shrink-0">
+        <Logo className="h-8 sm:h-9" />
+      </Link>
+      <nav className="hidden items-center gap-1 font-gamer text-xs sm:flex">
+        <a href="#how" className="rounded-full px-3 py-1.5 text-white/70 hover:bg-white/10 hover:text-white">
+          How it works
+        </a>
+        <a href="#trimz" className="rounded-full px-3 py-1.5 text-white/70 hover:bg-white/10 hover:text-white">
+          Trimz
+        </a>
+        <a href="#watch" className="rounded-full px-3 py-1.5 text-white/70 hover:bg-white/10 hover:text-white">
+          Channels
+        </a>
+      </nav>
+      <div className="flex items-center gap-2">
+        <span className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 font-gamer text-xs text-white/60 sm:inline-flex">
+          <LiveDot />
+          <LiveCount value={totalOf(live, 'messages')} /> online
+        </span>
+        <a href={LINKS.youtube} target="_blank" rel="noreferrer" className="hidden rounded-full bg-white px-4 py-2 font-gamer text-xs font-bold text-black hover:bg-white/90 sm:inline-flex">
+          Subscribe
+        </a>
+        <Link to="/" hash="watch" className="rounded-full border border-white/15 bg-white/8 px-3 py-2 font-gamer text-xs text-white backdrop-blur sm:hidden">
+          Channels
+        </Link>
+      </div>
+    </header>
+  )
+}
+
+function HomeBackdrop({ src, video, active, lite }: { src: string; video?: string; active: boolean; lite: boolean }) {
+  const [canPlay, setCanPlay] = useState(false)
+  const coarse = useIsCoarse()
+  // lite or touch gets a tiny pre-blurred image instead of a live filter — same trick as the hub
+  const soft = softOf(src)
+  const glowSrc = lite || coarse ? (soft ?? src) : undefined
+  const showGlowBlur = !lite && !coarse
+
+  useEffect(() => {
+    if (!active || lite) return
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (calm) return
+    const id = window.setTimeout(() => setCanPlay(true), 700)
+    return () => clearTimeout(id)
+  }, [active, lite])
+
+  if (!active && !glowSrc) return <div className="ps5-layer" aria-hidden />
+  return (
+    <div className={`ps5-layer ${active ? 'is-active' : ''}`} aria-hidden>
+      {showGlowBlur ? <img src={src} alt="" className="ps5-layer-blur" loading={active ? 'eager' : 'lazy'} /> : glowSrc ? <img src={glowSrc} alt="" className="ps5-layer-soft" loading={active ? 'eager' : 'lazy'} /> : null}
+      <img src={src} alt="" className="ps5-layer-art" loading={active ? 'eager' : 'lazy'} />
+      {video && active && canPlay && !lite && (
+        <video
+          key={video}
+          src={video}
+          muted
+          loop
+          playsInline
+          autoPlay
+          preload="auto"
+          className="ps5-layer-art ps5-fade opacity-100"
+          onLoadedData={(e) => e.currentTarget.play().catch(() => {})}
+        />
+      )}
     </div>
   )
 }
 
-// On phones the worlds sit in a swipeable shelf, not a seven-screen stack; sm and up keep the grid
-const SLOT = 'w-[min(80vw,22rem)] shrink-0 snap-start sm:w-auto sm:shrink'
-const pad2 = (n: number) => String(n).padStart(2, '0')
-
-// A poster's own cover video: fetched the first time it plays, then only paused, and shown once frames arrive
-function CoverVideo({ src, play }: { src: string; play: boolean }) {
+function PreviewVideo({ src, active }: { src: string; active: boolean }) {
   const ref = useRef<HTMLVideoElement>(null)
-  const [armed, setArmed] = useState(false)
-  const [ready, setReady] = useState(false)
-  useEffect(() => {
-    if (play) setArmed(true)
-  }, [play])
   useEffect(() => {
     const v = ref.current
     if (!v) return
-    v.muted = true
-    if (play) void v.play().catch(() => {})
+    if (active) v.play().catch(() => {})
     else v.pause()
-  }, [play, armed])
-  if (!armed) return null
-  return (
-    <video
-      ref={ref}
-      loop
-      muted
-      playsInline
-      preload="auto"
-      aria-hidden
-      onPlaying={() => setReady(true)}
-      className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${play && ready ? 'opacity-100' : 'opacity-0'}`}
-    >
-      <source src={src.replace(/\.mp4(?=\?|$)/, '.webm')} type="video/webm" />
-      <source src={src} type="video/mp4" />
-    </video>
-  )
+  }, [active])
+  return <video ref={ref} src={src} muted loop playsInline preload="metadata" className="kx-home-preview-video" aria-hidden />
 }
 
-function Stories() {
-  const live = useIskStats()
-  const shelf = useRef<HTMLUListElement>(null)
-  const [at, setAt] = useState(0)
-  const total = STORIES.length + 1
-  const lite = useLite()
-  const [hot, setHot] = useState<number | null>(null)
-  const [shelfLive, setShelfLive] = useState(false)
-  const [motionOk, setMotionOk] = useState(false)
-  const canPlay = motionOk && !lite
-
-  // Posters move only for people who want motion and are not saving data
-  useEffect(() => {
-    const calm = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const saving = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true
-    const sync = () => setMotionOk(!calm.matches && !saving)
-    sync()
-    calm.addEventListener('change', sync)
-    return () => calm.removeEventListener('change', sync)
-  }, [])
-
-  // In the phone shelf the card in view plays by itself, but only while the shelf is on screen
-  useEffect(() => {
-    const el = shelf.current
-    if (!el || !('IntersectionObserver' in window)) return
-    const io = new IntersectionObserver(([e]) => setShelfLive(e.isIntersecting && el.scrollWidth > el.clientWidth), { threshold: 0.6 })
-    io.observe(el)
-    return () => io.disconnect()
-  }, [])
-  const playing = (i: number) => canPlay && (hot === i || (shelfLive && at === i))
-  const cool = (i: number) => setHot((h) => (h === i ? null : h))
-
-  useEffect(() => {
-    const el = shelf.current
-    if (!el) return
-    let raf = 0
-    const read = () => {
-      raf = 0
-      const first = el.children[0] as HTMLElement
-      const second = el.children[1] as HTMLElement
-      const step = second.offsetLeft - first.offsetLeft
-      const end = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2
-      setAt(end ? el.children.length - 1 : Math.round(el.scrollLeft / step))
-    }
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(read)
-    }
-    el.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      el.removeEventListener('scroll', onScroll)
-      cancelAnimationFrame(raf)
-    }
-  }, [])
-
-  const go = (i: number) => {
-    const el = shelf.current
-    const card = el?.children[i] as HTMLElement | undefined
-    if (!el || !card) return
-    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    el.scrollTo({ left: card.offsetLeft - 16, behavior: calm ? 'auto' : 'smooth' })
-  }
-
-  return (
-    <section id="stories" className="scroll-mt-16 border-b border-line">
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <SectionHead
-          kicker="01 // IsekaiZero + KageSekai"
-          title="Pick a world"
-          body="Interactive AI storylines. You make the choices, the storyteller keeps up. Open a world to see its cast and lore."
-        />
-        <ul
-          ref={shelf}
-          className="relative mt-12 -mx-4 flex snap-x snap-mandatory scroll-pl-4 gap-4 overflow-x-auto overscroll-x-contain px-4 py-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:scroll-pl-0 sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:px-0 sm:py-0 lg:grid-cols-3 [&::-webkit-scrollbar]:hidden"
-        >
-          {STORIES.map((s, i) => (
-            <li key={s.id} className={SLOT}>
-              <Link
-                to="/stories/$slug"
-                params={{ slug: s.slug }}
-                onClick={() => sfx('enter')}
-                onMouseEnter={() => setHot(i)}
-                onMouseLeave={() => cool(i)}
-                onFocus={() => setHot(i)}
-                onBlur={() => cool(i)}
-                className="group flex h-full flex-col border border-line bg-panel hover:border-neon"
-              >
-                <div className="cover relative aspect-[3/4] overflow-hidden border-b border-line">
-                  <img
-                    src={s.cover}
-                    alt={`Cover art for ${s.title}`}
-                    loading={i < 3 ? 'eager' : 'lazy'}
-                    className="h-full w-full object-cover"
-                  />
-                  {COVER_VIDEOS[s.slug] && <CoverVideo src={COVER_VIDEOS[s.slug]} play={playing(i)} />}
-                  <span
-                    className={`absolute top-3 left-3 px-2 py-1 font-gamer text-xs ${
-                      s.rating === 'SFW' ? 'bg-neon text-void' : s.rating === '18+' ? 'bg-danger text-white' : 'bg-warn text-void'
-                    }`}
-                  >
-                    {s.rating}
-                  </span>
-                  {s.trimz && (
-                    <span className="absolute bottom-3 left-3 bg-void/85 px-2 py-1 font-gamer text-xs text-ink">
-                      ▶ ON TRIMZ
-                    </span>
-                  )}
-                </div>
-                <div className="flex flex-1 flex-col p-5">
-                  <h3 className="font-mono text-lg font-bold leading-snug text-ink group-hover:text-neon">{s.title}</h3>
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-mute">{s.logline}</p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {s.tags.map((t) => (
-                      <span key={t} className="border border-line px-2 py-0.5 text-xs text-mute">
-                        #{t}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="mt-5 flex items-center justify-between border-t border-line pt-4 font-gamer text-xs">
-                    <span className="text-mute" title={`Likes · chats · messages on ${storyPlatformName(s)}`}>
-                      ♥ <LiveCount value={countOf(live, s, 'likes')} /> · ✉ <LiveCount value={countOf(live, s, 'chats')} /> ·{' '}
-                      <LiveCount value={countOf(live, s, 'messages')} compact /> MSG
-                    </span>
-                    <span className="text-neon">ENTER →</span>
-                  </div>
-                </div>
-              </Link>
-            </li>
-          ))}
-          <li className={SLOT}>
-            <div className="group relative flex h-full flex-col border border-dashed border-line bg-panel hover:border-solid hover:border-neon">
-              {/* Cover slot: the five worlds tiled, dimmed, with the loading line on top */}
-              <div className="cover relative aspect-[3/4] overflow-hidden border-b border-line">
-                <div className="grid h-full grid-cols-2 grid-rows-3 gap-px bg-line" aria-hidden>
-                  {STORIES.map((s, i) => (
-                    <img
-                      key={s.slug}
-                      src={s.cover}
-                      alt=""
-                      loading="lazy"
-                      className={`h-full w-full object-cover opacity-35 grayscale transition duration-500 group-hover:opacity-60 group-hover:grayscale-0 ${i === 0 ? 'row-span-2' : ''}`}
-                    />
-                  ))}
-                </div>
-                <div className="absolute inset-0 grid place-items-center bg-void/55 transition-colors group-hover:bg-void/35">
-                  <span className="text-center">
-                    <span className="pixel block font-pixel text-5xl text-neon glow">+</span>
-                    <span className="mt-2 block font-gamer text-xs text-ink">
-                      NEXT_WORLD.LOADING<span className="cursor text-neon" />
-                    </span>
-                  </span>
-                </div>
-                <span className="absolute top-3 left-3 bg-ink px-2 py-1 font-gamer text-xs text-void">CREATOR</span>
-              </div>
-              <div className="flex flex-1 flex-col p-5">
-                <h3 className="font-mono text-lg font-bold leading-snug text-ink group-hover:text-neon">
-                  {/* The stretched ::after makes the whole card open the IsekaiZero profile */}
-                  <a
-                    href={LINKS.isekaiProfile}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => sfx('enter')}
-                    className="after:absolute after:inset-0"
-                  >
-                    More worlds in the works
-                  </a>
-                </h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-mute">
-                  KuletX storylines live on IsekaiZero, and the 18+ ones on KageSekai. Follow either creator page to catch new worlds the day they go live.
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {['AllWorlds', 'NewDrops', 'Follow'].map((t) => (
-                    <span key={t} className="border border-line px-2 py-0.5 text-xs text-mute">
-                      #{t}
-                    </span>
-                  ))}
-                </div>
-                <div className="mt-5 flex items-center justify-between border-t border-line pt-4 font-gamer text-xs">
-                  <span className="text-mute">{STORIES.length} LIVE</span>
-                  <span className="flex gap-3 whitespace-nowrap">
-                    <span className="text-neon">ISEKAIZERO →</span>
-                    <a
-                      href={LINKS.kageProfile}
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={() => sfx('enter')}
-                      className="relative z-10 text-danger hover:text-ink"
-                    >
-                      KAGESEKAI →
-                    </a>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </li>
-        </ul>
-        <div className="mt-4 flex items-center justify-between font-gamer text-xs text-mute sm:hidden">
-          <span aria-hidden>
-            <span className="text-neon">{pad2(at + 1)}</span> / {pad2(total)}
-          </span>
-          <div className="flex">
-            {Array.from({ length: total }, (_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => go(i)}
-                aria-label={`World ${i + 1} of ${total}`}
-                aria-current={i === at}
-                className="grid h-8 w-6 place-items-center"
-              >
-                <span className={`h-1 ${i === at ? 'w-5 bg-neon' : 'w-2 bg-mute/50'}`} />
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  )
+function softOf(src: string) {
+  return src.startsWith('/') ? `/soft/${src.slice(1).replace(/\//g, '-')}` : undefined
 }
 
-function Trimz() {
-  const live = useIskStats()
-  return (
-    <section id="trimz" className="scroll-mt-16 border-b border-line bg-panel/40">
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-          <SectionHead
-            kicker="02 // Trimz"
-            title="Now streaming"
-            body="AI anime series cut from the stories. Short episodes, made to binge."
-          />
-          <a
-            href={LINKS.trimz}
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0 self-start border border-neon px-4 py-2 font-gamer text-xs uppercase text-neon hover:bg-neon hover:text-void sm:self-auto"
-          >
-            Follow on Trimz →
-          </a>
-        </div>
-        <ul className="mt-12 grid gap-6 sm:grid-cols-2">
-          {TRIMZ.map((t) => (
-            <li key={t.slug}>
-              <a
-                href={trimzSeriesUrl(t.slug)}
-                target="_blank"
-                rel="noreferrer"
-                className="group grid h-full grid-cols-[2fr_3fr] border border-line bg-void hover:border-neon"
-              >
-                <div className="cover relative overflow-hidden border-r border-line">
-                  <img
-                    src={t.poster}
-                    alt={`Poster for ${t.title}`}
-                    loading="lazy"
-                    className="aspect-[2/3] h-full w-full object-cover"
-                  />
-                  <span
-                    aria-hidden
-                    className="absolute inset-0 grid place-items-center bg-void/30 opacity-0 transition-opacity group-hover:opacity-100"
-                  >
-                    <span className="grid size-14 place-items-center bg-neon font-gamer text-xl text-void">▶</span>
-                  </span>
-                </div>
-                <div className="flex flex-col p-5">
-                  <span className="font-gamer text-xs text-neon">SERIES</span>
-                  <h3 className="mt-2 font-mono text-lg font-bold leading-snug text-ink group-hover:text-neon">
-                    {t.title}
-                  </h3>
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-mute">{t.summary}</p>
-                  <div className="mt-5 flex items-center justify-between border-t border-line pt-4 font-gamer text-xs">
-                    <span className="text-mute">
-                      <LiveCount value={trimzCountOf(live, t, 'episodes')} /> EP · <LiveCount value={trimzCountOf(live, t, 'views')} /> VIEWS
-                    </span>
-                    <span className="text-neon">WATCH →</span>
-                  </div>
-                </div>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
+function useIsCoarse() {
+  return useSyncExternalStore(
+    (cb) => {
+      const mq = window.matchMedia('(pointer: coarse)')
+      mq.addEventListener('change', cb)
+      return () => mq.removeEventListener('change', cb)
+    },
+    () => window.matchMedia('(pointer: coarse)').matches,
+    () => false,
   )
 }
 
 const CHANNELS = [
-  {
-    key: 'isekai',
-    name: 'IsekaiZero',
-    verb: 'Play',
-    body: 'Step into the stories yourself. Every storyline is a world you can talk to.',
-    href: LINKS.isekaiProfile,
-    handle: 'isekaizero.ai/creator/kuletxcore',
-  },
-  {
-    key: 'kage',
-    name: 'KageSekai',
-    verb: 'Dare',
-    body: 'The 18+ worlds live here, on the adult sister site of IsekaiZero. Same account, darker stories.',
-    href: LINKS.kageProfile,
-    handle: 'kagesekai.ai/creator/kuletxcore',
-  },
-  {
-    key: 'trimz',
-    name: 'Trimz',
-    verb: 'Binge',
-    body: 'Watch the series created by KuletXCore, episode by episode.',
-    href: LINKS.trimz,
-    handle: 'trimz.tv/u/kuletxcore',
-  },
-  {
-    key: 'youtube',
-    name: 'YouTube',
-    verb: 'Watch',
-    body: 'Trailers, behind-the-scenes and the AI storytelling process. Outslopping the competition.',
-    href: LINKS.youtube,
-    handle: '@kuletxai',
-  },
+  { key: 'isekai', platform: 'isk', name: 'IsekaiZero', verb: 'Play', body: 'Step into the stories yourself. Every storyline is a world you can talk to.', href: LINKS.isekaiProfile, handle: 'isekaizero.ai/creator/kuletxcore' },
+  { key: 'kage', platform: 'kage', name: 'KageSekai', verb: 'Dare', body: 'The 18+ worlds live on the adult sister site of IsekaiZero. Same account, darker stories.', href: LINKS.kageProfile, handle: 'kagesekai.ai/creator/kuletxcore' },
+  { key: 'trimz', platform: 'trimz', name: 'Trimz', verb: 'Binge', body: 'Watch the series created by KuletXCore, episode by episode.', href: LINKS.trimz, handle: 'trimz.tv/u/kuletxcore' },
+  { key: 'youtube', platform: 'youtube', name: 'YouTube', verb: 'Watch', body: 'Trailers, behind-the-scenes and the AI storytelling process. Outslopping the competition.', href: LINKS.youtube, handle: '@kuletxai' },
 ]
 
-function Channels() {
+function HomeFooter() {
   return (
-    <section id="watch" className="scroll-mt-16 border-b border-line">
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <SectionHead kicker="03 // Channels" title="Four ways in" body="Same universe, different screens." />
-        <ul className="mt-12 grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2">
-          {CHANNELS.map((c, i) => (
-            <li key={c.key} className="bg-void">
-              <a href={c.href} target="_blank" rel="noreferrer" className="group flex h-full flex-col p-6 hover:bg-panel sm:p-8">
-                <span className="font-gamer text-xs text-mute">0{i + 1}</span>
-                <span className="pixel mt-4 font-pixel text-4xl text-neon glow">{c.verb}</span>
-                <span className="mt-1 font-mono text-lg font-bold text-ink">on {c.name}</span>
-                <p className="mt-4 flex-1 text-sm leading-relaxed text-mute">{c.body}</p>
-                <span className="mt-6 font-gamer text-xs text-ink group-hover:text-neon">{c.handle} →</span>
-              </a>
-            </li>
-          ))}
-        </ul>
+    <footer className="kx-home-footer">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <Logo className="h-10" />
+          <p className="mt-2 text-sm text-white/50">AI storytelling. © {new Date().getFullYear()} KuletX.</p>
+        </div>
+        <nav className="flex flex-wrap gap-4 font-gamer text-xs">
+          <a href={LINKS.isekai} target="_blank" rel="noreferrer" className="text-white/50 hover:text-white">
+            IsekaiZero
+          </a>
+          <a href={LINKS.kageProfile} target="_blank" rel="noreferrer" className="text-white/50 hover:text-white">
+            KageSekai
+          </a>
+          <a href={LINKS.trimz} target="_blank" rel="noreferrer" className="text-white/50 hover:text-white">
+            Trimz
+          </a>
+          <a href={LINKS.youtube} target="_blank" rel="noreferrer" className="text-white/50 hover:text-white">
+            YouTube
+          </a>
+        </nav>
       </div>
-    </section>
+      <p className="mt-8 text-xs text-white/35">
+        Fonts: pixel faces by 00ff (hicchicc) and Obel Mono by Typographic Systems, under the <a href="/fonts/OFL-00ff.txt" className="underline hover:text-white">SIL Open Font License</a>. UI sounds from{' '}
+        <a href="https://antislop.ai.id/install" target="_blank" rel="noreferrer" className="underline hover:text-white">
+          antislop
+        </a>
+        .
+      </p>
+    </footer>
   )
 }

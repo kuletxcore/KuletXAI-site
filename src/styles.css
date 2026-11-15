@@ -1286,3 +1286,649 @@ html.kx-boot body::before {
     font-size: 12px;
   }
 }
+
+/* ── kx-home: console home — same backdrop system as the hub, but scrollable ── */
+.kx-home {
+  --ps-tile: clamp(62px, 5vw, 80px);
+  position: relative;
+  background: #030508;
+  color: #fff;
+  font-family: "SST", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  overflow-x: clip;
+}
+.kx-home-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  --ps-shift: clamp(6px, 0.6vw, 16px);
+  --ps-dir: 1;
+}
+.kx-home-app {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding: clamp(14px, 2.2vh, 26px) clamp(16px, 3.5vw, 48px) 0;
+  gap: clamp(18px, 2.5vh, 28px);
+}
+.kx-home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.kx-home-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.kx-home-rail {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  padding: 12px 14px 14px;
+}
+.kx-home-rail-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.kx-home-tiles {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 6px 2px 8px;
+  scrollbar-width: none;
+  scroll-padding-inline: 2px;
+}
+.kx-home-tiles::-webkit-scrollbar {
+  display: none;
+}
+.kx-home-tile {
+  position: relative;
+  flex-shrink: 0;
+  width: 78px;
+  height: 78px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  background: #18181b;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+  opacity: 0.72;
+  transition: transform 0.22s var(--ps-spring, cubic-bezier(0.34, 1.4, 0.64, 1)), opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.22s ease, width 0.2s ease, height 0.2s ease;
+}
+.kx-home-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.kx-home-tile:hover {
+  opacity: 1;
+  transform: translateY(-2px) scale(1.02);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.kx-home-tile.is-active {
+  width: 92px;
+  height: 92px;
+  opacity: 1;
+  border-color: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35), 0 10px 24px rgba(0, 0, 0, 0.45);
+  transform: translateY(-2px);
+}
+.kx-home-tile-badge {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-family: "StrongGamer", ui-monospace, monospace;
+  font-size: 10px;
+  line-height: 1;
+}
+.kx-home-tile-badge.is-sfw {
+  background: #00ff66;
+  color: #050806;
+}
+.kx-home-tile-badge.is-mature {
+  background: #ffb800;
+  color: #050806;
+}
+.kx-home-tile-badge.is-adult {
+  background: #e5162b;
+  color: #fff;
+}
+.kx-home-tile-trimz {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.72);
+  padding: 2px 5px;
+  font-family: "StrongGamer", ui-monospace, monospace;
+  font-size: 8px;
+  color: #fff;
+}
+.kx-home-tile--more {
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+.kx-home-tile--more:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-style: solid;
+  border-color: #fff;
+}
+.kx-home-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.kx-home-dots span {
+  width: 18px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  transition: background 0.2s ease, width 0.2s ease;
+}
+.kx-home-dots span.is-active {
+  width: 28px;
+  background: #fff;
+}
+@media (min-width: 768px) {
+  .kx-home-dots {
+    display: none;
+  }
+}
+.kx-home-feature {
+  display: grid;
+  gap: 22px;
+}
+@media (min-width: 900px) {
+  .kx-home-feature {
+    grid-template-columns: 1.15fr 0.85fr;
+    align-items: start;
+  }
+}
+.kx-home-feature-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.kx-home-title {
+  font-size: clamp(30px, 4.6vw, 52px);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.8);
+}
+.kx-home-title-logo {
+  margin: 0;
+  line-height: 1;
+}
+.kx-home-title-logo .ps5-logo {
+  max-width: min(560px, 100%);
+  max-height: clamp(64px, 12vh, 120px);
+}
+.kx-home-logline {
+  max-width: 560px;
+  font-size: clamp(15px, 1.6vw, 18px);
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.88);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+.kx-home-rating {
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-family: "StrongGamer", ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1;
+}
+.kx-home-rating.is-sfw {
+  background: #00ff66;
+  color: #050806;
+}
+.kx-home-rating.is-mature {
+  background: #ffb800;
+  color: #050806;
+}
+.kx-home-rating.is-adult {
+  background: #e5162b;
+  color: #fff;
+}
+.kx-home-world {
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+@media (min-width: 640px) {
+  .kx-home-world {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.kx-home-world-item dt {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.kx-home-world-item dd {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.68);
+}
+.kx-home-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+.kx-home-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 11px 22px;
+  transition: transform 0.2s var(--ps-spring, cubic-bezier(0.34, 1.4, 0.64, 1)), background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.2s ease;
+}
+.kx-home-cta--primary {
+  background: #fff;
+  color: #000;
+  border: 1px solid #fff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+}
+.kx-home-cta--primary:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.22), 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+.kx-home-cta--ghost {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.kx-home-cta--ghost:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
+  transform: scale(1.02);
+}
+.kx-home-preview {
+  min-width: 0;
+}
+.kx-home-preview-card {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0b0d12;
+  aspect-ratio: 3 / 4;
+  max-height: min(560px, 62vh);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  transition: transform 0.22s var(--ps-spring, cubic-bezier(0.34, 1.4, 0.64, 1)), border-color 0.2s ease, box-shadow 0.22s ease;
+}
+.kx-home-preview-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 22px 44px rgba(0, 0, 0, 0.5);
+}
+.kx-home-preview-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.kx-home-preview-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.kx-home-preview-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 45%, rgba(0, 0, 0, 0.55) 75%, rgba(0, 0, 0, 0.85) 100%);
+}
+.kx-home-preview-meta {
+  position: absolute;
+  inset: auto 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.kx-home-preview-kicker {
+  font-family: "StrongGamer", ui-monospace, monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+}
+.kx-home-preview-title {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+.kx-home-preview-cta {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+.kx-home-proof {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.kx-home-how {
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  padding: clamp(18px, 2.5vw, 28px);
+}
+.kx-home-how-head {
+  max-width: 760px;
+}
+.kx-home-how-grid {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+@media (min-width: 860px) {
+  .kx-home-how-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.kx-home-how-card {
+  list-style: none;
+  position: relative;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.18);
+}
+.kx-home-how-num {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #fff;
+  color: #000;
+  font-family: "StrongGamer", ui-monospace, monospace;
+  font-size: 11px;
+}
+.kx-home-how-card h3 {
+  margin-top: 12px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+}
+.kx-home-how-card p {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.62);
+}
+.kx-home-how-link {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.kx-home-how-link.is-muted {
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.45);
+}
+.kx-home-section-head {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+@media (min-width: 760px) {
+  .kx-home-section-head {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+.kx-home-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 10px 18px;
+  font-family: "StrongGamer", ui-monospace, monospace;
+  font-size: 12px;
+  color: #fff;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.kx-home-pill:hover {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+}
+.kx-home-trimz {
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  padding: clamp(18px, 2.5vw, 28px);
+}
+.kx-home-trimz-grid {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+@media (min-width: 720px) {
+  .kx-home-trimz-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.kx-home-trimz-card {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.22);
+  transition: border-color 0.18s ease, transform 0.2s var(--ps-spring, cubic-bezier(0.34, 1.4, 0.64, 1));
+}
+.kx-home-trimz-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
+}
+.kx-home-trimz-cover {
+  position: relative;
+  overflow: hidden;
+  background: #111;
+}
+.kx-home-trimz-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  aspect-ratio: 2 / 3;
+}
+.kx-home-trimz-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.kx-home-trimz-card:hover .kx-home-trimz-video {
+  opacity: 1;
+}
+.kx-home-trimz-play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.22);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.kx-home-trimz-card:hover .kx-home-trimz-play {
+  opacity: 1;
+}
+.kx-home-trimz-play span {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: #fff;
+  color: #000;
+  font-size: 16px;
+}
+.kx-home-trimz-body {
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  min-width: 0;
+}
+.kx-home-channels {
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  padding: clamp(18px, 2.5vw, 28px);
+}
+.kx-home-channels-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+@media (min-width: 640px) {
+  .kx-home-channels-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .kx-home-channels-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.kx-home-channel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.18);
+  transition: border-color 0.18s ease, transform 0.18s ease, background 0.18s ease;
+}
+.kx-home-channel:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px);
+}
+.kx-home-footer {
+  padding: 18px 4px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.kx-home-sticky {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 40;
+  padding: 10px 12px max(10px, env(safe-area-inset-bottom));
+  background: rgba(8, 10, 14, 0.92);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.kx-home-sticky-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+@media (min-width: 900px) {
+  .kx-home-sticky {
+    display: none;
+  }
+}
+/* lite: no blur, no video, no sticky backdrop cost */
+.kx-lite .kx-home-rail,
+.kx-lite .kx-home-proof,
+.kx-lite .kx-home-how,
+.kx-lite .kx-home-trimz,
+.kx-lite .kx-home-channels,
+.kx-lite .kx-home-world,
+.kx-lite .kx-home-cta--ghost,
+.kx-lite .kx-home-pill {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.kx-lite .kx-home-backdrop .ps5-layer-blur {
+  display: none;
+}
+.kx-lite .kx-home-preview-video,
+.kx-lite .kx-home-trimz-video {
+  display: none;
+}
+.kx-lite .kx-home-tile.is-active {
+  box-shadow: 0 0 0 2px #fff;
+}
+.kx-lite .ps5-layer,
+.kx-lite .ps5-layer.is-active {
+  transition: none;
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kx-home-tile,
+  .kx-home-cta,
+  .kx-home-preview-card,
+  .kx-home-trimz-card,
+  .kx-home-channel {
+    transition: none;
+  }
+}
