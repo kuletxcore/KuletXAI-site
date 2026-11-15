@@ -5,12 +5,7 @@ import { agoLabel, clearSave, readSave, resumeSearch, saveLabel } from '#/lib/sa
 import type { SaveState } from '#/lib/save-state'
 import { play as sfx } from '#/lib/sfx'
 
-/**
- * SAVE STATE — the console remembers you. Returning players are greeted
- * with a CONTINUE band between the hero and the grid: last world, last
- * section, one tap (or the R key) to resume. Invisible to first-time
- * visitors and to anyone who erases their slot. One memory card.
- */
+// Returning players get a CONTINUE band under the hero: last world and section, one tap or R to resume
 export function ContinueBand() {
   const [save, setSave] = useState<SaveState | null>(null)
   const navigate = useNavigate()
@@ -50,7 +45,6 @@ export function ContinueBand() {
         className="pointer-events-none absolute top-1/2 right-0 h-[230%] -translate-y-1/2 object-contain object-right opacity-70 [mask-image:linear-gradient(to_left,black_0%,transparent_75%)] sm:h-[280%]"
       />
       <div className="pointer-events-none absolute inset-0 bg-linear-to-r from-void via-void/85 to-void/10" aria-hidden />
-      <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-warn" />
 
       <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6 sm:py-5">
         <Link to="/stories/$slug" params={{ slug: save.slug }} search={search} onClick={() => sfx('enter')} className="group min-w-0" title={`Resume ${story.title}`}>
@@ -84,8 +78,8 @@ export function ContinueBand() {
               setSave(null)
             }}
             aria-label="Erase save state"
-            title="Erase save state — start fresh"
-            className="grid size-9 shrink-0 place-items-center border border-line font-gamer text-sm text-mute transition-colors hover:border-danger hover:text-danger"
+            title="Erase save state and start fresh"
+            className="grid size-11 shrink-0 place-items-center border border-line font-gamer text-sm text-mute transition-colors hover:border-danger-ink hover:text-danger-ink active:bg-danger-ink/10"
           >
             ✕
           </button>

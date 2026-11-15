@@ -11,6 +11,7 @@ import { LiveCount, LiveDot } from '#/components/live-count'
 import { countOf, totalOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
 import { COVER_VIDEOS } from '#/data/cover-videos'
 import { useLite } from '#/lib/perf'
+import { setStill, useStill } from '#/lib/still'
 
 export const Route = createFileRoute('/')({ component: Home })
 
@@ -38,6 +39,7 @@ function Hero() {
     <section id="top" className="relative overflow-hidden border-b border-line">
       <PosterWall />
       <div className="grid-bg absolute inset-0" aria-hidden />
+      <MotionToggle />
       <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 md:grid-cols-[1.3fr_1fr] md:items-center md:py-28">
         <div>
           <p className="font-gamer text-sm text-neon">&gt; boot storyteller.exe</p>
@@ -128,6 +130,22 @@ function PosterWall() {
   )
 }
 
+// Anything that loops for longer than five seconds gets an off switch
+function MotionToggle() {
+  const still = useStill()
+  return (
+    <button
+      type="button"
+      onClick={() => setStill(!still)}
+      aria-pressed={still}
+      className="absolute right-2 bottom-2 z-10 inline-flex min-h-11 items-center gap-2 px-3 font-gamer text-[11px] uppercase text-mute hover:text-neon sm:right-4 sm:bottom-4"
+    >
+      <span aria-hidden>{still ? '▶' : '❚❚'}</span>
+      {still ? 'Play motion' : 'Pause motion'}
+    </button>
+  )
+}
+
 function Stat({ label, value, small }: { label: ReactNode; value: ReactNode; small?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
@@ -184,6 +202,7 @@ function Stories() {
   const [shelfLive, setShelfLive] = useState(false)
   const [motionOk, setMotionOk] = useState(false)
   const canPlay = motionOk && !lite
+  const still = useStill()
 
   // Posters move only for people who want motion and are not saving data
   useEffect(() => {
@@ -203,7 +222,7 @@ function Stories() {
     io.observe(el)
     return () => io.disconnect()
   }, [])
-  const playing = (i: number) => canPlay && (hot === i || (shelfLive && at === i))
+  const playing = (i: number) => canPlay && (hot === i || (!still && shelfLive && at === i))
   const cool = (i: number) => setHot((h) => (h === i ? null : h))
 
   useEffect(() => {
@@ -238,7 +257,7 @@ function Stories() {
 
   return (
     <section id="stories" className="scroll-mt-16 border-b border-line">
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
         <SectionHead
           kicker="01 // IsekaiZero + KageSekai"
           title="Pick a world"
@@ -359,7 +378,7 @@ function Stories() {
                       target="_blank"
                       rel="noreferrer"
                       onClick={() => sfx('enter')}
-                      className="relative z-10 text-danger hover:text-ink"
+                      className="relative z-10 -my-3.5 inline-flex min-h-11 items-center text-danger-ink hover:text-ink"
                     >
                       KAGESEKAI →
                     </a>
@@ -369,24 +388,36 @@ function Stories() {
             </div>
           </li>
         </ul>
-        <div className="mt-4 flex items-center justify-between font-gamer text-xs text-mute sm:hidden">
-          <span aria-hidden>
+        {/* Eight dots can't each be 44px on a phone, so they only show position and the arrows steer */}
+        <div className="mt-4 flex items-center justify-between gap-3 font-gamer text-xs text-mute sm:hidden">
+          <span aria-live="polite">
             <span className="text-neon">{pad2(at + 1)}</span> / {pad2(total)}
           </span>
-          <div className="flex">
+          <span className="flex gap-1" aria-hidden>
             {Array.from({ length: total }, (_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => go(i)}
-                aria-label={`World ${i + 1} of ${total}`}
-                aria-current={i === at}
-                className="grid h-8 w-6 place-items-center"
-              >
-                <span className={`h-1 ${i === at ? 'w-5 bg-neon' : 'w-2 bg-mute/50'}`} />
-              </button>
+              <span key={i} className={`h-1 ${i === at ? 'w-5 bg-neon' : 'w-2 bg-mute/50'}`} />
             ))}
-          </div>
+          </span>
+          <span className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => go(Math.max(0, at - 1))}
+              disabled={at === 0}
+              aria-label="Previous world"
+              className="grid size-11 place-items-center border border-line text-ink hover:border-neon hover:text-neon active:bg-neon/10 disabled:opacity-40"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              onClick={() => go(Math.min(total - 1, at + 1))}
+              disabled={at === total - 1}
+              aria-label="Next world"
+              className="grid size-11 place-items-center border border-line text-ink hover:border-neon hover:text-neon active:bg-neon/10 disabled:opacity-40"
+            >
+              ›
+            </button>
+          </span>
         </div>
       </div>
     </section>
@@ -397,7 +428,7 @@ function Trimz() {
   const live = useIskStats()
   return (
     <section id="trimz" className="scroll-mt-16 border-b border-line bg-panel/40">
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <SectionHead
             kicker="02 // Trimz"
@@ -408,7 +439,7 @@ function Trimz() {
             href={LINKS.trimz}
             target="_blank"
             rel="noreferrer"
-            className="shrink-0 self-start border border-neon px-4 py-2 font-gamer text-xs uppercase text-neon hover:bg-neon hover:text-void sm:self-auto"
+            className="inline-flex min-h-11 shrink-0 items-center self-start border border-neon px-4 font-gamer text-xs uppercase text-neon hover:bg-neon hover:text-void sm:self-auto"
           >
             Follow on Trimz →
           </a>
@@ -496,7 +527,7 @@ const CHANNELS = [
 function Channels() {
   return (
     <section id="watch" className="scroll-mt-16 border-b border-line">
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
         <SectionHead kicker="03 // Channels" title="Four ways in" body="Same universe, different screens." />
         <ul className="mt-12 grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2">
           {CHANNELS.map((c, i) => (

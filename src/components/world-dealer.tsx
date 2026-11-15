@@ -8,12 +8,7 @@ import { countOf, useIskStats } from '#/lib/isk-stats'
 import { useLite } from '#/lib/perf'
 import { play as sfx } from '#/lib/sfx'
 
-/**
- * The World Dealer: the official fix for "I don't know which world to play".
- * One tap on a vibe (or SURPRISE ME) shuffles the deck and deals a story with
- * its poster, live stats and a one-tap deep link into the platform. The whole
- * deck stays SFW/17+ — the 18+ world waits in the grid below.
- */
+// One tap on a vibe deals a world with its poster, live stats and a play link. The 18+ world stays out of the deck.
 
 type VibeKey = 'surprise' | 'spies' | 'kaiju' | 'school' | 'chaos' | 'powers'
 
@@ -92,7 +87,6 @@ export function WorldDealer() {
     <section id="dealer" className="scroll-mt-16 border-b border-line bg-panel/40">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
         <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-14">
-          {/* Pitch + controls */}
           <div>
             <p className="font-gamer text-sm text-neon">
               {'//'} THE WORLD DEALER<span className="text-mute"> v1.0</span>
@@ -103,8 +97,8 @@ export function WorldDealer() {
               DECIDE<span className="text-neon glow">?</span>
             </h2>
             <p className="mt-4 max-w-md text-base leading-relaxed text-mute">
-              Seven worlds, one deck, no wrong answers. Pick a vibe — the Dealer shuffles and slides your card across
-              the counter. One tap to start playing.
+              {deckSize} worlds, one deck. Pick a vibe and the Dealer shuffles, then slides your card across the
+              counter. One tap to start playing.
             </p>
 
             <fieldset className="mt-7">
@@ -119,7 +113,7 @@ export function WorldDealer() {
                       onClick={() => deal(v.key)}
                       aria-pressed={active}
                       disabled={phase === 'shuffling'}
-                      className={`border px-3 py-2 font-gamer text-xs uppercase transition-colors disabled:opacity-60 ${
+                      className={`min-h-11 border px-3 font-gamer text-xs uppercase transition-colors active:bg-neon/10 disabled:cursor-not-allowed disabled:opacity-60 ${
                         active
                           ? 'border-neon bg-neon text-void'
                           : 'border-line text-ink hover:border-neon hover:text-neon'
@@ -147,7 +141,7 @@ export function WorldDealer() {
               )}
             </button>
             <p className="mt-3 font-gamer text-[11px] uppercase text-mute">
-              Deck: {deckSize} SFW + 17+ worlds · the 18+ world sits this one out — find it in the grid below
+              Deck: {deckSize} SFW + 17+ worlds · the 18+ world sits this one out, find it in the grid below
             </p>
           </div>
 

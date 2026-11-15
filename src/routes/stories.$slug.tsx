@@ -2032,7 +2032,7 @@ function SoundMenu({ nowPlaying }: { nowPlaying: Track | null }) {
       </button>
       {open && (
         <div className="ps5-glass fixed inset-x-4 top-16 z-50 !bg-[#0b0d12]/90 p-4 text-sm md:absolute md:inset-x-auto md:top-11 md:right-0 md:w-72" role="dialog" aria-label="Sound and graphics settings">
-          <label className="flex items-center justify-between gap-3">
+          <label className="flex min-h-11 items-center justify-between gap-3">
             <span className="font-semibold">Sound</span>
             <button
               type="button"
@@ -2115,7 +2115,7 @@ function GraphicsSwitch() {
         : 'For older PCs: still backgrounds, no blur or motion effects.'
   return (
     <div className="mt-4 border-t border-white/10 pt-3">
-      <label className="flex items-center justify-between gap-3">
+      <label className="flex min-h-11 items-center justify-between gap-3">
         <span className="font-semibold">Lite graphics</span>
         <button
           type="button"
@@ -2149,7 +2149,7 @@ function DarkSwitch() {
   const dark = useDark()
   return (
     <div className="mt-4 border-t border-white/10 pt-3">
-      <label className="flex items-center justify-between gap-3">
+      <label className="flex min-h-11 items-center justify-between gap-3">
         <span className="font-semibold">Dark surfaces</span>
         <button
           type="button"

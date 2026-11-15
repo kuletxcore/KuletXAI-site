@@ -1,11 +1,6 @@
 import { STORIES } from '#/data/content'
 
-/**
- * SAVE STATE — the console remembers you. The story hub writes one memory
- * card on every visit (which world, which tab, which section); the home
- * page reads it to offer CONTINUE, the way an actual console greets you
- * with RESUME instead of a title screen. One slot, 120 day expiry.
- */
+// The hub saves the last world, tab and section; the home page offers CONTINUE from it. One slot, kept 120 days.
 
 const KEY = 'kx_savestate'
 const TTL_MS = 120 * 24 * 60 * 60 * 1000
@@ -41,7 +36,7 @@ export function writeSave(save: SaveState) {
   try {
     localStorage.setItem(KEY, JSON.stringify(save))
   } catch {
-    /* private mode: the console just won't remember — fine */
+    /* Private browsing blocks storage, so nothing is remembered */
   }
 }
 
@@ -49,7 +44,7 @@ export function clearSave() {
   try {
     localStorage.removeItem(KEY)
   } catch {
-    /* ignore */
+    /* Same as above: no storage, nothing to clear */
   }
 }
 

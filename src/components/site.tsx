@@ -12,7 +12,7 @@ export function Header() {
         <Link to="/" aria-label="KuletX AI home" className="flex min-h-11 shrink-0 items-center transition-transform hover:scale-[1.03]">
           <Logo className="h-9 sm:h-10" />
         </Link>
-        <nav className="flex items-center gap-1 font-gamer text-xs uppercase sm:gap-2 sm:text-sm">
+        <nav aria-label="Main" className="flex items-center gap-1 font-gamer text-xs uppercase sm:gap-2 sm:text-sm">
           <Link to="/" hash="stories" className="inline-flex min-h-11 items-center px-2 text-mute hover:text-neon">
             Stories
           </Link>
@@ -54,7 +54,7 @@ export function Footer() {
           <Logo className="h-12" />
           <p className="mt-2 text-sm text-mute">AI storytelling. © {new Date().getFullYear()} KuletX.</p>
         </div>
-        <nav className="flex flex-wrap items-center gap-x-4 font-gamer text-xs">
+        <nav aria-label="Elsewhere" className="flex flex-wrap items-center gap-x-2 font-gamer text-xs [&>a]:px-1">
           <a href={LINKS.isekai} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-mute hover:text-neon">
             IsekaiZero
           </a>

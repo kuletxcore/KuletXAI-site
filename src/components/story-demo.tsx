@@ -5,12 +5,7 @@ import type { DemoChoice, DemoWorld } from '#/data/demo'
 import { useLite } from '#/lib/perf'
 import { play as sfx } from '#/lib/sfx'
 
-/**
- * THE TEASER — a scripted, fully client-side 30-second slice of the AI
- * storyteller, embedded in the landing page. Cold visitors can feel the
- * core loop (you choose → the world answers) before they ever sign up.
- * The end card is the conversion moment: a deep link into the real storyline.
- */
+// A scripted, client-only taste of the storyteller: you choose, the world answers, then a link into the real story
 
 type Line = { who: 'them' | 'me'; text: string }
 
@@ -39,7 +34,7 @@ export function StoryDemo() {
   const messagesRef = useRef<HTMLDivElement>(null)
   const instant = skipAll || calm || lite
 
-  // The terminal boots only when it scrolls into view — nobody's demo is done before they arrive
+  // Starts only once it scrolls into view, so nobody's demo has finished before they arrive
   useEffect(() => {
     const el = terminalRef.current
     if (!el || !('IntersectionObserver' in window)) {
@@ -68,7 +63,6 @@ export function StoryDemo() {
   const node = demo.nodes[nodeId]
   const lines = node.say
 
-  // Typewriter tick
   useEffect(() => {
     if (!seen || phase !== 'reading' || instant) return
     const line = lines[lineIdx]
@@ -169,10 +163,9 @@ export function StoryDemo() {
     <section id="try" className="scroll-mt-16 border-b border-line bg-panel/40">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
         <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-14">
-          {/* Pitch */}
           <div>
             <p className="font-gamer text-sm text-neon">
-              {'//'} THE TEASER<span className="text-mute"> — no account, no install</span>
+              {'//'} THE TEASER<span className="text-mute"> · no account, no install</span>
             </p>
             <h2 className="pixel mt-3 font-pixel text-4xl leading-[1.05] text-ink sm:text-6xl">
               ONE TURN.
@@ -185,7 +178,7 @@ export function StoryDemo() {
               café-to-contact arc. The live storyteller improvises forever and never says the same thing twice.
             </p>
             <ul className="mt-6 space-y-2 font-mono text-sm text-ink/90">
-              {['You pick the moves, the world keeps up', 'Two minutes from here to playing the real thing', 'Free to start — same account, same worlds'].map((t) => (
+              {['You pick the moves, the world keeps up', 'Two minutes from here to playing the real thing', 'Free to start, same account, same worlds'].map((t) => (
                 <li key={t} className="flex items-baseline gap-2">
                   <span className="text-neon">▸</span>
                   {t}
@@ -193,33 +186,25 @@ export function StoryDemo() {
               ))}
             </ul>
             <p className="mt-6 font-gamer text-[11px] uppercase leading-relaxed text-mute">
-              Scripted teaser — the live session is improvised,
+              Scripted teaser. The live session is improvised,
               <br />
               persistent, and unreasonably quotable
             </p>
           </div>
 
-          {/* The terminal */}
           <div
             ref={terminalRef}
             className="relative border border-line bg-void"
             style={{ boxShadow: `0 0 90px -18px ${accent}40` }}
             aria-label="Interactive storyteller teaser"
           >
-            {/* Title bar */}
             <div className="flex items-center gap-3 border-b border-line bg-panel/60 px-4 py-2.5">
-              <span className="flex gap-1.5" aria-hidden>
-                <span className="size-2.5 rounded-full bg-danger" />
-                <span className="size-2.5 rounded-full bg-warn" />
-                <span className="size-2.5 rounded-full bg-neon" />
-              </span>
               <p className="font-mono text-[11px] text-mute">
                 storyteller.exe <span className="text-neon">--demo</span>
               </p>
               <span className="ml-auto border border-warn px-2 py-0.5 font-gamer text-[10px] uppercase text-warn">Demo</span>
             </div>
 
-            {/* World tabs */}
             <div className="flex gap-2 border-b border-line p-2" role="tablist" aria-label="Pick a demo world">
               {DEMO_WORLDS.map((w) => {
                 const s = storyFor(w.slug)
@@ -253,13 +238,11 @@ export function StoryDemo() {
               })}
             </div>
 
-            {/* Message log */}
             <div
               ref={messagesRef}
               role="log"
               aria-live="polite"
-              onClick={() => phase === 'reading' && setSkipAll(true)}
-              className="relative h-72 cursor-pointer overflow-y-auto p-4 font-mono text-sm leading-relaxed sm:h-80 sm:p-5"
+              className="relative h-72 overflow-y-auto p-4 font-mono text-sm leading-relaxed sm:h-80 sm:p-5"
             >
               {!seen ? (
                 <p className="mt-16 text-center font-pixel text-lg text-mute sm:mt-20">
@@ -296,21 +279,23 @@ export function StoryDemo() {
                 </>
               )}
 
-              {/* Scanlines */}
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-0"
                 style={{ backgroundImage: 'repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0,0,0,0.22) 2px 3px)' }}
               />
-              {phase === 'reading' && seen && !skipAll && !calm && !lite && (
-                <span className="absolute right-3 bottom-2 font-gamer text-[9px] uppercase text-mute/70" aria-hidden>
-                  click to skip ▸
-                </span>
-              )}
             </div>
 
-            {/* Choices / end card */}
-            <div className="border-t border-line bg-panel/40 p-3 sm:p-4">
+            <div className="relative border-t border-line bg-panel/40 p-3 sm:p-4">
+              {phase === 'reading' && seen && !skipAll && !calm && !lite && (
+                <button
+                  type="button"
+                  onClick={() => setSkipAll(true)}
+                  className="absolute -top-12 right-2 inline-flex min-h-11 items-center px-3 font-gamer text-[10px] uppercase text-mute hover:text-neon"
+                >
+                  Skip ▸
+                </button>
+              )}
               {phase === 'choices' && node.choices ? (
                 <div className="flex flex-col gap-2" role="group" aria-label="Your moves">
                   {node.choices.map((c, i) => (
@@ -318,7 +303,7 @@ export function StoryDemo() {
                       key={i}
                       type="button"
                       onClick={() => pick(c)}
-                      className="group flex w-full items-center gap-3 border border-line px-3 py-2.5 text-left font-mono text-[13px] leading-snug text-ink transition-colors hover:border-neon hover:bg-neon/5"
+                      className="group flex min-h-11 w-full items-center gap-3 border border-line px-3 py-2.5 text-left font-mono text-[13px] leading-snug text-ink transition-colors hover:border-neon hover:bg-neon/5 active:bg-neon/10"
                     >
                       <span className="grid size-6 shrink-0 place-items-center border border-line font-gamer text-[11px] text-neon group-hover:border-neon group-hover:bg-neon group-hover:text-void">
                         {i + 1}
@@ -339,16 +324,16 @@ export function StoryDemo() {
                     className="pixel mt-3 inline-block px-5 py-3 font-gamer text-sm uppercase text-void transition-transform hover:scale-[1.02]"
                     style={{ background: accent }}
                   >
-                    ▶ Play {story.title.length > 26 ? 'the real thing' : story.title} — free →
+                    ▶ Play {story.title.length > 26 ? 'the real thing' : story.title} free
                   </a>
                   <p className="mt-2 font-gamer text-[10px] uppercase text-mute">
                     on {storyPlatformName(story)} · picks up instantly in your browser
                   </p>
                   <div className="mt-3 flex items-center justify-center gap-3 font-gamer text-[11px] uppercase">
-                    <button type="button" onClick={runAgain} className="border border-line px-3 py-2 text-mute hover:border-warn hover:text-warn">
+                    <button type="button" onClick={runAgain} className="inline-flex min-h-11 items-center border border-line px-3 text-mute hover:border-warn hover:text-warn active:bg-warn/10">
                       ↻ Run it again
                     </button>
-                    <a href="#stories" className="px-3 py-2 text-neon hover:text-ink">
+                    <a href="#stories" className="inline-flex min-h-11 items-center px-3 text-neon hover:text-ink">
                       All worlds ↓
                     </a>
                   </div>

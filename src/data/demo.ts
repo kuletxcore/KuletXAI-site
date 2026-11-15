@@ -1,13 +1,5 @@
-/**
- * Scripted teasers for THE TEASER — the home-page demo of the AI storyteller.
- * These are fixed scripts, written to show the shape of a live session:
- * you decide, the world answers, nobody says the same thing twice.
- * The CTA at the end deep-links into the real storyline.
- *
- * ACOLYTES runs the full two-register arc: the warm café register, the
- * transition seam, then the tactical register — because the duality IS
- * the product. I AM THE TABLE is the short, self-contained comedy taste.
- */
+// Fixed scripts for the home-page Teaser. Acolytes runs its café-to-contact arc because that switch is the story;
+// I AM THE TABLE is the short comedy taste.
 
 export type DemoChoice = { label: string; next: string }
 
@@ -38,7 +30,7 @@ export const DEMO_WORLDS: DemoWorld[] = [
     nodes: {
       start: {
         say: [
-          'ALDERFALL, GUILD HALL — 3:12 PM.',
+          'ALDERFALL, GUILD HALL, 3:12 PM.',
           'You have been a table for eleven days. You cannot walk. You cannot speak. Your front left leg squeaks on the fourth wobble.',
         ],
         choices: [
@@ -79,7 +71,7 @@ export const DEMO_WORLDS: DemoWorld[] = [
       },
       morvane: {
         say: [
-          'DEMON KING MORVANE inhales like a collapsing theater. “IN THIS HALL, YOU SHALL WITNESS—”',
+          'DEMON KING MORVANE inhales like a collapsing theater. “IN THIS HALL, YOU SHALL WITNESS…”',
           'He is monologuing TO you. On you. His epic pause stretches exactly as long as your patience.',
         ],
         choices: [
@@ -99,7 +91,7 @@ export const DEMO_WORLDS: DemoWorld[] = [
           'Barn shoves you like a lifeboat launch. You cross the hall at terminal furniture velocity and meet Morvane at the knees.',
           'The infinity holds. The cape regrets it. The chair in the corner sheds one bitter tear of pure joy.',
         ],
-        end: 'One soul, four legs, zero joints — total victory. The guild frames your coaster.',
+        end: 'One soul, four legs, zero joints: total victory. The guild frames your coaster.',
       },
     },
   },
@@ -111,11 +103,11 @@ export const DEMO_WORLDS: DemoWorld[] = [
     nodes: {
       start: {
         say: [
-          'ACOLYTES MAID CAFE — 6:52 AM. The kettle has just started to complain.',
+          'ACOLYTES MAID CAFE, 6:52 AM. The kettle has just started to complain.',
           'The chalkboard: a latte-art heart in sunglasses. SIT. STAY. SIP. Hana will claim she didn’t. Yui absolutely did.',
-          'Hana hip-bumps through the back door, hair half-pinned, tray stacked higher than her elbows. “Morning, Leader! Petre says if his usual is late again he’s filing a formal complaint with the management — which I believe means us, which I believe means you.”',
+          'Hana hip-bumps through the back door, hair half-pinned, tray stacked higher than her elbows. “Morning, Leader! Petre says if his usual is late again he’s filing a formal complaint with the management, which I believe means us, which I believe means you.”',
           'Sasha, rolling silverware in the corner without looking up: “Tables three and six need wiping. And someone signed out my good grinder again. Medium dice. Taped dial.”',
-          'Yui spins upside down off the steam wand. “Three things. One, the pun is art. Two, Hana drank the syrup, I have testimony. Three—” she flips a business card out of the tip jar, “this was in OUR tip jar. Real stock. ‘Acolyte Consultancy — solutions for the unpredictable.’ No number. Our card.”',
+          'Yui spins upside down off the steam wand. “Three things. One, the pun is art. Two, Hana drank the syrup, I have testimony. Three…” she flips a business card out of the tip jar, “this was in OUR tip jar. Real stock. ‘Acolyte Consultancy: solutions for the unpredictable.’ No number. Our card.”',
         ],
         choices: [
           { label: 'Keep your pour steady. “Card goes to Sasha. Back room. Quiet.”', next: 'card' },
@@ -136,20 +128,20 @@ export const DEMO_WORLDS: DemoWorld[] = [
         say: [
           'You slide the card to Sasha with two fingers, like it might bite. “Back room. Evidence box. Nobody photographs it until I say.”',
           'Hana’s smile doesn’t move, and her voice drops half a register under the espresso hiss. “Right. Will do.” A beat. “That’s our paper, Leader. I’ve handled our paper.”',
-          'The 7:15 regulars come in like weather — Mr. Petre, two students, the courier who pays in exact change. The floor runs its loop. Breakfast becomes lunch. The block stays ours.',
+          'The 7:15 regulars come in like weather: Mr. Petre, two students, the courier who pays in exact change. The floor runs its loop. Breakfast becomes lunch. The block stays ours.',
         ],
         choices: [{ label: 'Let the day run its usual laps.', next: 'ping' }],
       },
       day: {
         say: [
-          'You palm it like an ordinary customer’s thank-you. The floor runs — Petre gets his usual at 7:15 on the dot, the students split the window seat, the courier pays in exact change.',
+          'You palm it like an ordinary customer’s thank-you. The floor runs: Petre gets his usual at 7:15 on the dot, the students split the window seat, the courier pays in exact change.',
           'No one reaches for the back room. The morning holds its shape, because that is what the morning is for.',
         ],
         choices: [{ label: 'Let the day run its usual laps.', next: 'ping' }],
       },
       ping: {
         say: [
-          '1:40 PM. The stockroom. Mira appears with flour on her sleeve — except it isn’t flour when she’s done. “District chatter. A pager, of all things — deliberate. They want us looking at the warehouse district. Forty-somethingth and the frontage road. Thermal’s been flagging heat inside a dead building since Sunday.”',
+          '1:40 PM. The stockroom. Mira appears with flour on her sleeve, except it isn’t flour when she’s done. “District chatter. A pager, of all things. Deliberate. They want us looking at the warehouse district. Forty-somethingth and the frontage road. Thermal’s been flagging heat inside a dead building since Sunday.”',
           'She smooths the napkin flat on the steel table. “They didn’t say go. They said ‘when you’re ready, Agent Zero.’ Somebody knows the designation. Somebody knows there IS one.”',
           '“And they knew before the card,” Mira adds, quiet as a steam valve. “The card was confirmation.”',
         ],
@@ -157,18 +149,18 @@ export const DEMO_WORLDS: DemoWorld[] = [
       },
       close: {
         say: [
-          'The day closes on schedule — chairs tipped, machine wiped, till counted, lamps dimmed one row at a time. Out on the block the flower shop is shuttered; the bakery’s cat sleeps in the warm grill grate.',
+          'The day closes on schedule: chairs tipped, machine wiped, till counted, lamps dimmed one row at a time. Out on the block the flower shop is shuttered; the bakery’s cat sleeps in the warm grill grate.',
           'The seam runs quiet: aprons off, hung in order. Boots instead of sneakers. Radio. Ceramic plates for plates that aren’t ceramic. Four people down the back stairs like a dozen times a year, and the espresso machine behind you goes from ordinary to gone.',
-          '23:40. The briefing room, down to the good kind of dark. Wall screen: one dead warehouse, empty frontage road — and inside it, two heat signatures that shouldn’t be alive. No trucks. No plates. No wire breathing.',
+          '23:40. The briefing room, down to the good kind of dark. Wall screen: one dead warehouse, empty frontage road, and inside it, two heat signatures that shouldn’t be alive. No trucks. No plates. No wire breathing.',
         ],
         choices: [{ label: 'Gear check. Then the first word.', next: 'gear' }],
       },
       gear: {
         say: [
-          'Hana bounces on her heels, Selector slung, good magazines taped like the dials. “Two spots, nobody home outside. That’s either nothing — or the fun kind of something.”',
+          'Hana bounces on her heels, Selector slung, good magazines taped like the dials. “Two spots, nobody home outside. That’s either nothing, or the fun kind of something.”',
           'Sasha stands at the dark end of the screen, counting angles. “North parapet’s clean. Two fields of fire, no cross-own. If it’s real, I want the second before anyone’s inside.”',
           'Mira seats a shell with a click that doesn’t carry. “Med kit’s by the door. I’d rather carry it home full. Stack order’s yours.”',
-          'Yui drops her notebook flat. “Hypothetically — if it eats the squad, does the suit get a vote, or just a funeral?” The grin checks the signatures anyway. “Asking for me. Peace-peace.”',
+          'Yui drops her notebook flat. “Hypothetically, if it eats the squad, does the suit get a vote, or just a funeral?” The grin checks the signatures anyway. “Asking for me. Peace-peace.”',
         ],
         choices: [
           { label: '“Stack order on me: breach, sweep, clear. Sasha, north parapet. Hana, point. Go loud on my word.”', next: 'loud' },
@@ -180,14 +172,14 @@ export const DEMO_WORLDS: DemoWorld[] = [
           'Gear settles into muscle memory. Earpieces click live, one by one. Somewhere above you the city sleeps; somewhere below it, an unmarked business card sits in an evidence bag, and somebody out there knows what you are.',
           'The warehouse door gives on the second try. Cold air. Machine oil. Dust that never settles.',
         ],
-        end: 'Field log, Agent 00: executed as ordered. What was inside — and who mails an officer her own card — the live story never stops asking.',
+        end: 'Field log, Agent 00: executed as ordered. What was inside, and who mails an officer her own card: the live story never stops asking.',
       },
       quiet: {
         say: [
-          'Nobody argues; nobody ever has. Boots on the parapet-side approach, comms a whisper. The door reads as untouched — and patient.',
+          'Nobody argues; nobody ever has. Boots on the parapet-side approach, comms a whisper. The door reads as untouched, and patient.',
           'Inside: cold air, machine oil, and a single chair facing the wall, like somebody sat there waiting for exactly this hour.',
         ],
-        end: 'Field log, Agent 00: observed, not committed — tonight. What the warehouse was waiting for is the live story’s question to keep.',
+        end: 'Field log, Agent 00: observed, not committed. Tonight. What the warehouse was waiting for is the live story’s question to keep.',
       },
     },
   },

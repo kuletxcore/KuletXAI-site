@@ -74,6 +74,8 @@
   --color-mute: #8fb399;
   --color-warn: #ffb800;
   --color-danger: #e5162b;
+  /* The red for text on the dark ground; plain danger is 4.0:1 there, this is 5.9:1 */
+  --color-danger-ink: #ff4f5e;
   --font-pixel: "HeadUpDaisy", "StrongGamer", ui-monospace, monospace;
   --font-scan: "ScanLine", "StrongGamer", ui-monospace, monospace;
   --font-gamer: "StrongGamer", ui-monospace, monospace;
@@ -164,6 +166,27 @@ body {
 a:focus-visible {
   outline: 2px solid var(--color-neon);
   outline-offset: 3px;
+}
+
+/* Tailwind's reset gives buttons the arrow cursor */
+button:not(:disabled),
+[role="button"],
+[role="switch"],
+[role="tab"],
+summary,
+label[for],
+select {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Pause motion (src/lib/still.ts) stops everything on the home page that loops on its own */
+.kx-still .kx-wall-row,
+.kx-still .cursor::after,
+.kx-still .kx-live-dot::after {
+  animation-play-state: paused;
 }
 
 /* Each row holds its tiles four times over, so sliding by half loops without a seam */
@@ -1359,7 +1382,7 @@ html.kx-boot body::before {
 }
 .kx-saveband-scan {
   background: linear-gradient(90deg, transparent, rgba(255, 184, 0, 0.32), transparent);
-  animation: kxSaveScan 3.2s ease-in-out infinite;
+  animation: kxSaveScan 3.2s ease-in-out 2;
   mix-blend-mode: screen;
 }
 @keyframes kxSaveScan {
@@ -1382,13 +1405,13 @@ html.kx-lite .kx-saveband-scan {
   animation: none;
 }
 
-/* The World Dealer — the card table under the hero */
+/* The World Dealer's card table; the scan and the button pulse run a few times, then rest */
 .kx-card-back {
   background-image: radial-gradient(ellipse at 50% 120%, rgba(0, 255, 102, 0.08), transparent 60%);
 }
 .kx-deal-scan {
   background: linear-gradient(to bottom, transparent, rgba(0, 255, 102, 0.22), transparent);
-  animation: kxDealScan 1.7s linear infinite;
+  animation: kxDealScan 1.7s linear 2;
   pointer-events: none;
 }
 @keyframes kxDealScan {
@@ -1400,7 +1423,7 @@ html.kx-lite .kx-saveband-scan {
   }
 }
 .kx-deal-cta {
-  animation: kxDealPulse 2.6s ease-in-out infinite;
+  animation: kxDealPulse 2.6s ease-in-out 2;
 }
 @keyframes kxDealPulse {
   0%,
