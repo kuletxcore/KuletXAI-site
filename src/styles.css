@@ -1282,3 +1282,27 @@ html.kx-lite .kx-saveband,
 html.kx-lite .kx-saveband-scan {
   animation: none;
 }
+
+/* THE HOME SCREEN — slow Ken Burns drift on the focused world's key art (disabled for lite/reduced motion) */
+.kx-console-kenburns {
+  animation: kxKenBurns 22s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes kxKenBurns {
+  from {
+    transform: scale(1.03) translate(0, 0);
+  }
+  to {
+    transform: scale(1.12) translate(-1.5%, 2.5%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kx-console-kenburns {
+    animation: none;
+    will-change: auto;
+  }
+}
+html.kx-lite .kx-console-kenburns {
+  animation: none;
+  will-change: auto;
+}

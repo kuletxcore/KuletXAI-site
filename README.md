@@ -8,6 +8,7 @@ Live at [kuletxai.whop.site](https://kuletxai.whop.site), mirrored at [kuletxai.
 
 ## What's in it
 
+- **The Home Screen.** The landing page is rebuilt as the KuletX PS5 home screen: full-bleed key art for the focused world, a rail of lifted world tiles (arrow keys navigate, ✕ or Enter opens the world, △ plays it on the platform), live clock, and controller hints — the same visual language as stories/*.
 - **Save State.** The hub remembers you: it writes a memory card on every visit (world, tab, section), and returning players are greeted on the home page with a CONTINUE band — one tap (or the R key) back where they left off. One slot, erase anytime.
 - **Story hub.** Every story gets its own screen with an overview, intro card, cast, gallery, soundtrack player and trophies. It works with a controller, a keyboard or touch.
 - **Two platforms.** Stories live on [IsekaiZero](https://www.isekaizero.ai), and the 18+ ones on [KageSekai](https://www.kagesekai.ai). Likes, chats and message counts are read from each platform's API.
