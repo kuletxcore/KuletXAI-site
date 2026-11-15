@@ -25,7 +25,7 @@ export const DEMO_WORLDS: DemoWorld[] = [
   {
     slug: 'i-am-the-table',
     short: 'I AM THE TABLE',
-    speaker: 'SPLINTERFORD',
+    speaker: 'ALDERFALL',
     start: 'start',
     nodes: {
       start: {
