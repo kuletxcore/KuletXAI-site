@@ -8,7 +8,7 @@ Live at [kuletxai.whop.site](https://kuletxai.whop.site), mirrored at [kuletxai.
 
 ## What's in it
 
-- **The Teaser.** A scripted, playable 30-second demo of the AI storyteller (I AM THE TABLE and Acolytes) embedded on the landing page — branching choices, keyboard picks, and a deep link into the real storyline at the end. No account needed.
+- **The Teaser.** A scripted, playable teaser of the AI storyteller embedded on the landing page — I AM THE TABLE (comedy) and the full Acolytes café-to-contact arc (warm café register into the tactical brief) — branching choices, keyboard picks, and a deep link into the real storyline at the end. No account needed.
 - **Story hub.** Every story gets its own screen with an overview, intro card, cast, gallery, soundtrack player and trophies. It works with a controller, a keyboard or touch.
 - **Two platforms.** Stories live on [IsekaiZero](https://www.isekaizero.ai), and the 18+ ones on [KageSekai](https://www.kagesekai.ai). Likes, chats and message counts are read from each platform's API.
 - **Series and videos.** The Trimz series and YouTube videos sit in the same hub, next to the stories they came from.

@@ -181,8 +181,8 @@ export function StoryDemo() {
             </h2>
             <p className="mt-5 max-w-md text-base leading-relaxed text-mute">
               This is what playing an AI storyline feels like: you choose, the world answers, and the story never
-              stops for a loading screen. A scripted 30-second slice — the live storyteller improvises forever and
-              never says the same thing twice.
+              stops for a loading screen. I AM THE TABLE is a ninety-second comedy; Acolytes runs the full
+              café-to-contact arc. The live storyteller improvises forever and never says the same thing twice.
             </p>
             <ul className="mt-6 space-y-2 font-mono text-sm text-ink/90">
               {['You pick the moves, the world keeps up', 'Two minutes from here to playing the real thing', 'Free to start — same account, same worlds'].map((t) => (
