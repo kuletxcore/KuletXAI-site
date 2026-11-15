@@ -7,6 +7,7 @@ import { ISK } from '#/data/isk'
 import { LiveCount, LiveDot } from '#/components/live-count'
 import { countOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
 import { BOOT_HEAD_SCRIPT, BootScreen, useBootActive } from '#/components/boot-screen'
+import { setDark, useDark } from '#/lib/dark'
 import { Logo } from '#/components/site'
 import { isMuted, play as sfx, setMuted, useMuted } from '#/lib/sfx'
 import { glideIntoView, glideTo, stopAllGlides } from '#/lib/smooth-scroll'
@@ -2055,6 +2056,7 @@ function SoundMenu({ nowPlaying }: { nowPlaying: Track | null }) {
             />
           </div>
           <GraphicsSwitch />
+          <DarkSwitch />
           <div className="mt-4 border-t border-white/10 pt-3 text-xs text-white/60">
             {nowPlaying ? (
               <>
@@ -2128,6 +2130,30 @@ function GraphicsSwitch() {
           </>
         )}
       </p>
+    </div>
+  )
+}
+
+function DarkSwitch() {
+  const dark = useDark()
+  return (
+    <div className="mt-4 border-t border-white/10 pt-3">
+      <label className="flex items-center justify-between gap-3">
+        <span className="font-semibold">Dark surfaces</span>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={dark}
+          onClick={() => {
+            sfx('nav')
+            setDark(!dark)
+          }}
+          className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${dark ? 'bg-white' : 'bg-white/20'}`}
+        >
+          <span className={`absolute top-0.5 size-5 rounded-full transition-all ${dark ? 'left-[22px] bg-black' : 'left-0.5 bg-white/70'}`} />
+        </button>
+      </label>
+      <p className="mt-1.5 text-xs text-white/55">Darker glass and button prompts in their console colors.</p>
     </div>
   )
 }
