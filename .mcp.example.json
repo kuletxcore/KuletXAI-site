@@ -1,0 +1,33 @@
+{
+  "mcpServers": {
+    "motion": {
+      "type": "http",
+      "url": "https://mcp.motion.dev"
+    },
+    "motion-plus": {
+      "type": "http",
+      "url": "https://mcp.motion.dev/plus"
+    },
+    "21st": {
+      "type": "http",
+      "url": "https://21st.dev/api/mcp",
+      "headers": {
+        "x-api-key": "${TWENTY_FIRST_API_KEY}"
+      }
+    },
+    "isekai-zero": {
+      "type": "http",
+      "url": "https://mcp.isekaizero.ai/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ${ISEKAI_ZERO_MCP_TOKEN}"
+      }
+    },
+    "kagesekai": {
+      "type": "http",
+      "url": "https://mcp.kagesekai.ai/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ${KAGESEKAI_MCP_TOKEN}"
+      }
+    }
+  }
+}

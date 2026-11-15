@@ -42,6 +42,12 @@ public          covers, tiles, hosted story art and cards, music, fonts
 
 Story copy, tags and links are written by hand in `src/data/content.ts`. `src/data/isk.ts` and `src/data/ost.ts` are generated, so refresh them with the scripts instead of editing them.
 
+## MCP servers
+
+`.mcp.json` wires the agent up to Motion, 21st, IsekaiZero and KageSekai over streamable HTTP. The live
+keys stay out of git — copy `.mcp.example.json` and fill them in. Check a connection with
+`node scripts/mcp-tools.mjs` (details in [docs/mcp.md](docs/mcp.md)).
+
 ## Refreshing story data
 
 ```bash

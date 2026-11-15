@@ -11,3 +11,8 @@ dist-ssr
 .vinxi
 __unconfig*
 todos.json
+
+# MCP client config holds live API keys (see docs/mcp.md); .mcp.example.json is the template
+.mcp.json
+.cursor/mcp.json
+.vscode/mcp.json
