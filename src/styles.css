@@ -630,6 +630,25 @@ svg.ps5-picon {
   font-weight: 700;
   color: #fff;
 }
+/* Prompt images are complete keycaps and buttons, so the chip drops its own frame */
+.ps5-key:has(> .kx-prompt) {
+  min-width: 0;
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+.kx-prompt {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  user-select: none;
+}
+.ps5-key-sm .kx-prompt {
+  width: 20px;
+  height: 20px;
+}
 .ps5-key-sm {
   min-width: 18px;
   height: 18px;
@@ -1135,30 +1154,6 @@ html.kx-boot body::before {
 .kx-dark .ps5-key {
   border-color: rgba(255, 255, 255, 0.18);
   background: rgba(6, 8, 12, 0.78);
-}
-.kx-dark .ps5-key:has(.ps-glyph-cross) {
-  color: #5ba8ff;
-  border-color: rgba(91, 168, 255, 0.55);
-  background: rgba(12, 40, 90, 0.7);
-  box-shadow: inset 0 0 0 1px rgba(91, 168, 255, 0.12);
-}
-.kx-dark .ps5-key:has(.ps-glyph-circle) {
-  color: #ff5a6a;
-  border-color: rgba(255, 90, 106, 0.55);
-  background: rgba(90, 16, 28, 0.7);
-  box-shadow: inset 0 0 0 1px rgba(255, 90, 106, 0.12);
-}
-.kx-dark .ps5-key:has(.ps-glyph-square) {
-  color: #ff6bb5;
-  border-color: rgba(255, 107, 181, 0.55);
-  background: rgba(90, 16, 58, 0.7);
-  box-shadow: inset 0 0 0 1px rgba(255, 107, 181, 0.12);
-}
-.kx-dark .ps5-key:has(.ps-glyph-triangle) {
-  color: #4ade80;
-  border-color: rgba(74, 222, 128, 0.55);
-  background: rgba(12, 70, 36, 0.7);
-  box-shadow: inset 0 0 0 1px rgba(74, 222, 128, 0.12);
 }
 
 /* Lite graphics for older PCs (see src/lib/perf.ts): still backgrounds, no blur, no full-screen blend layers,
