@@ -173,7 +173,7 @@ export function WorldDealer() {
                 <p className="relative mt-2 font-gamer text-xs uppercase text-mute">
                   {phase === 'shuffling' ? 'the dealer sweeps the deck' : 'pick a vibe, then press deal'}
                 </p>
-                <div className="kx-deal-scan absolute inset-x-0 h-16" aria-hidden />
+                <div className="kx-deal-scan absolute inset-0" aria-hidden />
               </div>
             )}
           </div>

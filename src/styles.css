@@ -1413,17 +1413,18 @@ html.kx-lite .kx-saveband-scan {
 .kx-card-back {
   background-image: radial-gradient(ellipse at 50% 120%, rgba(0, 255, 102, 0.08), transparent 60%);
 }
+/* Spans the card with a 4rem band at its top edge, so the sweep runs from just above the card to just below it */
 .kx-deal-scan {
-  background: linear-gradient(to bottom, transparent, rgba(0, 255, 102, 0.22), transparent);
+  background: linear-gradient(to bottom, transparent, rgba(0, 255, 102, 0.22), transparent) top / 100% 4rem no-repeat;
   animation: kxDealScan 1.7s linear infinite;
   pointer-events: none;
 }
 @keyframes kxDealScan {
   from {
-    transform: translateY(-100%);
+    transform: translateY(-4rem);
   }
   to {
-    transform: translateY(560%);
+    transform: translateY(100%);
   }
 }
 .kx-deal-cta {
