@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 
 /**
  * Gamepad support through the standard mapping. onPress fires once per press; directions (D-pad or left stick)
@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react'
  */
 
 export type PadButton = 'a' | 'b' | 'x' | 'y' | 'lb' | 'rb' | 'lt' | 'rt' | 'select' | 'start' | 'up' | 'down' | 'left' | 'right'
-export type PadKind = 'xbox' | 'playstation' | 'generic'
+export type PadKind = 'xbox' | 'playstation' | 'switch' | 'generic'
 
 const BUTTON_INDEX: Partial<Record<PadButton, number>> = {
   a: 0,
@@ -34,6 +34,8 @@ export const PAD_LABEL: Record<PadKind, Record<'a' | 'b' | 'x' | 'y' | 'lb' | 'r
   xbox: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'LB', rb: 'RB' },
   generic: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'LB', rb: 'RB' },
   playstation: { a: '✕', b: '○', x: '□', y: '△', lb: 'L1', rb: 'R1' },
+  // The standard mapping is positional: the bottom button is Nintendo's B, the right one is A
+  switch: { a: 'B', b: 'A', x: 'Y', y: 'X', lb: 'L', rb: 'R' },
 }
 
 export function kindOf(id: string): PadKind {
@@ -42,6 +44,7 @@ export function kindOf(id: string): PadKind {
   // Sony vendor id 054c; a DualShock 4 on Chrome is just "Wireless Controller (... Vendor: 054c ...)"
   // Android can report "Sony Interactive Entertainment Wireless Controller" with no vendor id
   if (/playstation|dualsense|dualshock|sony|vendor: 054c|^054c-|^wireless controller/i.test(id)) return 'playstation'
+  if (/nintendo|pro controller|joy-con|vendor: 057e|^057e-/i.test(id)) return 'switch'
   return 'generic'
 }
 
@@ -68,6 +71,28 @@ function pressed(pad: Gamepad, b: PadButton) {
 
 let polled = false
 
+export type PadInfo = { connected: boolean; kind: PadKind; model?: string }
+const NO_PAD: PadInfo = { connected: false, kind: 'generic' }
+
+// The connected pad, shared so every button prompt can pick the right image set
+let current: PadInfo = NO_PAD
+const padListeners = new Set<() => void>()
+function publish(next: PadInfo) {
+  if (next.connected === current.connected && next.kind === current.kind && next.model === current.model) return
+  current = next
+  for (const l of padListeners) l()
+}
+const subscribePad = (cb: () => void) => {
+  padListeners.add(cb)
+  return () => {
+    padListeners.delete(cb)
+  }
+}
+
+export function usePadInfo() {
+  return useSyncExternalStore(subscribePad, () => current, () => NO_PAD)
+}
+
 const DEADZONE = 0.2
 // Left stick scroll speed, px per second: a light push reads, full tilt flies,
 // and holding it ramps up to full speed over RAMP_MS
@@ -80,7 +105,7 @@ const RAMP_MS = 700
  * onScroll: left stick up/down, in pixels for this frame (eased, with a deadzone).
  */
 export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: number) => void) {
-  const [state, setState] = useState<{ connected: boolean; kind: PadKind; model?: string }>({ connected: false, kind: 'generic' })
+  const [state, setState] = useState<PadInfo>(NO_PAD)
   const handler = useRef(onPress)
   handler.current = onPress
   const scroller = useRef(onScroll)
@@ -150,7 +175,9 @@ export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: numb
 
     const sync = () => {
       const pad = firstPad()
-      setState(pad ? { connected: true, kind: kindOf(pad.id), model: modelOf(pad.id) } : { connected: false, kind: 'generic' })
+      const info: PadInfo = pad ? { connected: true, kind: kindOf(pad.id), model: modelOf(pad.id) } : NO_PAD
+      setState(info)
+      publish(info)
       if (pad && !raf) raf = requestAnimationFrame(loop)
     }
 

@@ -7,7 +7,7 @@ import { TROPHIES } from '#/data/trophies'
 import type { Trophy, TrophyGrade } from '#/data/trophies'
 import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
 import { KeyLabel } from '#/components/pad-glyph'
-import type { PadButton, PadKind } from '#/lib/gamepad'
+import type { PadButton } from '#/lib/gamepad'
 import { setMusic, stopOst } from '#/lib/music'
 import { isMuted, play as sfx, setMuted } from '#/lib/sfx'
 import { glideIntoView, stopAllGlides } from '#/lib/smooth-scroll'
@@ -220,10 +220,10 @@ function TrophyPage() {
             </Link>
             {pad.connected ? (
               <>
-                <Key pad={pad.kind} k="▲/▼" label="Select" />
-                <Key pad={pad.kind} k={l.a} label="Reveal hidden" />
-                <Key pad={pad.kind} k={l.x} label="Sort" />
-                <Key pad={pad.kind} k={l.b} label="Back" />
+                <Key k="▲/▼" label="Select" />
+                <Key k={l.a} label="Reveal hidden" />
+                <Key k={l.x} label="Sort" />
+                <Key k={l.b} label="Back" />
               </>
             ) : (
               <>
@@ -312,11 +312,11 @@ const TrophyRow = memo(function TrophyRow({
 })
 const lastPointer = { x: NaN, y: NaN }
 
-function Key({ k, label, pad }: { k: string; label: string; pad: PadKind }) {
+function Key({ k, label }: { k: string; label: string }) {
   return (
     <span className="inline-flex items-center gap-1.5">
       <span className="ps5-key">
-        <KeyLabel k={k} pad={pad} />
+        <KeyLabel k={k} />
       </span>{' '}
       {label}
     </span>

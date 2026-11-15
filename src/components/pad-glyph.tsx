@@ -1,25 +1,55 @@
 import type { PadKind } from '#/lib/gamepad'
+import { usePadInfo } from '#/lib/gamepad'
 import { useDark } from '#/lib/dark'
 import { useLite } from '#/lib/perf'
 
 // Button prompts by Nicolae "Xelu" Berbece (CC0). Full mode gets the 256px set, lite the 100px one.
-// Dark surfaces swap PlayStation buttons for the coloured PS4 set, which only exists at 100px.
+// PlayStation: a DualShock 4 always gets the coloured PS4 set; otherwise dark surfaces get PS4 and light get PS5.
 
-const FIXED: Record<string, [file: string, name: string]> = {
-  '✕': ['ps-cross', 'Cross'],
-  '○': ['ps-circle', 'Circle'],
-  '□': ['ps-square', 'Square'],
-  '△': ['ps-triangle', 'Triangle'],
-  L1: ['ps-l1', 'L1'],
-  R1: ['ps-r1', 'R1'],
-  L: ['ps-stick', 'Left stick'],
+type Entry = [file: string, name: string]
+
+const STICK_AND_DPAD = (prefix: string): Record<string, Entry> => ({
+  LS: [`${prefix}-stick`, 'Left stick'],
+  '◀': [`${prefix}-left`, 'D-pad left'],
+  '▶': [`${prefix}-right`, 'D-pad right'],
+  '▲': [`${prefix}-up`, 'D-pad up'],
+  '▼': [`${prefix}-down`, 'D-pad down'],
+})
+
+const XBOX: Record<string, Entry> = {
   A: ['xbox-a', 'A'],
   B: ['xbox-b', 'B'],
   X: ['xbox-x', 'X'],
   Y: ['xbox-y', 'Y'],
   LB: ['xbox-lb', 'LB'],
   RB: ['xbox-rb', 'RB'],
-  LS: ['xbox-stick', 'Left stick'],
+  ...STICK_AND_DPAD('xbox'),
+}
+
+const PAD: Record<PadKind, Record<string, Entry>> = {
+  playstation: {
+    '✕': ['ps-cross', 'Cross'],
+    '○': ['ps-circle', 'Circle'],
+    '□': ['ps-square', 'Square'],
+    '△': ['ps-triangle', 'Triangle'],
+    L1: ['ps-l1', 'L1'],
+    R1: ['ps-r1', 'R1'],
+    ...STICK_AND_DPAD('ps'),
+  },
+  switch: {
+    A: ['switch-a', 'A'],
+    B: ['switch-b', 'B'],
+    X: ['switch-x', 'X'],
+    Y: ['switch-y', 'Y'],
+    L: ['switch-l', 'L'],
+    R: ['switch-r', 'R'],
+    ...STICK_AND_DPAD('switch'),
+  },
+  xbox: XBOX,
+  generic: XBOX,
+}
+
+const KEYS: Record<string, Entry> = {
   '←': ['key-left', 'Left arrow key'],
   '→': ['key-right', 'Right arrow key'],
   '↑': ['key-up', 'Up arrow key'],
@@ -30,36 +60,24 @@ const FIXED: Record<string, [file: string, name: string]> = {
   R: ['key-r', 'R key'],
 }
 
-const DPAD: Record<string, [dir: string, name: string]> = {
-  '◀': ['left', 'D-pad left'],
-  '▶': ['right', 'D-pad right'],
-  '▲': ['up', 'D-pad up'],
-  '▼': ['down', 'D-pad down'],
-}
-
-function resolve(k: string, pad: PadKind) {
-  const d = DPAD[k]
-  if (d) return [`${pad === 'playstation' ? 'ps' : 'xbox'}-${d[0]}`, d[1]] as const
-  return FIXED[k]
-}
-
-/** Label inside a button-prompt chip: the matching prompt image, or the text itself when there is none. */
-export function KeyLabel({ k, pad = 'playstation' }: { k: string; pad?: PadKind }) {
+/** Label inside a button-prompt chip: the connected pad's prompt image, a keyboard key, or the text itself. */
+export function KeyLabel({ k }: { k: string }) {
   const lite = useLite()
   const dark = useDark()
+  const pad = usePadInfo()
   if (k.includes('/')) {
     return (
       <span className="inline-flex items-center gap-0.5">
         {k.split('/').map((part) => (
-          <KeyLabel key={part} k={part} pad={pad} />
+          <KeyLabel key={part} k={part} />
         ))}
       </span>
     )
   }
-  const hit = resolve(k, pad)
+  const hit = (pad.connected ? PAD[pad.kind][k] : undefined) ?? KEYS[k]
   if (!hit) return <>{k}</>
   const [file, name] = hit
-  const ps4 = dark && file.startsWith('ps-')
+  const ps4 = file.startsWith('ps-') && (dark || pad.model === 'DUALSHOCK 4')
   const src = ps4 ? `/prompts/lo/ps4-${file.slice(3)}.webp` : `/prompts/${lite ? 'lo' : 'hq'}/${file}.webp`
   return <img className="kx-prompt" src={src} alt={name} width={24} height={24} draggable={false} decoding="async" />
 }

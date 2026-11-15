@@ -471,7 +471,9 @@ function StoryHub() {
           ? 'PlayStation controller connected'
           : pad.kind === 'xbox'
             ? 'Xbox controller connected'
-            : 'Controller connected',
+            : pad.kind === 'switch'
+              ? 'Nintendo Switch controller connected'
+              : 'Controller connected',
     )
     const id = window.setTimeout(() => setPadToast(null), 2600)
     return () => clearTimeout(id)
@@ -1902,14 +1904,14 @@ function ModalView({ modal, setModal, padLabel, padX }: { modal: Modal; setModal
   )
 }
 
-function Hint({ keys, label, pad, kbm, className = 'md:inline-flex' }: { keys: string[]; label: string; pad: PadKind; kbm?: boolean; className?: string }) {
+function Hint({ keys, label, kbm, className = 'md:inline-flex' }: { keys: string[]; label: string; kbm?: boolean; className?: string }) {
   return (
     <span className={`hidden items-center gap-1.5 ${className} ${kbm ? 'kx-kbm-only' : ''}`}>
       {keys.map((k, i) => (
         <span key={k} className="flex items-center gap-1.5">
           {i > 0 && '/'}
           <span className="ps5-key">
-            <KeyLabel k={k} pad={pad} />
+            <KeyLabel k={k} />
           </span>
         </span>
       ))}{' '}
@@ -1947,27 +1949,27 @@ function BottomBar({
       </Link>
       {pad.connected && inSub ? (
         <>
-          <Hint pad={pad.kind} keys={['◀', '▶']} label="Select" />
-          <Hint pad={pad.kind} keys={[l.a]} label={section === 'ost' ? 'Play' : 'Open'} />
-          <Hint pad={pad.kind} keys={[l.b]} label="Back to sections" />
+          <Hint keys={['◀', '▶']} label="Select" />
+          <Hint keys={[l.a]} label={section === 'ost' ? 'Play' : 'Open'} />
+          <Hint keys={[l.b]} label="Back to sections" />
         </>
       ) : pad.connected ? (
         <>
-          {canEnter && <Hint pad={pad.kind} keys={[l.x]} label={tab === 'series' ? 'Select storyline' : section === 'intro' ? 'Expand card' : `Enter ${SECTION_LABEL[section]}`} />}
-          <Hint pad={pad.kind} keys={['◀', '▶']} label="Navigate" />
-          {tab === 'stories' && <Hint pad={pad.kind} keys={['▲', '▼']} label="Section" className="lg:inline-flex" />}
-          <Hint pad={pad.kind} keys={[pad.kind === 'playstation' ? 'L' : 'LS']} label="Scroll" className="xl:inline-flex" />
-          <Hint pad={pad.kind} keys={[l.a]} label={tab === 'youtube' ? 'Play' : 'Open'} />
-          <Hint pad={pad.kind} keys={[l.b]} label="Back" />
-          <Hint pad={pad.kind} keys={[l.lb, l.rb]} label="Tabs" />
-          <Hint pad={pad.kind} keys={[l.y]} label="Sound" className="lg:inline-flex" />
+          {canEnter && <Hint keys={[l.x]} label={tab === 'series' ? 'Select storyline' : section === 'intro' ? 'Expand card' : `Enter ${SECTION_LABEL[section]}`} />}
+          <Hint keys={['◀', '▶']} label="Navigate" />
+          {tab === 'stories' && <Hint keys={['▲', '▼']} label="Section" className="lg:inline-flex" />}
+          <Hint keys={['LS']} label="Scroll" className="xl:inline-flex" />
+          <Hint keys={[l.a]} label={tab === 'youtube' ? 'Play' : 'Open'} />
+          <Hint keys={[l.b]} label="Back" />
+          <Hint keys={[l.lb, l.rb]} label="Tabs" />
+          <Hint keys={[l.y]} label="Sound" className="lg:inline-flex" />
         </>
       ) : (
         <>
-          <Hint kbm pad={pad.kind} keys={['←', '→']} label="Navigate" />
-          {tab === 'stories' && <Hint kbm pad={pad.kind} keys={['↑', '↓']} label="Section" className="lg:inline-flex" />}
-          <Hint kbm pad={pad.kind} keys={['Enter']} label="Play" />
-          <Hint kbm pad={pad.kind} keys={['Q', 'E']} label="Tabs" />
+          <Hint kbm keys={['←', '→']} label="Navigate" />
+          {tab === 'stories' && <Hint kbm keys={['↑', '↓']} label="Section" className="lg:inline-flex" />}
+          <Hint kbm keys={['Enter']} label="Play" />
+          <Hint kbm keys={['Q', 'E']} label="Tabs" />
         </>
       )}
       {/* Touch: real buttons */}
