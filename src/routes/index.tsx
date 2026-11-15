@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Footer, Header, SectionHead } from '#/components/site'
 import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
-import { LiveCount, LiveDot } from '#/components/live-count'
-import { countOf, totalOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
+import { LiveCount } from '#/components/live-count'
+import { countOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
 import { COVER_VIDEOS } from '#/data/cover-videos'
 import { useLite } from '#/lib/perf'
+import { SpotlightHero } from '#/components/spotlight-hero'
 
 export const Route = createFileRoute('/')({ component: Home })
 
@@ -16,117 +16,12 @@ function Home() {
     <div className="crt min-h-screen">
       <Header />
       <main>
-        <Hero />
+        <SpotlightHero />
         <Stories />
         <Trimz />
         <Channels />
       </main>
       <Footer />
-    </div>
-  )
-}
-
-function Hero() {
-  const live = useIskStats()
-  return (
-    <section id="top" className="relative overflow-hidden border-b border-line">
-      <PosterWall />
-      <div className="grid-bg absolute inset-0" aria-hidden />
-      <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 md:grid-cols-[1.3fr_1fr] md:items-center md:py-28">
-        <div>
-          <p className="font-gamer text-sm text-neon">&gt; boot storyteller.exe</p>
-          <h1 className="pixel mt-5 font-pixel text-5xl leading-[1.05] text-ink sm:text-7xl">
-            AI stories
-            <br />
-            you <span className="text-neon glow">play</span>,
-            <br />
-            watch &amp; <span className="text-neon glow">binge</span>
-            <span className="cursor text-neon" />
-          </h1>
-          <p className="mt-6 max-w-lg text-base leading-relaxed text-mute sm:text-lg">
-            KuletX builds interactive worlds on IsekaiZero and KageSekai, cuts them into series on Trimz, and
-            breaks it all down on YouTube.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <a href="#stories" className="pixel bg-neon px-5 py-3 font-gamer text-sm uppercase text-void hover:bg-ink">
-              ▶ Play a story
-            </a>
-            <a
-              href="#trimz"
-              className="pixel border border-line px-5 py-3 font-gamer text-sm uppercase text-ink hover:border-neon hover:text-neon"
-            >
-              Binge on Trimz
-            </a>
-          </div>
-        </div>
-
-        <div className="border border-line bg-panel/80 p-5 font-mono text-sm">
-          <div className="flex items-center justify-between border-b border-line pb-3 font-gamer text-xs text-mute">
-            <span>STATUS.LOG</span>
-            <span className="text-neon">● ONLINE</span>
-          </div>
-          <dl className="mt-4 space-y-3">
-            <Stat label="public storylines" value={STORIES.length} />
-            <Stat
-              label={
-                <>
-                  messages sent <LiveDot className="ml-1" />
-                </>
-              }
-              value={<LiveCount value={totalOf(live, 'messages')} />}
-            />
-            <Stat label="player likes" value={<LiveCount value={totalOf(live, 'likes')} />} />
-            <Stat label="chats started" value={<LiveCount value={totalOf(live, 'chats')} />} />
-            <Stat label="trimz series" value={TRIMZ.length} />
-            <Stat label="motto" value="outslopping the competition" small />
-          </dl>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// The worlds drift behind the hero, so the first screen shows the stories instead of an empty grid
-function PosterWall() {
-  const wall = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    const el = wall.current
-    if (!el || !('IntersectionObserver' in window)) return
-    const io = new IntersectionObserver(([e]) => el.toggleAttribute('data-paused', !e.isIntersecting))
-    io.observe(el)
-    return () => io.disconnect()
-  }, [])
-  const art = STORIES.map((s) => s.tile ?? s.cover)
-  const rows = [art, [...art.slice(3), ...art.slice(0, 3)], [...art.slice(5), ...art.slice(0, 5)]]
-  return (
-    <div ref={wall} className="kx-wall pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      <div className="absolute -inset-x-1/4 top-[36%] flex -translate-y-1/2 -rotate-6 flex-col gap-3 opacity-45 md:top-1/2">
-        {rows.map((row, r) => (
-          <div key={r} className={`kx-wall-row flex w-max gap-3 ${r % 2 ? 'is-rev' : ''}`}>
-            {[...row, ...row, ...row, ...row].map((src, i) => (
-              <img
-                key={i}
-                src={src}
-                alt=""
-                decoding="async"
-                fetchPriority="low"
-                className="size-32 shrink-0 rounded-sm object-cover sm:size-40"
-              />
-            ))}
-          </div>
-        ))}
-      </div>
-      <div className="absolute inset-0 bg-void/65 md:bg-transparent md:bg-linear-to-r md:from-void md:from-25% md:via-void/80 md:to-void/20" />
-      <div className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-void to-transparent" />
-    </div>
-  )
-}
-
-function Stat({ label, value, small }: { label: ReactNode; value: ReactNode; small?: boolean }) {
-  return (
-    <div className="flex items-baseline justify-between gap-4">
-      <dt className="flex items-center text-mute">{label}</dt>
-      <dd className={small ? 'text-right text-warn' : 'pixel font-pixel text-2xl text-neon'}>{value}</dd>
     </div>
   )
 }
