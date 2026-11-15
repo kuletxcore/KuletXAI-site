@@ -76,6 +76,8 @@
   --color-danger: #e5162b;
   /* The red for text on the dark ground; plain danger is 4.0:1 there, this is 5.9:1 */
   --color-danger-ink: #ff4f5e;
+  /* Highlight blue, a quiet echo of the logo's "AI". 4.1:1 on the void, so never small text; white on it is 4.9:1 */
+  --color-signal: #5a6faa;
   --font-pixel: "HeadUpDaisy", "StrongGamer", ui-monospace, monospace;
   --font-scan: "ScanLine", "StrongGamer", ui-monospace, monospace;
   --font-gamer: "StrongGamer", ui-monospace, monospace;
@@ -106,8 +108,8 @@ body {
 }
 
 ::selection {
-  background: var(--color-neon);
-  color: var(--color-void);
+  background: var(--color-signal);
+  color: #fff;
 }
 
 /* Pixel fonts look best unsmoothed */
