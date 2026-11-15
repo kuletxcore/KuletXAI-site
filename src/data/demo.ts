@@ -1,5 +1,5 @@
-// Fixed scripts for the home-page Teaser. Acolytes runs its café-to-contact arc because that switch is the story;
-// I AM THE TABLE is the short comedy taste.
+// Fixed scripts for the home-page Teaser, condensed from each storyline's own openings, cast and codex.
+// Every path reaches an end card; no two choices loop back on each other.
 
 export type DemoChoice = { label: string; next: string }
 
@@ -25,161 +25,187 @@ export const DEMO_WORLDS: DemoWorld[] = [
   {
     slug: 'i-am-the-table',
     short: 'I AM THE TABLE',
-    speaker: 'ALDERFALL',
+    speaker: 'SPLINTERFORD',
     start: 'start',
     nodes: {
       start: {
         say: [
-          'ALDERFALL, GUILD HALL, 3:12 PM.',
-          'You have been a table for eleven days. You cannot walk. You cannot speak. Your front left leg squeaks on the fourth wobble.',
+          'OAKHOLLOW CARPENTRY, SPLINTERFORD. DAWN.',
+          'The first thing you notice: no hands. The second: someone is carrying a hot mug toward your face, which is also your entire body.',
+          '“And THIS,” Barnaby Oakhollow says, setting it dead center like he’s christening a ship, “is the finest piece I ever made. Four legs! I count them every morning.”',
+          'You died on a Tuesday. You remember a goddess, a clipboard, a line that said SIGN HERE. You do not remember ticking a box marked OAK.',
+          'The shop bell jingles. A stranger in city clothes raps you twice with a knuckle. “I’ll take this one. My employer collects… unusual pieces.” He raises the knuckle for a third knock.',
         ],
         choices: [
-          { label: 'Barn sets a teacup on you. He always comes before the storm.', next: 'barn' },
-          { label: 'The guild doors BANG open. Smoke. A cape. A monologue.', next: 'morvane' },
+          { label: 'Hum. Low and steady, straight into Barnaby’s bones.', next: 'hum' },
+          { label: 'Slide the mug one inch. Into the stranger’s sleeve.', next: 'mug' },
         ],
       },
-      barn: {
+      hum: {
         say: [
-          'Barn Oakhollow bows to you the way you bow to weather.',
-          '“Grandma’s prophecy,” he whispers, “only one line unread. ‘The last thing created shall be the last thing standing.’ You were last.”',
-          'He laces his boots. Your surface rattles. Somewhere in the corner, a chair takes it personally.',
+          'Barnaby goes white, then pink, then horizontal. He weeps with joy and falls over a stool, which does not survive.',
+          '“NOT FOR SALE,” he announces from the floor. “It talks. Well. It hums. I’m the only one who can hear it, which is either a miracle or a medical matter.”',
+          'The stranger tucks a card under your mug. “My employer will be in touch.” The card is embossed with a crown made of mulch.',
         ],
         choices: [
-          { label: 'Wobble once. You meant to do that.', next: 'wobble' },
-          { label: 'Tables do not flinch at prophecies.', next: 'vane' },
+          { label: 'Let Barnaby haul you to the Split Barrel to celebrate.', next: 'tavern' },
+          { label: 'Stay in the shop. Something is kneeling outside the door.', next: 'mabel' },
         ],
       },
-      wobble: {
+      mug: {
         say: [
-          'You wobble. One inch, with feelings.',
-          'Barn gasps like the second coming clocked in. On the guild wall he chalks: IT UNDERSTANDS.',
+          'The tea travels exactly one inch, with feelings. The stranger’s cuff absorbs all of it.',
+          '“Did that table just…”',
+          '“It does that,” Barnaby says, with the calm of a man who has never once seen it do that. The stranger leaves faster than he came in.',
+          'Barnaby presses his ear to your grain and whispers, “I heard that. I heard you DECIDE.”',
         ],
         choices: [
-          { label: 'The doors explode again. Priscilla Vane grabs her clipboard.', next: 'vane' },
-          { label: 'Barn slides you across the hall. Something enormous just landed on the roof.', next: 'morvane' },
+          { label: 'Wobble once, slow and ominous. Yes, he did.', next: 'vane' },
+          { label: 'Hold perfectly still. Let him take you somewhere with more drinks.', next: 'tavern' },
+        ],
+      },
+      tavern: {
+        say: [
+          'The Split Barrel. Ten minutes in, you have collected three drink rings, one marriage proposal and a lieutenant of the Rotwood who has clearly rehearsed this.',
+          '“When the Rotting King’s hammer falls on Splinterford, she’ll finally SEE.” He drops his voice. “The vault under the mill. Midnight. Password’s ‘mulch.’”',
+          'Nobody guards their tongue around furniture. His ale is sweating onto your finish without asking, naturally.',
+        ],
+        choices: [
+          { label: 'Ease the ale toward the edge. Toward his lap.', next: 'spill' },
+          { label: 'Keep it steady. Barnaby needs to hear the rest.', next: 'splinterfang' },
+        ],
+      },
+      mabel: {
+        say: [
+          'A gaunt woman in a robe of patched felt kneels on the wet floor in front of you. Nobody has ever knelt to you before.',
+          '“O Unmoving One,” breathes Sister Mabel. “The Order of the Load-Bearing Heart begins tonight. With me. And you. And these candles I did not pay for.” She sets down three.',
+          'In the corner, an armchair in crimson velvet creaks, loudly and with intent. Sir Reginald Twobble III has read the prophecy many times. It still says table.',
+        ],
+        choices: [
+          { label: 'Hold the candles perfectly level. A sign.', next: 'splinterfang' },
+          { label: 'Let one candle roll toward the chair. Purely by accident.', next: 'vane' },
         ],
       },
       vane: {
         say: [
-          'Priscilla Vane circles you, Form 22-B in hand: REGISTRATION OF ANOMALOUS WOODEN PERSON.',
-          '“Occupation?” she demands. “Because I am prepared to file you as STORAGE.”',
+          'Guildmarm Priscilla Vane arrives with Form 12-C and the posture of a woman who has faced dragons and found them insufficiently documented.',
+          'RELIC ☐  BEAST ☐  STRUCTURE ☐. She stares at you for a long time, then draws a fourth box by hand. FURNITURE (AMBIGUOUS) ☑.',
+          '“Inventing boxes,” she says quietly, “is the only thing I have ever loved.” She reaches for her stamp.',
+        ],
+        choices: [{ label: 'Slide the form one inch out of reach. Then the doors blow open.', next: 'splinterfang' }],
+      },
+      splinterfang: {
+        say: [
+          'The doors come off their hinges. Lord Splinterfang, the Rotting King, ender of dynasties, killer of the concept of Tuesday, strides in on a carpet of termites.',
+          'He chooses your surface for his monologue. They always do. “BEHOLD the hammer that has never once failed…”',
+          'He raises it high over your grain. Barnaby, very bravely, hides behind you.',
         ],
         choices: [
-          { label: 'Wobble at her shoes, hard. Bureaucracy hates rhythm.', next: 'wobble' },
-          { label: 'The chandelier swings. Something large just landed on the roof.', next: 'morvane' },
+          { label: 'Take the hit. You are load-bearing.', next: 'bounce' },
+          { label: 'Wobble. Slowly. Ominously. Let the room decide what it means.', next: 'kneel' },
         ],
       },
-      morvane: {
+      spill: {
         say: [
-          'DEMON KING MORVANE inhales like a collapsing theater. “IN THIS HALL, YOU SHALL WITNESS…”',
-          'He is monologuing TO you. On you. His epic pause stretches exactly as long as your patience.',
+          'The ale reaches the edge at the exact speed of inevitability, and goes over.',
+          'The lieutenant leaps up, soaked, shrieking the password at full volume. Thirty patrons now know about the vault under the mill. The bard writes it into a song.',
         ],
-        choices: [
-          { label: 'Load-bearing. Let the silence do the work.', next: 'silence' },
-          { label: 'Barn. NOW. Slide me.', next: 'slide' },
-        ],
+        end: 'Renown +3. Secrets overheard: one, then everyone’s. The Split Barrel retires your drink rings as a monument.',
       },
-      silence: {
+      bounce: {
         say: [
-          'The silence grows legs. Morvane checks his notes. The notes say only: TABLE. FINAL BOSS?',
-          'He whispers, “…you built all this without moving. Inspiring, frankly.” Around him, axes set themselves down.',
+          'The hammer lands. The hammer bounces. The hammer leaves through the window and takes the Rotting King’s banner with it.',
+          'Not a scratch. The infinity, as the fine print promised, is load-bearing. Sister Mabel lights a fourth candle she also did not pay for.',
         ],
-        end: 'The tables turn. You are the tables. Alderfall sleeps beneath an immovable, load-bearing piece of destiny.',
+        end: 'Lord Splinterfang’s hammer bounced off you once. Nobody in Alderfall will ever let him forget it.',
       },
-      slide: {
+      kneel: {
         say: [
-          'Barn shoves you like a lifeboat launch. You cross the hall at terminal furniture velocity and meet Morvane at the knees.',
-          'The infinity holds. The cape regrets it. The chair in the corner sheds one bitter tear of pure joy.',
+          'You wobble. One inch, with feelings.',
+          'Lord Splinterfang lowers the hammer. The termites lower themselves. Priscilla Vane, who would deny this under oath, lowers one knee. Sir Reginald creaks in fury.',
         ],
-        end: 'One soul, four legs, zero joints: total victory. The guild frames your coaster.',
+        end: 'Somebody knelt. The Prophecy of the Fifth Leg advances one drink ring at a time.',
       },
     },
   },
   {
     slug: 'acolytes',
     short: 'ACOLYTES',
-    speaker: 'HOUSE LOG',
+    speaker: 'MORNING LOG',
     start: 'start',
     nodes: {
       start: {
         say: [
-          'ACOLYTES MAID CAFE, 6:52 AM. The kettle has just started to complain.',
-          'The chalkboard: a latte-art heart in sunglasses. SIT. STAY. SIP. Hana will claim she didn’t. Yui absolutely did.',
-          'Hana hip-bumps through the back door, hair half-pinned, tray stacked higher than her elbows. “Morning, Leader! Petre says if his usual is late again he’s filing a formal complaint with the management, which I believe means us, which I believe means you.”',
-          'Sasha, rolling silverware in the corner without looking up: “Tables three and six need wiping. And someone signed out my good grinder again. Medium dice. Taped dial.”',
-          'Yui spins upside down off the steam wand. “Three things. One, the pun is art. Two, Hana drank the syrup, I have testimony. Three…” she flips a business card out of the tip jar, “this was in OUR tip jar. Real stock. ‘Acolyte Consultancy: solutions for the unpredictable.’ No number. Our card.”',
+          'ACOLYTES MAID CAFÉ, BEFORE OPENING. Somewhere in the back, a kettle has just started to complain.',
+          'The chalkboard got redone overnight: a terrible pun, drawn in flourishes that took longer than the pun deserved. It stays up. House rules.',
+          'Hana hip-bumps through the back door with a tray of clean cups. “Morning, Leader! The pun is Yui’s. I lost the vote, so I’m legally required to call it delightful.”',
+          'Sasha, rolling silverware without looking up: “It’s a crime with chalk. Tables three and six need wiping, Boss.”',
+          'Yui, upside-down notebook, pen behind her ear: “Peace-peace. First cup of the day, Leader. House rules say you pick. How do you like your coffee?”',
         ],
         choices: [
-          { label: 'Keep your pour steady. “Card goes to Sasha. Back room. Quiet.”', next: 'card' },
-          { label: '“Who prints these? Who knows we have them?”', next: 'who' },
+          { label: '“Medium roast. Ease us into the day.”', next: 'medium' },
+          { label: '“Black coffee. No sugar, no mercy.”', next: 'black' },
         ],
       },
-      who: {
+      medium: {
         say: [
-          'Yui folds her arms. “Nobody, allegedly. We don’t hand these out. That’s the whole point of a card with no number on it.”',
-          'Sasha aligns a napkin roll to the millimeter. “Someone placed it. On brand: expensive, deliberate, and gone before the day knows.”',
+          'Yui writes MEDIUM ROAST in the notebook and underlines it twice. “A reasonable leader. The paperwork will be thrilled.”',
+          'Mira nudges the register awake for you. “Quiet night on the block. Morning set’s prepped for the 7:15 regulars.” A small smile. “Kettle’s yours. You do it better.”',
+        ],
+        choices: [{ label: 'Flip the sign. Let the floor run.', next: 'floor' }],
+      },
+      black: {
+        say: [
+          'Yui whistles low. “BLACK COFFEE. Somebody wants it hard mode.” She draws a tiny skull next to it.',
+          'Sasha’s hands stop for half a second, then keep rolling. “Boss.” From her, that is a whole speech.',
+          'Mira sets the pastry tray down a little more carefully than she needs to. Hana grins like it’s her birthday.',
+        ],
+        choices: [{ label: 'Flip the sign. Let the floor run.', next: 'floor' }],
+      },
+      floor: {
+        say: [
+          'The bell rings. The 7:15 regulars come in like weather: a courier who pays in exact change, two students who split the window seat, and the man at table six who never orders.',
+          'He leaves before the rush peaks. Under his saucer: a folded napkin with an address in the warehouse district, and a time. 04:40.',
+          'The floor is a no-violence zone. Weapons are never drawn here, and nobody on shift so much as looks at the back door. One incident would burn every cover in the city.',
         ],
         choices: [
-          { label: 'Pocket it like an ordinary thank-you. Officially.', next: 'day' },
-          { label: 'Back room. Log it. Ask after the rush.', next: 'card' },
+          { label: 'Pocket the napkin like a tip. Finish the shift.', next: 'close' },
+          { label: 'Pass it to Mira on the next tray. Let her run it during the lull.', next: 'mira' },
         ],
       },
-      card: {
+      mira: {
         say: [
-          'You slide the card to Sasha with two fingers, like it might bite. “Back room. Evidence box. Nobody photographs it until I say.”',
-          'Hana’s smile doesn’t move, and her voice drops half a register under the espresso hiss. “Right. Will do.” A beat. “That’s our paper, Leader. I’ve handled our paper.”',
-          'The 7:15 regulars come in like weather: Mr. Petre, two students, the courier who pays in exact change. The floor runs its loop. Breakfast becomes lunch. The block stays ours.',
+          'Mira reads it once between a fruit tart and a matcha cloud, and her face does not change at all. That’s how you know.',
+          '“Two heat signatures in a building nobody owns,” she murmurs on the next pass. “Thermal’s been flagging it since Sunday.” She refills a stranger’s water without spilling a drop.',
         ],
-        choices: [{ label: 'Let the day run its usual laps.', next: 'ping' }],
-      },
-      day: {
-        say: [
-          'You palm it like an ordinary customer’s thank-you. The floor runs: Petre gets his usual at 7:15 on the dot, the students split the window seat, the courier pays in exact change.',
-          'No one reaches for the back room. The morning holds its shape, because that is what the morning is for.',
-        ],
-        choices: [{ label: 'Let the day run its usual laps.', next: 'ping' }],
-      },
-      ping: {
-        say: [
-          '1:40 PM. The stockroom. Mira appears with flour on her sleeve, except it isn’t flour when she’s done. “District chatter. A pager, of all things. Deliberate. They want us looking at the warehouse district. Forty-somethingth and the frontage road. Thermal’s been flagging heat inside a dead building since Sunday.”',
-          'She smooths the napkin flat on the steel table. “They didn’t say go. They said ‘when you’re ready, Agent Zero.’ Somebody knows the designation. Somebody knows there IS one.”',
-          '“And they knew before the card,” Mira adds, quiet as a steam valve. “The card was confirmation.”',
-        ],
-        choices: [{ label: 'Wipe the same circle of counter twice. “We open tomorrow. Same as always.”', next: 'close' }],
+        choices: [{ label: 'Finish the shift. Same as always.', next: 'close' }],
       },
       close: {
         say: [
-          'The day closes on schedule: chairs tipped, machine wiped, till counted, lamps dimmed one row at a time. Out on the block the flower shop is shuttered; the bakery’s cat sleeps in the warm grill grate.',
-          'The seam runs quiet: aprons off, hung in order. Boots instead of sneakers. Radio. Ceramic plates for plates that aren’t ceramic. Four people down the back stairs like a dozen times a year, and the espresso machine behind you goes from ordinary to gone.',
-          '23:40. The briefing room, down to the good kind of dark. Wall screen: one dead warehouse, empty frontage road, and inside it, two heat signatures that shouldn’t be alive. No trucks. No plates. No wire breathing.',
-        ],
-        choices: [{ label: 'Gear check. Then the first word.', next: 'gear' }],
-      },
-      gear: {
-        say: [
-          'Hana bounces on her heels, Selector slung, good magazines taped like the dials. “Two spots, nobody home outside. That’s either nothing, or the fun kind of something.”',
-          'Sasha stands at the dark end of the screen, counting angles. “North parapet’s clean. Two fields of fire, no cross-own. If it’s real, I want the second before anyone’s inside.”',
-          'Mira seats a shell with a click that doesn’t carry. “Med kit’s by the door. I’d rather carry it home full. Stack order’s yours.”',
-          'Yui drops her notebook flat. “Hypothetically, if it eats the squad, does the suit get a vote, or just a funeral?” The grin checks the signatures anyway. “Asking for me. Peace-peace.”',
+          'Chairs tipped. Machine wiped. Till counted. Aprons off and hung in order.',
+          '04:40. The briefing room lights are dimmer than the café ever gets. A satellite photo of the warehouse waits on the wall screen. Your earpiece crackles once: comms live.',
+          'Hana is bouncing on her heels, Seven already slung. “Two heat spots, no trucks, no guards on the wire. That’s either nothing, or the fun kind of something.”',
+          'Sasha doesn’t turn from the screen. “North block roofline has two clean angles. If it’s real, I want the taller one. If it’s nothing, I want coffee.”',
+          'Mira seats the last shell in Breachwright. “Med kit’s staged by the door. I’d rather carry it home full.” Yui flips her notebook shut. “If it eats a full squad, does the suit get a vote?”',
         ],
         choices: [
-          { label: '“Stack order on me: breach, sweep, clear. Sasha, north parapet. Hana, point. Go loud on my word.”', next: 'loud' },
-          { label: '“Quiet way in. We look before we touch. If it breathes wrong, we walk and call it in dirty.”', next: 'quiet' },
+          { label: '“Sasha, take the tall roof. Mira breaches, Hana on point. Loud on my word.”', next: 'loud' },
+          { label: '“Quiet way in. We look before we touch. If it breathes wrong, we walk.”', next: 'quiet' },
         ],
       },
       loud: {
         say: [
-          'Gear settles into muscle memory. Earpieces click live, one by one. Somewhere above you the city sleeps; somewhere below it, an unmarked business card sits in an evidence bag, and somebody out there knows what you are.',
-          'The warehouse door gives on the second try. Cold air. Machine oil. Dust that never settles.',
+          'Mira’s two shells take the door off. Two is the habit; three would be a confession. Hana goes through on burst, bright as she left the floor, until the first muzzle flash. Then the brightness drops away and she is all precision.',
+          'Bullets connect and fail to do what they should. Your people go down to nothing. That is the Agency’s best-kept secret, and it stays kept.',
         ],
-        end: 'Field log, Agent 00: executed as ordered. What was inside, and who mails an officer her own card: the live story never stops asking.',
+        end: 'Field log, Agent 00: cleared and home before the 7:15 regulars. Who left the napkin is the live story’s question.',
       },
       quiet: {
         say: [
-          'Nobody argues; nobody ever has. Boots on the parapet-side approach, comms a whisper. The door reads as untouched, and patient.',
-          'Inside: cold air, machine oil, and a single chair facing the wall, like somebody sat there waiting for exactly this hour.',
+          'Boots on the parapet side, comms at a whisper. Sasha has the taller roof. Yui’s Nullcase stays quiet and leaves nothing behind it.',
+          'Inside: cold air, machine oil, and a single chair facing the wall, as if somebody sat there waiting for exactly this hour.',
         ],
-        end: 'Field log, Agent 00: observed, not committed. Tonight. What the warehouse was waiting for is the live story’s question to keep.',
+        end: 'Field log, Agent 00: observed, not committed. What the warehouse was waiting for is the live story’s to keep.',
       },
     },
   },

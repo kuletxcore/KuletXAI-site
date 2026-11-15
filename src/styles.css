@@ -186,6 +186,7 @@ button:disabled {
 
 /* Pause motion (src/lib/still.ts) stops everything on the home page that loops on its own */
 .kx-still .kx-wall-row,
+.kx-still .kx-deal-scan,
 .kx-still .cursor::after,
 .kx-still .kx-live-dot::after {
   animation-play-state: paused;
@@ -1414,7 +1415,7 @@ html.kx-lite .kx-saveband-scan {
 }
 .kx-deal-scan {
   background: linear-gradient(to bottom, transparent, rgba(0, 255, 102, 0.22), transparent);
-  animation: kxDealScan 1.7s linear 2;
+  animation: kxDealScan 1.7s linear infinite;
   pointer-events: none;
 }
 @keyframes kxDealScan {

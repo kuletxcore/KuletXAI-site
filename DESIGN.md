@@ -66,7 +66,7 @@ The three pixel and mono faces are under the SIL Open Font License (credited in 
 
 - Motion is there to show that worlds are alive, guide the eye to the next step, or give feedback on a tap.
 - **Lite mode** (weak GPUs, low memory, slow devices, Data Saver) drops video, blur and the drifting poster wall. **prefers-reduced-motion** goes further and stops every loop, the cursor blink included. The page must look finished in both states.
-- **Anything that loops for more than five seconds has an off switch.** The hero's "Pause motion" button stops the poster wall, the cursor blink, the live dot and shelf autoplay, and is remembered.
+- **Anything that loops for more than five seconds has an off switch.** The hero's "Pause motion" button stops the poster wall, the Dealer's scan line, the cursor blink, the live dot and shelf autoplay, and is remembered.
 - One-off flourishes (the save band's scan, the Dealer's pulse) run twice, then rest.
 - Video loads only when it is about to play: on hover or focus, or when it is the card in view.
 
