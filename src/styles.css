@@ -1342,3 +1342,42 @@ html.kx-boot body::before {
     font-size: 12px;
   }
 }
+
+/* SAVE STATE — the memory-card band between hero and grid (returning players only) */
+.kx-saveband {
+  animation: kxSaveIn 450ms var(--ps-ease, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+@keyframes kxSaveIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.kx-saveband-scan {
+  background: linear-gradient(90deg, transparent, rgba(255, 184, 0, 0.32), transparent);
+  animation: kxSaveScan 3.2s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+@keyframes kxSaveScan {
+  0% {
+    transform: translateX(-120%);
+  }
+  60%,
+  100% {
+    transform: translateX(1440px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kx-saveband,
+  .kx-saveband-scan {
+    animation: none;
+  }
+}
+html.kx-lite .kx-saveband,
+html.kx-lite .kx-saveband-scan {
+  animation: none;
+}

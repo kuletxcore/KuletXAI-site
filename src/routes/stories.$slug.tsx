@@ -15,6 +15,7 @@ import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
 import { KeyLabel } from '#/components/pad-glyph'
 import { PlatformChip, PlatformIcon, type Platform } from '#/components/platform'
 import { siteOrigin } from '#/lib/origin'
+import { writeSave } from '#/lib/save-state'
 import { setPerfMode, useLite, usePerfMode, watchFrameRate } from '#/lib/perf'
 import type { LiteReason } from '#/lib/perf'
 import { holdForMedia, playOst, setMusic, setMusicVolume, stopOst, useMusicVolume, useOstState, useWantedMusic } from '#/lib/music'
@@ -149,6 +150,16 @@ function StoryHub() {
   const search = Route.useSearch()
   const [tab, setTab] = useState<HubTab>(() => (search.tab === 'trimz' ? 'series' : search.tab === 'youtube' ? 'youtube' : 'stories'))
   const [section, setSection] = useState<Section>(() => (search.section && search.section in SECTION_LABEL ? (search.section as Section) : 'overview'))
+
+  // SAVE STATE — leave the memory card on every visit; the home page answers with CONTINUE
+  useEffect(() => {
+    writeSave({
+      slug: story.slug,
+      tab: tab === 'series' ? 'trimz' : tab === 'youtube' ? 'youtube' : undefined,
+      section,
+      at: Date.now(),
+    })
+  }, [story.slug, tab, section])
   const [seriesIdx, setSeriesIdx] = useState(() => Math.max(0, TRIMZ.findIndex((t) => t.key === search.series)))
   const [ytIdx, setYtIdx] = useState(() => Math.max(0, videos.findIndex((v) => v.id === search.v)))
   const activeVideo: YtVideo | undefined = videos[ytIdx]
