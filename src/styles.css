@@ -659,6 +659,12 @@ svg.ps5-picon {
   line-height: 1;
 }
 /* Keyboard prompts: hidden on touch screens, where there's no key to press */
+/* Keyboard hints hide on touch screens, whatever their width */
+@media not ((hover: hover) and (pointer: fine)) {
+  .kx-kbm-only {
+    display: none !important;
+  }
+}
 .kx-kbm {
   display: none;
 }

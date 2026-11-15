@@ -26,6 +26,9 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
+      { rel: 'icon', href: '/favicon.ico', sizes: '48x48' },
+      { rel: 'icon', href: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+      { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
       { rel: 'preload', href: '/fonts/x14y24pxHeadUpDaisy.woff2', as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' },
       { rel: 'preload', href: '/fonts/ObelMono.woff2', as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' },
     ],

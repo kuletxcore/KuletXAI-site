@@ -1121,7 +1121,7 @@ function TopBar({
   return (
     <header className="ps5-top flex flex-col-reverse gap-4 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-3 md:gap-4">
-        <ShoulderHint label={pad.connected ? labels.lb : 'Q'} />
+        <ShoulderHint label={pad.connected ? labels.lb : 'Q'} kbm={!pad.connected} />
         <nav className="ps5-tabs flex gap-6 md:gap-8" role="tablist" aria-label="Hub">
           {TAB_ORDER.map((t) => (
             <button
@@ -1140,7 +1140,7 @@ function TopBar({
             </button>
           ))}
         </nav>
-        <ShoulderHint label={pad.connected ? labels.rb : 'E'} />
+        <ShoulderHint label={pad.connected ? labels.rb : 'E'} kbm={!pad.connected} />
       </div>
       <div className="flex items-center justify-between gap-5 md:justify-end">
         <Link to="/" onClick={() => sfx('back')} className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur hover:bg-white/20 md:hidden">
@@ -1168,9 +1168,9 @@ function TitleLogo({ title, logo }: { title: string; logo?: TitleArt }) {
   )
 }
 
-function ShoulderHint({ label }: { label: string }) {
+function ShoulderHint({ label, kbm }: { label: string; kbm: boolean }) {
   return (
-    <span className="hidden shrink-0 md:inline-flex" aria-hidden>
+    <span className={`hidden shrink-0 md:inline-flex ${kbm ? 'kx-kbm-only' : ''}`} aria-hidden>
       <span className="ps5-key opacity-80">
         <KeyLabel k={label} />
       </span>
@@ -1902,9 +1902,9 @@ function ModalView({ modal, setModal, padLabel, padX }: { modal: Modal; setModal
   )
 }
 
-function Hint({ keys, label, pad, className = 'md:inline-flex' }: { keys: string[]; label: string; pad: PadKind; className?: string }) {
+function Hint({ keys, label, pad, kbm, className = 'md:inline-flex' }: { keys: string[]; label: string; pad: PadKind; kbm?: boolean; className?: string }) {
   return (
-    <span className={`hidden items-center gap-1.5 ${className}`}>
+    <span className={`hidden items-center gap-1.5 ${className} ${kbm ? 'kx-kbm-only' : ''}`}>
       {keys.map((k, i) => (
         <span key={k} className="flex items-center gap-1.5">
           {i > 0 && '/'}
@@ -1964,10 +1964,10 @@ function BottomBar({
         </>
       ) : (
         <>
-          <Hint pad={pad.kind} keys={['←', '→']} label="Navigate" />
-          {tab === 'stories' && <Hint pad={pad.kind} keys={['↑', '↓']} label="Section" className="lg:inline-flex" />}
-          <Hint pad={pad.kind} keys={['Enter']} label="Play" />
-          <Hint pad={pad.kind} keys={['Q', 'E']} label="Tabs" />
+          <Hint kbm pad={pad.kind} keys={['←', '→']} label="Navigate" />
+          {tab === 'stories' && <Hint kbm pad={pad.kind} keys={['↑', '↓']} label="Section" className="lg:inline-flex" />}
+          <Hint kbm pad={pad.kind} keys={['Enter']} label="Play" />
+          <Hint kbm pad={pad.kind} keys={['Q', 'E']} label="Tabs" />
         </>
       )}
       {/* Touch: real buttons */}
