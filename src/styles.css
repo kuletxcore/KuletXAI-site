@@ -2058,3 +2058,489 @@ html.kx-boot body::before {
     font-size: 12px;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   World shelf
+   Below the hero the worlds become a shelf of full-bleed posters. On a roomy
+   screen the section pins and vertical scroll glides it sideways; everywhere
+   else it is a plain swipeable strip.
+   ───────────────────────────────────────────────────────────────────────────── */
+.ws {
+  --ws-pad: clamp(16px, 3.4vw, 52px);
+  position: relative;
+  background: #040705;
+}
+.ws-stage {
+  --p: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(14px, 2vw, 26px);
+  padding-block: clamp(28px, 5vw, 56px);
+}
+.ws-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px 28px;
+  padding-inline: var(--ws-pad);
+}
+.ws-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--font-gamer);
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-neon);
+}
+.ws-title {
+  margin: 10px 0 0;
+  font-size: clamp(30px, 3.6vw, 48px);
+  line-height: 1;
+  color: var(--color-ink);
+}
+.ws-sub {
+  margin: 10px 0 0;
+  max-width: 44ch;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-mute);
+}
+.ws-nav {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  min-width: 190px;
+}
+.ws-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-gamer);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #4c7359;
+}
+.ws-arrow {
+  width: 14px;
+  height: 14px;
+}
+.ws-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  font-family: var(--font-gamer);
+  font-size: 11px;
+  color: #567a63;
+  letter-spacing: 0.08em;
+}
+.ws-count b {
+  font-family: var(--font-pixel);
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--color-ink);
+}
+.ws-count i {
+  font-style: normal;
+  opacity: 0.55;
+}
+.ws-ticks {
+  display: flex;
+  gap: 5px;
+  width: 100%;
+}
+.ws-ticks span {
+  flex: 1 1 0;
+  height: 3px;
+  background: rgba(41, 69, 52, 0.85);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+.ws-ticks span.is-on {
+  background: var(--color-neon);
+  box-shadow: 0 0 10px rgba(0, 255, 102, 0.45);
+}
+
+/* The shelf itself: a horizontal strip you can always swipe */
+.ws-viewport {
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--ws-pad);
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.ws-viewport::-webkit-scrollbar {
+  display: none;
+}
+.ws-track {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(12px, 1.4vw, 24px);
+  margin: 0;
+  padding: 4px var(--ws-pad) 10px;
+  list-style: none;
+}
+.ws-panel {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(84vw, 430px);
+  height: clamp(360px, 58svh, 540px);
+  overflow: hidden;
+  border: 1px solid #1b2c21;
+  border-radius: 4px;
+  background: #0a0f0c;
+  scroll-snap-align: center;
+  box-shadow: 0 18px 40px -22px #000;
+  transition: border-color 0.3s ease, box-shadow 0.35s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ws-panel:hover,
+.ws-panel:focus-within {
+  border-color: var(--accent, #00ff66);
+  box-shadow:
+    0 0 0 1px var(--accent, #00ff66),
+    0 26px 50px -24px #000,
+    0 0 40px -18px var(--accent, #00ff66);
+}
+.ws-link {
+  position: absolute;
+  inset: 0;
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.ws-link:focus-visible {
+  outline: 2px solid var(--accent, #00ff66);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.ws-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  filter: saturate(0.92) brightness(0.82);
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
+}
+.ws-panel:hover .ws-art,
+.ws-panel:focus-within .ws-art {
+  transform: scale(1.05);
+  filter: saturate(1.06) brightness(0.92);
+}
+.ws-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.ws-cover.is-ready {
+  opacity: 1;
+}
+.ws-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(4, 7, 5, 0.05) 0%, rgba(4, 7, 5, 0.12) 34%, rgba(4, 7, 5, 0.78) 72%, #040705 100%),
+    linear-gradient(90deg, rgba(4, 7, 5, 0.5) 0%, transparent 55%);
+}
+.ws-num {
+  position: absolute;
+  top: 6px;
+  left: 12px;
+  font-family: var(--font-pixel);
+  font-size: clamp(40px, 5vw, 62px);
+  line-height: 1;
+  color: rgba(215, 245, 223, 0.16);
+  text-shadow: 0 2px 20px #000;
+}
+.ws-panel:hover .ws-num,
+.ws-panel:focus-within .ws-num {
+  color: var(--accent, #00ff66);
+  opacity: 0.55;
+}
+.ws-rating,
+.ws-plat {
+  position: absolute;
+  top: 12px;
+  padding: 2px 7px;
+  font-family: var(--font-gamer);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: rgba(4, 7, 5, 0.72);
+  border: 1px solid currentColor;
+  color: var(--color-warn);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+.ws-rating {
+  right: 12px;
+}
+.ws-rating.is-adult {
+  color: var(--color-danger);
+}
+.ws-plat {
+  top: 38px;
+  right: 12px;
+  border-color: #2c4a36;
+  color: var(--color-ink);
+}
+.ws-body {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding: 18px clamp(14px, 1.6vw, 22px) clamp(16px, 1.8vw, 22px);
+  transform: translateY(6px);
+  transition: transform 0.35s var(--ws-ease, cubic-bezier(0.16, 1, 0.3, 1));
+}
+.ws-panel:hover .ws-body,
+.ws-panel:focus-within .ws-body {
+  transform: none;
+}
+.ws-logo {
+  width: auto;
+  max-width: min(88%, 340px);
+  height: auto;
+  max-height: 62px;
+  object-fit: contain;
+  object-position: left bottom;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.75));
+}
+.ws-name {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1.05;
+  color: #fff;
+}
+.ws-line {
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(215, 245, 223, 0.76);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ws-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  font-family: var(--font-gamer);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--color-mute);
+}
+.ws-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: #5f8a70;
+}
+.ws-stats {
+  color: #7fa78d;
+}
+.ws-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 2px;
+  font-family: var(--font-gamer);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent, #00ff66);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.25s ease, transform 0.3s ease;
+}
+.ws-panel:hover .ws-open,
+.ws-panel:focus-within .ws-open {
+  opacity: 1;
+  transform: none;
+}
+/* Its own control, so it sits above the panel link */
+.ws-trimz {
+  position: absolute;
+  right: 12px;
+  bottom: 14px;
+  z-index: 2;
+  padding: 5px 10px;
+  border: 1px solid #2f5540;
+  background: rgba(4, 7, 5, 0.8);
+  color: var(--color-ink);
+  font-family: var(--font-gamer);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+.ws-trimz:hover {
+  border-color: var(--color-neon);
+  color: var(--color-neon);
+  background: rgba(0, 255, 102, 0.1);
+}
+
+/* Last panel: the creator slot */
+.ws-panel-next {
+  border-style: dashed;
+  border-color: #26402f;
+  background: #070d09;
+}
+.ws-next {
+  display: flex;
+  flex-direction: column;
+}
+.ws-next-grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  opacity: 0.5;
+}
+.ws-next-grid img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) brightness(0.5);
+  transition: filter 0.4s ease, opacity 0.4s ease;
+}
+.ws-panel-next:hover .ws-next-grid img,
+.ws-panel-next:focus-within .ws-next-grid img {
+  filter: grayscale(0.2) brightness(0.72);
+}
+.ws-next-body {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  margin-top: auto;
+  padding: 20px;
+  background: linear-gradient(180deg, transparent, rgba(4, 7, 5, 0.9) 45%);
+}
+.ws-next-plus {
+  font-family: var(--font-pixel);
+  font-size: 30px;
+  line-height: 1;
+  color: var(--color-neon);
+  text-shadow: 0 0 18px rgba(0, 255, 102, 0.5);
+}
+.ws-next-title {
+  font-family: var(--font-gamer);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--color-ink);
+}
+.ws-next-sub {
+  font-size: 12px;
+  color: var(--color-mute);
+}
+
+/* Roomy screens: the section pins and scroll glides the shelf sideways */
+@media (min-width: 1024px) {
+  .ws[data-pinned='true'] .ws-stage {
+    position: sticky;
+    top: 0;
+    /* the site header is sticky, so the stage starts underneath it */
+    height: 100svh;
+    overflow: hidden;
+    justify-content: space-between;
+    padding-block: calc(4rem + clamp(18px, 2.6vw, 34px)) clamp(18px, 2.4vw, 32px);
+  }
+  .ws[data-pinned='true'] .ws-viewport {
+    flex: 1;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+  .ws[data-pinned='true'] .ws-track {
+    will-change: transform;
+  }
+  .ws[data-pinned='true'] .ws-panel {
+    width: min(44vw, 560px);
+    height: min(62svh, 600px);
+  }
+  .ws[data-pinned='true'] .ws-logo {
+    max-height: 76px;
+    max-width: min(92%, 430px);
+  }
+  .ws[data-pinned='true'] .ws-line {
+    font-size: 13px;
+    -webkit-line-clamp: 3;
+  }
+}
+
+/* Short laptop screens: keep the shelf, header and HUD inside the pinned stage */
+@media (min-width: 1024px) and (max-height: 720px) {
+  .ws[data-pinned='true'] .ws-stage {
+    padding-block: calc(4rem + 12px) 12px;
+    gap: 8px;
+  }
+  .ws[data-pinned='true'] .ws-title {
+    font-size: 32px;
+  }
+  .ws[data-pinned='true'] .ws-sub {
+    display: none;
+  }
+  .ws[data-pinned='true'] .ws-panel {
+    height: min(58svh, 460px);
+  }
+}
+
+/* Touch screens never hover, so the call to action stays visible there */
+@media (hover: none) {
+  .ws-open {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Lite mode: no glow, no hover zoom, no blur */
+.kx-lite .ws-panel,
+.kx-lite .ws-panel:hover {
+  box-shadow: none;
+}
+.kx-lite .ws-art,
+.kx-lite .ws-panel:hover .ws-art {
+  transform: none;
+  transition: none;
+}
+.kx-lite .ws-trimz,
+.kx-lite .ws-rating,
+.kx-lite .ws-plat {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-art,
+  .ws-panel,
+  .ws-body,
+  .ws-open {
+    transition: none;
+  }
+  .ws-panel:hover .ws-art {
+    transform: none;
+  }
+}
