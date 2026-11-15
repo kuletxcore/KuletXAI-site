@@ -208,6 +208,7 @@ a:focus-visible {
   font-family: "SST", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   color: #fff;
   background: #030508;
+  color-scheme: dark;
   overflow-x: clip;
 }
 
@@ -511,16 +512,17 @@ svg.ps5-picon {
 
 .ps5-pill {
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(8, 10, 14, 0.72);
+  color: rgba(255, 255, 255, 0.78);
   font-size: 12px;
   font-weight: 600;
   padding: 3px 12px;
-  transition: background-color 0.18s ease, color 0.18s ease;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
 }
 .ps5-pill:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(18, 22, 30, 0.9);
+  border-color: rgba(255, 255, 255, 0.28);
   color: #fff;
 }
 .ps5-pill.is-active {
@@ -532,8 +534,8 @@ svg.ps5-picon {
 
 .ps5-glass {
   border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(6, 8, 12, 0.72);
   -webkit-backdrop-filter: blur(18px);
   backdrop-filter: blur(18px);
 }
@@ -574,14 +576,14 @@ svg.ps5-picon {
   height: 44px;
   flex-shrink: 0;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(8, 10, 14, 0.7);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   transition: background-color 0.18s ease, transform 0.2s var(--ps-spring);
 }
 .ps5-round:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(22, 26, 34, 0.9);
   transform: scale(1.06);
 }
 .ps5-cta:focus-visible,
@@ -599,11 +601,36 @@ svg.ps5-picon {
   height: 22px;
   padding: 0 6px;
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(6, 8, 12, 0.78);
   font-size: 11px;
   font-weight: 700;
   color: #fff;
+}
+/* Classic face-button colors: cross blue, circle red, square pink, triangle green */
+.ps5-key:has(.ps-glyph-cross) {
+  color: #5BA8FF;
+  border-color: rgba(91, 168, 255, 0.55);
+  background: rgba(12, 40, 90, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(91, 168, 255, 0.12);
+}
+.ps5-key:has(.ps-glyph-circle) {
+  color: #FF5A6A;
+  border-color: rgba(255, 90, 106, 0.55);
+  background: rgba(90, 16, 28, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(255, 90, 106, 0.12);
+}
+.ps5-key:has(.ps-glyph-square) {
+  color: #FF6BB5;
+  border-color: rgba(255, 107, 181, 0.55);
+  background: rgba(90, 16, 58, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(255, 107, 181, 0.12);
+}
+.ps5-key:has(.ps-glyph-triangle) {
+  color: #4ADE80;
+  border-color: rgba(74, 222, 128, 0.55);
+  background: rgba(12, 70, 36, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(74, 222, 128, 0.12);
 }
 .ps5-key-sm {
   min-width: 18px;
