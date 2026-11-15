@@ -1322,7 +1322,7 @@ export const ISK: Record<string, IskStory> = {
         "rating": "m17",
         "role": "character",
         "portrait": "/isk/wristbound/cast/6af3c910f475b5dfb9c1696f.webp",
-        "card": "/isk/wristbound/cards/6af3c910f475b5dfb9c1696f.html?v=caa8b5fe"
+        "card": "/isk/wristbound/cards/6af3c910f475b5dfb9c1696f.html?v=5f535fe6"
       }
     ],
     "gallery": [
@@ -1464,6 +1464,6 @@ export const ISK: Record<string, IskStory> = {
       }
     ],
     "videoCover": "/isk/wristbound/cover.mp4?v=79e2b7d5",
-    "introCard": "/isk/wristbound/cards/intro.html?v=f7ee4d72"
+    "introCard": "/isk/wristbound/cards/intro.html?v=e04afcc7"
   }
 }
