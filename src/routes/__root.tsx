@@ -3,6 +3,7 @@ import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import appCss from '../styles.css?url'
 import { siteOrigin } from '#/lib/origin'
 import { PERF_HEAD_SCRIPT } from '#/lib/perf'
+import { DARK_HEAD_SCRIPT } from '#/lib/dark'
 
 const DESCRIPTION =
   'KuletX AI: interactive AI stories on IsekaiZero and KageSekai, series on Trimz and videos on YouTube.'
@@ -28,7 +29,7 @@ export const Route = createRootRoute({
       { rel: 'preload', href: '/fonts/ObelMono.woff2', as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' },
     ],
     // Lite graphics on a returning older PC, applied before first paint
-    scripts: [{ children: PERF_HEAD_SCRIPT }],
+    scripts: [{ children: PERF_HEAD_SCRIPT }, { children: DARK_HEAD_SCRIPT }],
   }),
   shellComponent: RootDocument,
 })
