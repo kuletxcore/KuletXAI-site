@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Footer, Header, SectionHead } from '#/components/site'
 import { ContinueBand } from '#/components/continue-band'
+import { WorldDealer } from '#/components/world-dealer'
 import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
 import { LiveCount, LiveDot } from '#/components/live-count'
@@ -19,6 +20,7 @@ function Home() {
       <main>
         <Hero />
         <ContinueBand />
+        <WorldDealer />
         <Stories />
         <Trimz />
         <Channels />
@@ -50,7 +52,7 @@ function Hero() {
             breaks it all down on YouTube.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a href="#stories" className="pixel bg-neon px-5 py-3 font-gamer text-sm uppercase text-void hover:bg-ink">
+            <a href="#dealer" className="pixel bg-neon px-5 py-3 font-gamer text-sm uppercase text-void hover:bg-ink">
               ▶ Play a story
             </a>
             <a
