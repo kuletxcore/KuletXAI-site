@@ -21,6 +21,49 @@
   font-weight: 100 900;
   font-display: swap;
 }
+/* SST (from the zip) is the story hub's face. Plus Jakarta Sans stays the fallback. */
+@font-face {
+  font-family: "SST";
+  src: url("/fonts/SST-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "SST";
+  src: url("/fonts/SST-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "SST";
+  src: url("/fonts/SST-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "SST";
+  src: url("/fonts/SST-Medium.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "SST";
+  src: url("/fonts/SST-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "SST";
+  src: url("/fonts/SST-Heavy.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
 
 @theme {
   --color-void: #050806;
@@ -162,7 +205,7 @@ a:focus-visible {
   --ps-tile: clamp(62px, 5vw, 80px);
   --ps-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --ps-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
-  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  font-family: "SST", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   color: #fff;
   background: #030508;
   overflow-x: clip;
@@ -684,7 +727,7 @@ html.kx-boot body::before {
   margin: 0;
   padding: 0 16px;
   text-align: center;
-  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  font-family: "SST", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(3rem, 6.5vw, 4.8rem);
   font-weight: 700;
   letter-spacing: -0.025em;
@@ -721,7 +764,7 @@ html.kx-boot body::before {
   margin: 0;
   padding: 0 24px;
   text-align: center;
-  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  font-family: "SST", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(15px, 2.15vh, 28px);
   font-weight: 400;
   letter-spacing: 0.005em;
@@ -756,7 +799,7 @@ html.kx-boot body::before {
   right: 0;
   margin: 0;
   text-align: center;
-  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  font-family: "SST", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.05em;
