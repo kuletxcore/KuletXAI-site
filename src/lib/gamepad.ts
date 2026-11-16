@@ -36,8 +36,8 @@ export const PAD_LABEL: Record<PadKind, Record<'a' | 'b' | 'x' | 'y' | 'lb' | 'r
   playstation: { a: '✕', b: '○', x: '□', y: '△', lb: 'L1', rb: 'R1' },
   // The standard mapping is positional: the bottom button is Nintendo's B, the right one is A
   switch: { a: 'B', b: 'A', x: 'Y', y: 'X', lb: 'L', rb: 'R' },
-  // Split halves: actions follow the letters printed on the right half (as on an Xbox pad); the rail buttons are SL/SR
-  gtnx: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'SL', rb: 'SR' },
+  // Split halves: prompts name the letter printed on the right half's button for each action; the rail buttons are SL/SR
+  gtnx: { a: 'B', b: 'Y', x: 'A', y: 'X', lb: 'SL', rb: 'SR' },
 }
 
 // Infinix GT NX in split mode: each half is its own pad, both spoofing Xbox ids (045e/0b13), so match the name
@@ -50,10 +50,9 @@ type Half = 'L' | 'R'
 // on the standard indexes (controller-detect gtnx-split-profile.json v6): directions 12-15 unrotated (left stick
 // / touchpad edges), face buttons 0-3 in Switch positions (left d-pad / right face buttons), SL/SR on 4/5.
 // So both halves share every role and are read by BUTTON_INDEX, like any standard pad.
-// Actions follow the printed letters, like the whole controller: printed A (continue) reports on index 3 and
-// printed Y (mute) on index 0; X and B already sit on their own indexes. The left half's d-pad buttons share
-// those indexes by position.
-const GTNX_INDEX: Partial<Record<PadButton, number>> = { a: 3, y: 0 }
+// Split-mode actions, as on sideways Joy-Cons (left half's printed d-pad arrow / right half's printed letter):
+// left/B accept (index 1), down/Y back (0), up/A interact (3), right/X mute (2).
+const GTNX_INDEX: Partial<Record<PadButton, number>> = { a: 1, b: 0, x: 3, y: 2 }
 const PAD_CLICK = 11
 const ZONES = [12, 13, 14, 15]
 // Pressing the touchpad in fires the edge under the finger ~30-100ms before index 11. A held edge counts once it

@@ -46,7 +46,7 @@ const PAD: Record<PadKind, Record<string, Entry>> = {
     ...STICK_AND_DPAD('switch'),
   },
   xbox: XBOX,
-  // GT NX split mode: actions follow the Xbox letters printed on the right half, so it gets the Xbox set.
+  // GT NX split mode: prompts show the Xbox letters printed on the right half (see PAD_LABEL), so it gets the Xbox set.
   // SL/SR (the rail buttons, which arrive as LB/RB) have no image and show as text.
   gtnx: {
     A: ['xbox-a', 'A'],
