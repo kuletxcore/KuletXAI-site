@@ -1960,7 +1960,7 @@ function BottomBar({
           {canEnter && <Hint keys={[l.x]} label={tab === 'series' ? 'Select storyline' : section === 'intro' ? 'Expand card' : `Enter ${SECTION_LABEL[section]}`} />}
           <Hint keys={['◀', '▶']} label="Navigate" />
           {tab === 'stories' && <Hint keys={['▲', '▼']} label="Section" className="lg:inline-flex" />}
-          <Hint keys={['LS']} label="Scroll" className="xl:inline-flex" />
+          {pad.kind !== 'gtnx' && <Hint keys={['LS']} label="Scroll" className="xl:inline-flex" />}
           <Hint keys={[l.a]} label={tab === 'youtube' ? 'Play' : 'Open'} />
           <Hint keys={[l.b]} label="Back" />
           <Hint keys={[l.lb, l.rb]} label="Tabs" />

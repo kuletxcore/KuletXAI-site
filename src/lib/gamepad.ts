@@ -36,7 +36,8 @@ export const PAD_LABEL: Record<PadKind, Record<'a' | 'b' | 'x' | 'y' | 'lb' | 'r
   playstation: { a: '✕', b: '○', x: '□', y: '△', lb: 'L1', rb: 'R1' },
   // The standard mapping is positional: the bottom button is Nintendo's B, the right one is A
   switch: { a: 'B', b: 'A', x: 'Y', y: 'X', lb: 'L', rb: 'R' },
-  gtnx: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'LB', rb: 'RB' },
+  // Split halves are held sideways like Joy-Cons: face buttons sit in Switch positions, and the rail buttons are SL/SR
+  gtnx: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'SL', rb: 'SR' },
 }
 
 // Infinix GT NX in split mode: each half is its own pad, both spoofing Xbox ids (045e/0b13), so match the name
@@ -45,15 +46,14 @@ const GTNX_R = /GT NX Controller-R|Infinix Controller-R/i
 const GTNX_BARE = /(GT NX|Infinix) Controller(?![-\w])/i
 type Half = 'L' | 'R'
 
-// Measured index per site button (controller-detect gtnx-split-profile.json v4). Halves report sideways.
-const GTNX_MAP: Record<Half, Partial<Record<PadButton, number[]>>> = {
-  L: { up: [3], down: [0], left: [1], right: [2], lb: [4], rb: [5], lt: [6], select: [8], start: [9] },
-  R: { a: [3], b: [1], x: [2], y: [0], lb: [4], rb: [5], rt: [7], select: [8], start: [9], up: [15], down: [14], left: [12], right: [13] },
-}
-// Left stick arrives as digital buttons, rotated 90 degrees
-const GTNX_STICK = { up: 14, down: 15, left: 13, right: 12 }
+// Held sideways (rail on top, as the Infinix app shows split mode), each half reports like a sideways Joy-Con
+// on the standard indexes (controller-detect gtnx-split-profile.json v6): directions 12-15 unrotated (left stick
+// / touchpad edges), face buttons 0-3 in Switch positions (left d-pad / right face buttons), SL/SR on 4/5.
+// So both halves share every role and are read by BUTTON_INDEX, like any standard pad.
 const PAD_CLICK = 11
-// Touchpad zones count only once held this long, since a click fires a zone ~30-100ms before index 11
+const ZONES = [12, 13, 14, 15]
+// Pressing the touchpad in fires the edge under the finger ~30-100ms before index 11. A held edge counts once it
+// has lasted this long without a click; a shorter tap counts when the finger lifts (if no click came).
 const ZONE_SETTLE = 110
 
 function halvesOf(pads: Gamepad[]): Map<Half, Gamepad> {
@@ -156,32 +156,40 @@ export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: numb
     const allPads = () => Array.from(navigator.getGamepads()).filter((p): p is Gamepad => !!p && p.connected)
     const firstPad = () => allPads()[0] ?? null
     let halves = new Map<Half, Gamepad>()
-    const zoneSince = new Map<number, number>()
-    let clickHeld = false
+    // Touchpad edges on the right half: when each press began, and whether a click spoiled it
+    const zones = new Map<number, { since: number; clicked: boolean }>()
+    const zoneTaps = new Set<number>() // edges tapped and released before settling: down for one frame
 
     const btn = (p: Gamepad | undefined, i: number) => !!p?.buttons[i] && (p.buttons[i].pressed || p.buttons[i].value > 0.5)
-    // Split-mode read: merge both halves; touchpad zones wait to settle and are dropped while it's clicked
+    const zoneDown = (i: number, now: number) => {
+      if (zoneTaps.has(i)) return true
+      const z = zones.get(i)
+      return !!z && !z.clicked && now - z.since >= ZONE_SETTLE
+    }
+    // Split-mode read: either half, by standard index; the touchpad's edges go through zoneDown
     const gtnxPressed = (b: PadButton, now: number) => {
+      const i = BUTTON_INDEX[b]
+      if (i === undefined) return false
       const L = halves.get('L')
       const R = halves.get('R')
-      if ((GTNX_MAP.L[b] ?? []).some((i) => btn(L, i))) return true
-      if (b === 'left' || b === 'right') {
-        if (btn(L, GTNX_STICK[b])) return true
-      }
-      for (const i of GTNX_MAP.R[b] ?? []) {
-        if (!btn(R, i)) continue
-        if (i < 12) return true
-        if (!clickHeld && now - (zoneSince.get(i) ?? now) >= ZONE_SETTLE) return true
-      }
-      return false
+      if (btn(L, i)) return true
+      if (ZONES.includes(i)) return zoneDown(i, now)
+      return btn(R, i)
     }
     const trackZones = (now: number) => {
       const R = halves.get('R')
-      clickHeld = btn(R, PAD_CLICK)
-      for (const i of [12, 13, 14, 15]) {
-        if (!btn(R, i)) zoneSince.delete(i)
-        else if (clickHeld) zoneSince.set(i, Infinity)
-        else if (!zoneSince.has(i)) zoneSince.set(i, now)
+      const clicked = btn(R, PAD_CLICK)
+      zoneTaps.clear()
+      for (const i of ZONES) {
+        const z = zones.get(i)
+        if (btn(R, i)) {
+          if (!z) zones.set(i, { since: now, clicked })
+          else if (clicked) z.clicked = true
+        } else if (z) {
+          // A quick tap: released before it settled, with no click
+          if (!z.clicked && now - z.since < ZONE_SETTLE) zoneTaps.add(i)
+          zones.delete(i)
+        }
       }
     }
 
@@ -194,7 +202,8 @@ export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: numb
       if (!pad) {
         raf = 0
         halves = new Map()
-        zoneSince.clear()
+        zones.clear()
+        zoneTaps.clear()
         held.clear()
         repeats.clear()
         lastFrame = 0
@@ -230,9 +239,8 @@ export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: numb
           repeats.delete(b)
         }
       }
-      // Split mode has no analog axes: the left stick's up/down scrolls at full tilt
-      const L = halves.get('L')
-      const y = split ? (btn(L, GTNX_STICK.down) ? 1 : 0) - (btn(L, GTNX_STICK.up) ? 1 : 0) : (pad.axes[1] ?? 0)
+      // Split mode has no analog axes: the stick and touchpad are D-pads there, so nothing scrolls
+      const y = split ? 0 : (pad.axes[1] ?? 0)
       if (Math.abs(y) > DEADZONE && scroller.current) {
         tiltSince ||= now
         const t = Math.min(1, (Math.abs(y) - DEADZONE) / (1 - DEADZONE))
