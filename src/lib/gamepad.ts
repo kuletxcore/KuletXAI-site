@@ -202,6 +202,8 @@ export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: numb
       }
       const dt = lastFrame ? Math.min(50, now - lastFrame) : 16.7
       lastFrame = now
+      // Chrome hands out snapshots, so the halves are re-read every frame
+      halves = halvesOf(allPads())
       const split = halves.size > 0
       if (split) trackZones(now)
       const isDown = (b: PadButton) => (split ? gtnxPressed(b, now) : pressed(pad, b))
