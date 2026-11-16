@@ -275,6 +275,8 @@ function StoryHub() {
     const el = items[subIdx]
     if (!el) return
     el.setAttribute('data-sub-active', '')
+    // While a card is open its Close button keeps focus; the item gets it back when the card closes
+    if (modal) return
     el.focus({ preventScroll: true })
     glideIntoView(el)
   }, [subIdx, modal])
