@@ -36,7 +36,7 @@ export const PAD_LABEL: Record<PadKind, Record<'a' | 'b' | 'x' | 'y' | 'lb' | 'r
   playstation: { a: '✕', b: '○', x: '□', y: '△', lb: 'L1', rb: 'R1' },
   // The standard mapping is positional: the bottom button is Nintendo's B, the right one is A
   switch: { a: 'B', b: 'A', x: 'Y', y: 'X', lb: 'L', rb: 'R' },
-  // Split halves are held sideways like Joy-Cons: face buttons sit in Switch positions, and the rail buttons are SL/SR
+  // Split halves: actions follow the letters printed on the right half (as on an Xbox pad); the rail buttons are SL/SR
   gtnx: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'SL', rb: 'SR' },
 }
 
@@ -50,6 +50,10 @@ type Half = 'L' | 'R'
 // on the standard indexes (controller-detect gtnx-split-profile.json v6): directions 12-15 unrotated (left stick
 // / touchpad edges), face buttons 0-3 in Switch positions (left d-pad / right face buttons), SL/SR on 4/5.
 // So both halves share every role and are read by BUTTON_INDEX, like any standard pad.
+// Actions follow the printed letters, like the whole controller: printed A (continue) reports on index 3 and
+// printed Y (mute) on index 0; X and B already sit on their own indexes. The left half's d-pad buttons share
+// those indexes by position.
+const GTNX_INDEX: Partial<Record<PadButton, number>> = { a: 3, y: 0 }
 const PAD_CLICK = 11
 const ZONES = [12, 13, 14, 15]
 // Pressing the touchpad in fires the edge under the finger ~30-100ms before index 11. A held edge counts once it
@@ -173,7 +177,7 @@ export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: numb
     }
     // Split-mode read: either half, by standard index; the touchpad's edges go through zoneDown
     const gtnxPressed = (b: PadButton, now: number) => {
-      const i = BUTTON_INDEX[b]
+      const i = GTNX_INDEX[b] ?? BUTTON_INDEX[b]
       if (i === undefined) return false
       const L = halves.get('L')
       const R = halves.get('R')

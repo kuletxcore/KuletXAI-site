@@ -46,15 +46,14 @@ const PAD: Record<PadKind, Record<string, Entry>> = {
     ...STICK_AND_DPAD('switch'),
   },
   xbox: XBOX,
-  // GT NX split mode: the halves are held sideways like Joy-Cons, and their face buttons report in Switch
-  // positions (A right, B bottom, X top, Y left), so they get the Switch set. SL/SR (the rail buttons, which
-  // arrive as LB/RB) have no image and show as text.
+  // GT NX split mode: actions follow the Xbox letters printed on the right half, so it gets the Xbox set.
+  // SL/SR (the rail buttons, which arrive as LB/RB) have no image and show as text.
   gtnx: {
-    A: ['switch-a', 'A'],
-    B: ['switch-b', 'B'],
-    X: ['switch-x', 'X'],
-    Y: ['switch-y', 'Y'],
-    ...STICK_AND_DPAD('switch'),
+    A: ['xbox-a', 'A'],
+    B: ['xbox-b', 'B'],
+    X: ['xbox-x', 'X'],
+    Y: ['xbox-y', 'Y'],
+    ...STICK_AND_DPAD('xbox'),
   },
   generic: XBOX,
 }
