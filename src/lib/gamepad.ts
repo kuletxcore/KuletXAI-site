@@ -26,7 +26,7 @@ const BUTTON_INDEX: Partial<Record<PadButton, number>> = {
 }
 const DIRECTIONS = new Set<PadButton>(['up', 'down', 'left', 'right'])
 const STICK = 0.6
-const REPEAT_DELAY = 380
+const REPEAT_DELAY = 500
 // A held direction repeats faster the longer it's held: 140ms, then 80ms, then 45ms
 const repeatEvery = (n: number) => (n < 3 ? 140 : n < 8 ? 80 : 45)
 
