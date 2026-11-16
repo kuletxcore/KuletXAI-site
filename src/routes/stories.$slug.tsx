@@ -384,6 +384,9 @@ function StoryHub() {
     detailsKey.current = key
   })
 
+  // GT NX split mode has no stick to scroll with, so up/down scrolls an open card instead
+  const modalOpen = useRef(false)
+  modalOpen.current = !!modal
   const pad = useGamepad((b: PadButton) => {
     const fire = (key: string) => window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
     if (window.__kxBootActive) return fire('Enter') // any button skips the start screen
@@ -426,7 +429,7 @@ function StoryHub() {
       setMuted(next)
       if (!next) sfx('nav')
     }
-  }, stickScroll)
+  }, stickScroll, () => modalOpen.current)
 
   // Background music for whatever is highlighted; the YouTube tab stays quiet for the videos
   const nowPlaying: Track | null =

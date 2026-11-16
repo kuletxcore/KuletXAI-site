@@ -53,7 +53,7 @@ type Half = 'L' | 'R'
 const PAD_CLICK = 11
 const ZONES = [12, 13, 14, 15]
 // Pressing the touchpad in fires the edge under the finger ~30-100ms before index 11. A held edge counts once it
-// has lasted this long without a click; a shorter tap counts when the finger lifts (if no click came).
+// has lasted this long without a click; a press that lifts before it was counted (and had no click) counts as it lifts.
 const ZONE_SETTLE = 110
 
 function halvesOf(pads: Gamepad[]): Map<Half, Gamepad> {
@@ -136,13 +136,16 @@ const RAMP_MS = 700
 /**
  * onPress: digital buttons and D-pad (plus stick left/right).
  * onScroll: left stick up/down, in pixels for this frame (eased, with a deadzone).
+ * dpadScrolls: GT NX split mode has no analog stick; while this returns true, held up/down scrolls instead.
  */
-export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: number) => void) {
+export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: number) => void, dpadScrolls?: () => boolean) {
   const [state, setState] = useState<PadInfo>(NO_PAD)
   const handler = useRef(onPress)
   handler.current = onPress
   const scroller = useRef(onScroll)
   scroller.current = onScroll
+  const dpadScroll = useRef(dpadScrolls)
+  dpadScroll.current = dpadScrolls
 
   useEffect(() => {
     if (typeof navigator === 'undefined' || !('getGamepads' in navigator)) return
@@ -157,14 +160,16 @@ export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: numb
     const firstPad = () => allPads()[0] ?? null
     let halves = new Map<Half, Gamepad>()
     // Touchpad edges on the right half: when each press began, and whether a click spoiled it
-    const zones = new Map<number, { since: number; clicked: boolean }>()
-    const zoneTaps = new Set<number>() // edges tapped and released before settling: down for one frame
+    const zones = new Map<number, { since: number; clicked: boolean; counted: boolean }>()
+    const zoneTaps = new Set<number>() // edges released before they counted as held: down for one frame
 
     const btn = (p: Gamepad | undefined, i: number) => !!p?.buttons[i] && (p.buttons[i].pressed || p.buttons[i].value > 0.5)
     const zoneDown = (i: number, now: number) => {
       if (zoneTaps.has(i)) return true
       const z = zones.get(i)
-      return !!z && !z.clicked && now - z.since >= ZONE_SETTLE
+      if (!z || z.clicked || now - z.since < ZONE_SETTLE) return false
+      z.counted = true
+      return true
     }
     // Split-mode read: either half, by standard index; the touchpad's edges go through zoneDown
     const gtnxPressed = (b: PadButton, now: number) => {
@@ -183,11 +188,11 @@ export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: numb
       for (const i of ZONES) {
         const z = zones.get(i)
         if (btn(R, i)) {
-          if (!z) zones.set(i, { since: now, clicked })
+          if (!z) zones.set(i, { since: now, clicked, counted: false })
           else if (clicked) z.clicked = true
         } else if (z) {
-          // A quick tap: released before it settled, with no click
-          if (!z.clicked && now - z.since < ZONE_SETTLE) zoneTaps.add(i)
+          // Lifted before any frame saw it as held (a quick tap, or one that settled between two frames)
+          if (!z.clicked && !z.counted) zoneTaps.add(i)
           zones.delete(i)
         }
       }
@@ -239,8 +244,8 @@ export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: numb
           repeats.delete(b)
         }
       }
-      // Split mode has no analog axes: the stick and touchpad are D-pads there, so nothing scrolls
-      const y = split ? 0 : (pad.axes[1] ?? 0)
+      // Split mode has no analog axes: the stick and touchpad are D-pads there, so up/down scrolls when asked to
+      const y = !split ? (pad.axes[1] ?? 0) : dpadScroll.current?.() ? Number(isDown('down')) - Number(isDown('up')) : 0
       if (Math.abs(y) > DEADZONE && scroller.current) {
         tiltSince ||= now
         const t = Math.min(1, (Math.abs(y) - DEADZONE) / (1 - DEADZONE))
