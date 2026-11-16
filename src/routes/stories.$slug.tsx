@@ -465,8 +465,10 @@ function StoryHub() {
   useEffect(() => {
     if (!pad.connected) return
     setPadToast(
-      pad.model
-        ? `${pad.model} wireless controller connected`
+      pad.kind === 'gtnx'
+        ? `${pad.model} controller connected (split mode)`
+        : pad.model
+          ? `${pad.model} wireless controller connected`
         : pad.kind === 'playstation'
           ? 'PlayStation controller connected'
           : pad.kind === 'xbox'

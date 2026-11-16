@@ -46,6 +46,8 @@ const PAD: Record<PadKind, Record<string, Entry>> = {
     ...STICK_AND_DPAD('switch'),
   },
   xbox: XBOX,
+  // GT NX halves carry Xbox letters (a Switch-style split shape, but Xbox labels)
+  gtnx: XBOX,
   generic: XBOX,
 }
 
