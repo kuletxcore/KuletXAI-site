@@ -27,8 +27,8 @@ const BUTTON_INDEX: Partial<Record<PadButton, number>> = {
 const DIRECTIONS = new Set<PadButton>(['up', 'down', 'left', 'right'])
 const STICK = 0.6
 const REPEAT_DELAY = 500
-// A held direction repeats faster the longer it's held: 140ms, then 80ms, then 45ms
-const repeatEvery = (n: number) => (n < 3 ? 140 : n < 8 ? 80 : 45)
+// A held direction repeats faster the longer it's held: 380ms after the first repeat, then 140ms, 80ms, 45ms
+const repeatEvery = (n: number) => (n < 2 ? 380 : n < 5 ? 140 : n < 10 ? 80 : 45)
 
 export const PAD_LABEL: Record<PadKind, Record<'a' | 'b' | 'x' | 'y' | 'lb' | 'rb', string>> = {
   xbox: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'LB', rb: 'RB' },
@@ -139,7 +139,8 @@ const RAMP_MS = 700
 /**
  * onPress: digital buttons and D-pad (plus stick left/right).
  * onScroll: left stick up/down, in pixels for this frame (eased, with a deadzone).
- * dpadScrolls: GT NX split mode has no analog stick; while this returns true, held up/down scrolls instead.
+ * dpadScrolls: GT NX split mode has no analog stick; while this returns true, or while a trigger is held,
+ * held up/down scrolls instead.
  */
 export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: number) => void, dpadScrolls?: () => boolean) {
   const [state, setState] = useState<PadInfo>(NO_PAD)
@@ -230,10 +231,14 @@ export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: numb
         raf = requestAnimationFrame(loop)
         return
       }
+      // Split mode: holding a trigger turns the stick / touchpad into a scroll control, so directions don't navigate
+      const trigger = split && (isDown('lt') || isDown('rt'))
       for (const b of buttons) {
         const down = isDown(b)
         const next = held.get(b)
-        if (down && next === undefined) {
+        if (down && trigger && DIRECTIONS.has(b)) {
+          held.set(b, Infinity) // swallowed: stays quiet until released, even if the trigger lifts first
+        } else if (down && next === undefined) {
           handler.current(b)
           held.set(b, DIRECTIONS.has(b) ? now + REPEAT_DELAY : Infinity)
           repeats.set(b, 0)
@@ -248,7 +253,7 @@ export function useGamepad(onPress: (b: PadButton) => void, onScroll?: (dy: numb
         }
       }
       // Split mode has no analog axes: the stick and touchpad are D-pads there, so up/down scrolls when asked to
-      const y = !split ? (pad.axes[1] ?? 0) : dpadScroll.current?.() ? Number(isDown('down')) - Number(isDown('up')) : 0
+      const y = !split ? (pad.axes[1] ?? 0) : trigger || dpadScroll.current?.() ? Number(isDown('down')) - Number(isDown('up')) : 0
       if (Math.abs(y) > DEADZONE && scroller.current) {
         tiltSince ||= now
         const t = Math.min(1, (Math.abs(y) - DEADZONE) / (1 - DEADZONE))
