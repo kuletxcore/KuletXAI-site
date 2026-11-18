@@ -12,10 +12,13 @@ Live at [kuletxai.whop.site](https://kuletxai.whop.site), mirrored at [kuletxai.
 - **The World Dealer.** Can't pick a world? Tap a vibe (or SURPRISE ME) and the deck deals you a card: poster, live stats, a one-tap link to play on IsekaiZero, or its world file here. SFW/17+ only.
 - **The Teaser.** A scripted, playable teaser of the AI storyteller embedded on the landing page — I AM THE TABLE (comedy) and the full Acolytes café-to-contact arc (warm café register into the tactical brief) — branching choices, keyboard picks, and a deep link into the real storyline at the end. No account needed.
 - **Story hub.** Every story gets its own screen with an overview, intro card, cast, gallery, soundtrack player and trophies. It works with a controller, a keyboard or touch.
-- **Two platforms.** Stories live on [IsekaiZero](https://www.isekaizero.ai), and the 18+ ones on [KageSekai](https://www.kagesekai.ai). Likes, chats and message counts are read from each platform's API.
+- **Controller prompts.** Button prompts match the pad you plug in: PlayStation (PS5 glyphs on light, PS4 on dark, and always PS4 for a DualShock 4), Xbox, Nintendo Switch, and the Infinix GT NX in split mode, where each half is read like a sideways Joy-Con. Keyboard hints show only on devices with a mouse. Prompt art is Nicolae "Xelu" Berbece's free set (CC0), at 256px in full mode and 100px in Lite mode.
+- **Creator credits.** Cast members made by other creators carry a "Character by" link to their profile on the cast card.
+- **Two platforms.** Stories live on [IsekaiZero](https://www.isekaizero.ai), and the 18+ ones on [KageSekai](https://www.kagesekai.ai). Likes, saves, chats and message counts are read from each platform's API every hour.
 - **Series and videos.** The Trimz series and YouTube videos sit in the same hub, next to the stories they came from.
 - **Lite mode.** Weak phones and old integrated GPUs get a lighter site with no video backdrops or blur. It switches on by itself and can be toggled in the volume panel.
 - **Startup screen.** A short boot sequence plays once per session.
+- **Dark surfaces and Pause motion.** The story hub's volume panel has a dark theme switch, and the home page has a Pause motion button that stops the looping animations.
 
 ## Stack
 
