@@ -332,12 +332,13 @@ export const STORIES: Story[] = [
     ],
     world: [
       { label: 'The Wristbound', text: 'A witch’s charm, not a machine. A black braid with a pale stone that ties itself to one wrist and answers that person alone. Cut it, burn it, throw it away: it comes back within the hour.' },
-      { label: 'Twelve knots', text: 'Mitsuki’s own sits first, and it is never worn. The other eleven are hours a woman gave freely. The first change is the die’s pick. After that, you choose.' },
+      { label: 'Ten knots', text: 'Mitsuki’s own sits first. Every other knot is an hour a woman gave freely. The cord picks which one you wear until you have worn all ten. After that, you choose.' },
       { label: 'The cost', text: 'Hard work burns the hour faster. It refills only out of her own life, slowly, and only while she is content. When it is gone you come home wrecked.' },
     ],
     cast: [
       { name: 'Lena Hoshino', role: 'Your best friend, there when the cord tied itself. No powers, practical hands, and a ledger of what it costs. She is not a knot, and she can never be worn.' },
-      { name: 'Mitsuki', role: 'Wove the cord by hand in a shop between worlds. Her knot is first of the twelve, never worn, and she keeps it closed until she is satisfied.' },
+      { name: 'Mitsuki', role: 'Wove the cord by hand in a shop between worlds. Her knot is first in the braid, and she keeps it closed until she is satisfied.' },
+      { name: 'Jiku', role: 'Mitsuki’s cat, and a dimensional guardian, not a pet. Terse, dignified, permanently unimpressed. Only she understands him, until you earn it.' },
     ],
     hook: 'An hour in a form. A body you did not choose. A world that has started to notice.',
   },

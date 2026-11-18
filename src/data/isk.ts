@@ -1318,11 +1318,20 @@ export const ISK: Record<string, IskStory> = {
       {
         "id": "6af3c910f475b5dfb9c1696f",
         "name": "Mitsuki",
-        "summary": "She wove the Wristbound by hand: a black braid with a pale stone that ties itself to one wrist. Her own knot sits first of the twelve, never worn, and she keeps it closed until she is satisfied.",
-        "rating": "m17",
+        "summary": "She wove the Wristbound by hand: a black braid with a pale stone that ties itself to one wrist. Her own knot sits first in the braid, and she keeps it closed until she is satisfied.",
+        "rating": "18+",
         "role": "character",
         "portrait": "/isk/wristbound/cast/6af3c910f475b5dfb9c1696f.webp",
         "card": "/isk/wristbound/cards/6af3c910f475b5dfb9c1696f.html?v=5f535fe6"
+      },
+      {
+        "id": "6a69608ea39935392b974ecd",
+        "name": "Jiku",
+        "summary": "A dimensional guardian who is not a pet. Terse, dignified, permanently unimpressed. Only Mitsuki understands him, until you earn it.",
+        "rating": "sfw",
+        "role": "character",
+        "portrait": "/isk/wristbound/cast/6a69608ea39935392b974ecd.webp",
+        "card": "/isk/wristbound/cards/6a69608ea39935392b974ecd.html?v=9310cc0a"
       }
     ],
     "gallery": [
@@ -1464,6 +1473,6 @@ export const ISK: Record<string, IskStory> = {
       }
     ],
     "videoCover": "/isk/wristbound/cover.mp4?v=79e2b7d5",
-    "introCard": "/isk/wristbound/cards/intro.html?v=e04afcc7"
+    "introCard": "/isk/wristbound/cards/intro.html?v=f7ee4d72"
   }
 }
