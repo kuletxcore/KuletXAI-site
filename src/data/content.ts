@@ -87,6 +87,8 @@ export type Story = {
   likes: number
   chats: number
   messages: number
+  /** Collects (saves) */
+  saves: number
   /** Accent color for this story's mini-site */
   accent: string
   kicker: string
@@ -116,6 +118,7 @@ export const STORIES: Story[] = [
     likes: 170,
     chats: 139,
     messages: 3400,
+    saves: 341,
     accent: '#ff3b5c',
     kicker: 'Acolyte Consultancy · Agent 00 file',
     pitch: [
@@ -150,6 +153,7 @@ export const STORIES: Story[] = [
     likes: 36,
     chats: 40,
     messages: 752,
+    saves: 75,
     accent: '#38bdf8',
     kicker: 'Rift Response Division · Eyes only',
     pitch: [
@@ -180,6 +184,7 @@ export const STORIES: Story[] = [
     likes: 14,
     chats: 20,
     messages: 398,
+    saves: 25,
     accent: '#f5b301',
     kicker: 'Kingsmere Academy · The vacant seat',
     pitch: [
@@ -216,6 +221,7 @@ export const STORIES: Story[] = [
     likes: 11,
     chats: 11,
     messages: 1348,
+    saves: 19,
     accent: '#a78bfa',
     kicker: 'Meridian · Rolling…',
     pitch: [
@@ -248,6 +254,7 @@ export const STORIES: Story[] = [
     likes: 5,
     chats: 9,
     messages: 110,
+    saves: 16,
     accent: '#f59e0b',
     kicker: 'Alderfall · One soul, four legs, zero joints',
     pitch: [
@@ -281,6 +288,7 @@ export const STORIES: Story[] = [
     likes: 6,
     chats: 2,
     messages: 22,
+    saves: 27,
     accent: '#c77dff',
     kicker: 'Kestrel City · The box under the floorboard',
     pitch: [
@@ -315,6 +323,7 @@ export const STORIES: Story[] = [
     likes: 0,
     chats: 0,
     messages: 0,
+    saves: 8,
     accent: '#a05cff',
     kicker: 'The Wristbound · The lab under the farmhouse',
     pitch: [

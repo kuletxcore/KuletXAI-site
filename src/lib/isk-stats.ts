@@ -6,7 +6,7 @@ import { isLite } from '#/lib/perf'
  * Live IsekaiZero and Trimz counts. Pages render the numbers baked into content.ts (so server HTML and hydration match), then
  * swap in /api/isk-stats, re-checked on load, when the tab comes back, and on a timer while the page is open.
  */
-export type IskCounts = { messages?: number; chats?: number; likes?: number }
+export type IskCounts = { messages?: number; chats?: number; likes?: number; saves?: number }
 export type TrimzCounts = { views?: number; episodes?: number }
 export type IskStats = { t: number; stories: Record<string, IskCounts>; trimz?: Record<string, TrimzCounts> }
 export type CountKey = keyof IskCounts

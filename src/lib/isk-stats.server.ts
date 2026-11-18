@@ -13,8 +13,8 @@ const API = { isk: 'https://api-global.isekaizero.ai/api/storylines/', kage: 'ht
 // One public listing covers every series on trimz.tv/u/kuletxcore
 const TRIMZ_API = 'https://api.trimz.tv/api/ms/public-series?limit=50&order=updated_desc&owner_username=kuletxcore&locale=en'
 const UA = 'kuletx-hub/1.0 (+https://kuletxai.whop.site)'
-const FRESH_KEY = 'https://kuletxai.whop.site/__cache/isk-stats/v3'
-const LAST_KEY = 'https://kuletxai.whop.site/__cache/isk-stats/v3-last'
+const FRESH_KEY = 'https://kuletxai.whop.site/__cache/isk-stats/v4'
+const LAST_KEY = 'https://kuletxai.whop.site/__cache/isk-stats/v4-last'
 
 let memory: IskStats | null = null
 let inflight: Promise<IskStats | null> | null = null
@@ -34,8 +34,8 @@ async function readStory({ id, rating }: Pick<Story, 'id' | 'rating'>): Promise<
   const body = (await res.json()) as { data?: { _id?: string; engagement?: Record<string, unknown> } }
   const e = body.data?._id === id ? body.data.engagement : undefined
   if (!e) throw new Error(`storyline ${id}: no engagement block`)
-  const out: IskCounts = { messages: count(e.messageCount), chats: count(e.chatCount), likes: count(e.likeCount) }
-  if (out.messages === undefined && out.chats === undefined && out.likes === undefined) {
+  const out: IskCounts = { messages: count(e.messageCount), chats: count(e.chatCount), likes: count(e.likeCount), saves: count(e.collectCount) }
+  if (Object.values(out).every((v) => v === undefined)) {
     throw new Error(`storyline ${id}: no counts`)
   }
   return out

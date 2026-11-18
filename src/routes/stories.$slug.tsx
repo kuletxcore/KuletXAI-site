@@ -1243,7 +1243,7 @@ function StoryDetails({
               <p key={p.slice(0, 24)}>{p}</p>
             ))}
             <p className="pt-1 text-xs font-semibold text-white/55">
-              ♥ <LiveCount key={`${story.slug}:likes`} value={countOf(live, story, 'likes')} /> likes · <LiveCount key={`${story.slug}:chats`} value={countOf(live, story, 'chats')} /> chats ·{' '}
+              ♥ <LiveCount key={`${story.slug}:likes`} value={countOf(live, story, 'likes')} /> likes · <LiveCount key={`${story.slug}:saves`} value={countOf(live, story, 'saves')} /> saves · <LiveCount key={`${story.slug}:chats`} value={countOf(live, story, 'chats')} /> chats ·{' '}
               <LiveCount key={`${story.slug}:messages`} value={countOf(live, story, 'messages')} /> messages on {storyPlatformName(story)}
             </p>
             {STORY_MUSIC[story.slug]?.ost && (

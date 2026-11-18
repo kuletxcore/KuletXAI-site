@@ -243,8 +243,9 @@ function DealtCard({
               </span>
             ))}
           </div>
-          <p className="mt-4 font-gamer text-xs text-mute" title={`Likes · chats · messages on ${platform}`}>
-            ♥ <LiveCount value={countOf(live, story, 'likes')} /> · ✉ <LiveCount value={countOf(live, story, 'chats')} />{' '}
+          <p className="mt-4 font-gamer text-xs text-mute" title={`Likes · saves · chats · messages on ${platform}`}>
+            ♥ <LiveCount value={countOf(live, story, 'likes')} /> · ★ <LiveCount value={countOf(live, story, 'saves')} /> · ✉{' '}
+            <LiveCount value={countOf(live, story, 'chats')} />{' '}
             · <LiveCount value={countOf(live, story, 'messages')} compact /> MSG <LiveDot className="ml-1 inline-block align-middle" />
           </p>
 

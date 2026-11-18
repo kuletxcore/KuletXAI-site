@@ -84,6 +84,7 @@ function Hero() {
               value={<LiveCount value={totalOf(live, 'messages')} />}
             />
             <Stat label="player likes" value={<LiveCount value={totalOf(live, 'likes')} />} />
+            <Stat label="story saves" value={<LiveCount value={totalOf(live, 'saves')} />} />
             <Stat label="chats started" value={<LiveCount value={totalOf(live, 'chats')} />} />
             <Stat label="trimz series" value={TRIMZ.length} />
             <Stat label="motto" value="outslopping the competition" small />
@@ -311,8 +312,8 @@ function Stories() {
                     ))}
                   </div>
                   <div className="mt-5 flex items-center justify-between border-t border-line pt-4 font-gamer text-xs">
-                    <span className="text-mute" title={`Likes · chats · messages on ${storyPlatformName(s)}`}>
-                      ♥ <LiveCount value={countOf(live, s, 'likes')} /> · ✉ <LiveCount value={countOf(live, s, 'chats')} /> ·{' '}
+                    <span className="text-mute" title={`Likes · saves · chats · messages on ${storyPlatformName(s)}`}>
+                      ♥ <LiveCount value={countOf(live, s, 'likes')} /> · ★ <LiveCount value={countOf(live, s, 'saves')} /> · ✉ <LiveCount value={countOf(live, s, 'chats')} /> ·{' '}
                       <LiveCount value={countOf(live, s, 'messages')} compact /> MSG
                     </span>
                     <span className="text-neon">ENTER →</span>
