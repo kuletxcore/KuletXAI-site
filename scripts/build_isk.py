@@ -22,6 +22,7 @@ API = 'https://api-global.isekaizero.ai/api'
 # 18+ storylines are served by KageSekai's own API
 KAGE_API = 'https://api.kagesekai.ai/api'
 KAGE = {'wristbound'}
+OWN_USER_ID = '6a9457a462f8f09c667828f7'  # kuletxcore
 
 STORIES = {
     'acolytes': '6aa78f6bd17fe984ab332064',
@@ -69,9 +70,6 @@ CARD_FIXES = {
     ],
     'wristbound': [
         ('width:100%; max-width:640px; background', 'width:100%; max-width:640px; margin:0 auto; background'),
-        # Jiku's shared character names his companion from another story; here he is Mitsuki's cat
-        ('Only Michiru understands him — until you earn it.', 'Only Mitsuki understands him, until you earn it.'),
-        ('>MICHIRU<', '>MITSUKI<'),
         # The braid went from twelve knots to ten; Mitsuki's summary still counts twelve
         ('sits first of the twelve', 'sits first in the braid'),
     ],
@@ -213,6 +211,13 @@ def cast_entry(slug, c, role):
         'rating': c.get('contentRating') or 'sfw',
         'role': role,
     }
+    # Characters by other creators get a credit linking to their profile
+    user = c.get('user') if isinstance(c.get('user'), dict) else {}
+    uid = c.get('_userId') or user.get('_id')
+    uname = c.get('creatorUsername') or user.get('username')
+    if uid and uname and uid != OWN_USER_ID:
+        site = 'https://www.kagesekai.ai' if slug in KAGE else 'https://www.isekaizero.ai'
+        out['creator'] = {'name': uname, 'url': f'{site}/creator/{uid}'}
     cover = (c.get('cover') or {}).get('url')
     if cover:
         save_image(cover, os.path.join(PUB, slug, 'cast', f'{cid}.webp'), 600, 800)
@@ -325,7 +330,7 @@ def main():
     result = {slug: result[slug] for slug in STORIES if slug in result}
     with open(ISK_TS, 'w', encoding='utf-8') as f:
         f.write('// Generated from public IsekaiZero and KageSekai storyline data. Re-run build_isk.py to refresh.\n')
-        f.write('export type IskCast = { id: string; name: string; summary: string; rating: string; role: "persona" | "character"; portrait?: string; card?: string }\n')
+        f.write('export type IskCast = { id: string; name: string; summary: string; rating: string; role: "persona" | "character"; portrait?: string; card?: string; creator?: { name: string; url: string } }\n')
         f.write('export type IskMedia = { type: "image" | "video"; src: string; thumb?: string; w: number; h: number; caption: string }\n')
         f.write('export type IskStory = { videoCover?: string; introCard?: string; cast: IskCast[]; gallery: IskMedia[] }\n\n')
         f.write(ISK_DECL)

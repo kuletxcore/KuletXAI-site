@@ -1,5 +1,5 @@
 // Generated from public IsekaiZero and KageSekai storyline data. Re-run build_isk.py to refresh.
-export type IskCast = { id: string; name: string; summary: string; rating: string; role: "persona" | "character"; portrait?: string; card?: string }
+export type IskCast = { id: string; name: string; summary: string; rating: string; role: "persona" | "character"; portrait?: string; card?: string; creator?: { name: string; url: string } }
 export type IskMedia = { type: "image" | "video"; src: string; thumb?: string; w: number; h: number; caption: string }
 export type IskStory = { videoCover?: string; introCard?: string; cast: IskCast[]; gallery: IskMedia[] }
 
@@ -1327,11 +1327,15 @@ export const ISK: Record<string, IskStory> = {
       {
         "id": "6a69608ea39935392b974ecd",
         "name": "Jiku",
-        "summary": "A dimensional guardian who is not a pet. Terse, dignified, permanently unimpressed. Only Mitsuki understands him, until you earn it.",
+        "summary": "A dimensional guardian who is not a pet. Terse, dignified, permanently unimpressed. Only Michiru understands him — until you earn it.",
         "rating": "sfw",
         "role": "character",
+        "creator": {
+          "name": "kroner",
+          "url": "https://www.kagesekai.ai/creator/698c31e7ced42ca4d1ba5355"
+        },
         "portrait": "/isk/wristbound/cast/6a69608ea39935392b974ecd.webp",
-        "card": "/isk/wristbound/cards/6a69608ea39935392b974ecd.html?v=9310cc0a"
+        "card": "/isk/wristbound/cards/6a69608ea39935392b974ecd.html?v=0a348141"
       }
     ],
     "gallery": [

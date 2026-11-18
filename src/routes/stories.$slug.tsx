@@ -396,6 +396,7 @@ function StoryHub() {
       const watch = modal.kind === 'cast' ? castTrimz(modal.cast.id) : undefined
       if (b === 'b') fire('Escape')
       else if (b === 'a' && watch) openExternal(trimzSeriesUrl(watch.slug))
+      else if (b === 'a' && modal.kind === 'cast' && modal.cast.creator) openExternal(modal.cast.creator.url)
       else if (b === 'x') toggleRedaction('modal')
       else if (b === 'left') fire('ArrowLeft')
       else if (b === 'right') fire('ArrowRight')
@@ -1302,6 +1303,7 @@ function StoryDetails({
                         Trimz{castTrimz(c.id)!.key === 'side-b' ? ' · Side B' : ''}
                       </span>
                     )}
+                    {c.creator && <span className="mt-0.5 block truncate text-[10px] font-bold tracking-wide text-white/60">by {c.creator.name}</span>}
                   </button>
                 </li>
               ))}
@@ -1869,6 +1871,29 @@ function ModalView({ modal, setModal, padLabel, padX }: { modal: Modal; setModal
                   <p className="min-w-0 flex-1 basis-56 text-sm leading-relaxed text-white/80">{modal.cast.summary}</p>
                   {(() => {
                     const watch = castTrimz(modal.cast.id)
+                    const creator = modal.cast.creator
+                    // A character by another creator: credit them, linking to their profile (A opens it when there's no Trimz link)
+                    if (!watch && creator) {
+                      const plat = creator.url.includes('kagesekai') ? 'kage' : 'isk'
+                      return (
+                        <a
+                          href={creator.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="ps5-pill ml-auto inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap"
+                          title={`${modal.cast.name} was made by ${creator.name} on ${plat === 'kage' ? 'KageSekai' : 'IsekaiZero'}`}
+                          onClick={() => sfx('enter')}
+                        >
+                          {padLabel && (
+                            <span className="ps5-key">
+                              <KeyLabel k={padLabel} />
+                            </span>
+                          )}
+                          <PlatformIcon platform={plat} />
+                          Character by {creator.name}
+                        </a>
+                      )
+                    }
                     return (
                       watch && (
                         <a
