@@ -8,6 +8,13 @@ Live at [kuletxai.whop.site](https://kuletxai.whop.site), mirrored at [kuletxai.
 
 ## What's in it
 
+- **Story Finder.** One field over the whole site on `Cmd/Ctrl + K` or `/`: worlds, characters, series, videos, sections and commands, with the keyboard, deep links into the hub, and a play link on every row.
+- **Play, from anywhere.** The header carries the loudest world's play link, an ON AIR strip under it lists the three worlds players are talking to most, and every story card has a one-press PLAY beside a quick look at the pitch, hook and cast.
+- **For You.** The home page remembers which worlds you opened, in this browser only, and picks the next one with the reason in plain words. One button forgets the whole profile.
+- **The cinema.** Trimz runs the series' cover reels on a screen with the whole slate on a dial beside it.
+- **Story Radio.** The six world themes in one player, with the full albums one link away on the platforms.
+- **Poster maker.** The hub draws a 1080x1350 share card for the open world, on the device, and hands it to the native share sheet.
+- **Thumb dock and controls.** Phones get a four-slot dock with the finder; `?` opens the full keyboard and controller map, with prompts for the pad you actually have.
 - **Save State.** The hub remembers you: it writes a memory card on every visit (world, tab, section), and returning players are greeted on the home page with a CONTINUE band — one tap (or the R key) back where they left off. One slot, erase anytime.
 - **The World Dealer.** Can't pick a world? Tap a vibe (or SURPRISE ME) and the deck deals you a card: poster, live stats, a one-tap link to play on IsekaiZero, or its world file here. SFW/17+ only.
 - **The Teaser.** A scripted, playable teaser of the AI storyteller embedded on the landing page — I AM THE TABLE (comedy) and the full Acolytes café-to-contact arc (warm café register into the tactical brief) — branching choices, keyboard picks, and a deep link into the real storyline at the end. No account needed.
@@ -39,9 +46,9 @@ The dev server is at http://localhost:3000. `npm run typecheck`, `npm run build`
 
 ```
 src/routes      pages (home, story hub, trophy list) and the two API routes
-src/components  site chrome, boot screen, platform badges
+src/components  site chrome, finder, quick look, share card, radio, controls, boot screen, platform badges
 src/data        story copy, cast and gallery, soundtracks, music, trophies
-src/lib         sound, gamepad, lite-mode detection, live counts
+src/lib         sound, gamepad, lite-mode detection, live counts, search, taste, share cards
 scripts         build_isk.py and build_ost.py, which refresh data from the platforms
 public          covers, tiles, hosted story art and cards, music, fonts
 ```

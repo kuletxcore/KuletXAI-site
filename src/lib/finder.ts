@@ -193,6 +193,15 @@ export function searchItems(items: FinderItem[], query: string, limit = 24): Fou
   return out.sort((a, b) => b.score - a.score).slice(0, limit)
 }
 
+export const KIND_SHORT: Record<FinderKind, string> = {
+  world: 'WD',
+  cast: 'CA',
+  series: 'SR',
+  video: 'VI',
+  jump: 'GO',
+  action: 'DO',
+}
+
 export const KIND_LABEL: Record<FinderKind, string> = {
   world: 'World',
   cast: 'Cast',

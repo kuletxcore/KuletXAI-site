@@ -585,7 +585,7 @@ function Trimz() {
             onMouseLeave={() => setHover(false)}
             className="group relative overflow-hidden border border-line bg-void"
           >
-            <div className="relative aspect-[16/10] sm:aspect-[16/9]">
+            <div className="relative aspect-[4/5] sm:aspect-[16/9]">
               <img
                 key={`poster-${t.slug}`}
                 src={t.poster}
@@ -607,8 +607,8 @@ function Trimz() {
 
               <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
                 <p className="font-gamer text-[10px] uppercase text-neon">Now showing</p>
-                <h3 className="mt-1 font-mono text-xl font-bold leading-snug text-ink sm:text-2xl">{t.title}</h3>
-                <p className="mt-2 max-w-xl text-sm leading-relaxed text-ink/80">{t.summary}</p>
+                <h3 className="mt-1 font-mono text-lg font-bold leading-snug text-ink sm:text-2xl">{t.title}</h3>
+                <p className="mt-2 hidden max-w-xl text-sm leading-relaxed text-ink/80 sm:block">{t.summary}</p>
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   <a
                     href={trimzSeriesUrl(t.slug)}

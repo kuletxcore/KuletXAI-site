@@ -96,3 +96,17 @@ The three pixel and mono faces are under the SIL Open Font License (credited in 
 ## Not this site
 
 Blue-to-purple gradients, glass on every surface, pill-shaped everything, decorative status dots, emoji in UI text, fake testimonials or stats, macOS window dots on the terminal, motion that cannot be stopped.
+
+## What the finder and its family add (Nov 2026)
+
+The front page is now commandable, and it answers back with what it remembers. Rules kept from above: one accent, square corners, 44px controls, no motion without an off switch.
+
+- **Story Finder** (`src/components/story-finder.tsx`, `src/lib/finder.ts`). A dialog over the whole site, opened by `Cmd/Ctrl + K`, `/`, or any find button. Rows carry a two-letter kind chip (`WD`, `CA`, `SR`, `VI`, `GO`, `DO`), a thumbnail where the item has art, and a trailing `PLAY` for anything that leaves the site. Arrow keys move, `Enter` opens, `Shift + Enter` plays, `Esc` closes. The resting state is the save, the four loudest worlds, the jumps and the commands, in that order.
+- **The command bar** (`Header`). The header's last control is a neon PLAY for the loudest world, by live messages; it says "Play", never the world's name on a phone. The finder sits beside it.
+- **ON AIR** (`OnAir`). A 44px strip under the header with the three worlds players are talking to most, each a one-press play. Rating colour stays in the badges, not here.
+- **Quick look** (`src/components/quick-look.tsx`). The card's `+ INFO` opens the pitch, the hook, the first five cast portraits, the live numbers, and the two ways in (play, world file). It is the only place both CTAs share a row.
+- **For You** (`src/components/for-you.tsx`, `src/lib/taste.ts`). Fed by hub visits and quick-look plays. Reasons are plain: "Because you opened Acolytes · both 17+", "Back for another run", "A different kind of world". The ✕ forgets the profile, and the band is not rendered at all when there is nothing to remember.
+- **The cinema** (`Trimz`). One 16:9 screen with the series' cover reel, `Reel running` while it moves, and a dial of the slate beside it. Reels obey lite mode, reduced motion and Pause motion.
+- **Story Radio** (`src/components/story-radio.tsx`). Never starts by itself; one play keeps the six themes going. The equaliser is the only decoration, and it stops with Pause motion.
+- **Poster maker** (`src/components/share-card.tsx`, `src/lib/share-card.ts`). 1080x1350, drawn with the site's own faces, the world's accent under the art, the rating in its traffic-light colour, and the live numbers. Nothing is uploaded.
+- **Thumb dock and controls** (`src/components/thumb-dock.tsx`, `src/components/controls-sheet.tsx`). The dock is phones only, five 44px+ slots, the active section marked by a neon rule. The controls sheet is the map for keys and pads, and its pad half follows the connected controller.

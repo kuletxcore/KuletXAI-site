@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { FINDER_INDEX, KIND_LABEL, searchItems } from '#/lib/finder'
+import { FINDER_INDEX, KIND_LABEL, KIND_SHORT, searchItems } from '#/lib/finder'
 import type { FinderItem } from '#/lib/finder'
 import { LINKS, STORIES, storyUrl } from '#/data/content'
 import { agoLabel, readSave, resumeSearch, saveLabel } from '#/lib/save-state'
@@ -361,7 +361,7 @@ export function StoryFinder() {
                       <img src={item.image} alt="" loading="lazy" decoding="async" className="h-11 w-8 shrink-0 border border-line object-cover" />
                     ) : (
                       <span className={`grid h-11 w-8 shrink-0 place-items-center border font-gamer text-[10px] ${on ? 'border-neon/60 text-neon' : 'border-line text-mute'}`}>
-                        {KIND_LABEL[item.kind].slice(0, 2)}
+                        {KIND_SHORT[item.kind]}
                       </span>
                     )}
                     <span className="min-w-0 flex-1">
@@ -384,8 +384,9 @@ export function StoryFinder() {
                         target="_blank"
                         rel="noreferrer"
                         onClick={() => {
+                          // Close on the next tick, so the browser still gets to follow the link
                           sfx('enter')
-                          close()
+                          window.setTimeout(close, 0)
                         }}
                         className={`inline-flex min-h-11 items-center whitespace-nowrap border px-2 font-gamer text-[9px] uppercase ${
                           on ? 'border-neon text-neon hover:bg-neon hover:text-void' : 'border-line text-mute hover:border-neon hover:text-neon'

@@ -36,10 +36,12 @@ export function StoryRadio() {
     void el.play().then(() => setPlaying(true)).catch(() => setPlaying(false))
   }, [])
 
-  // The element starts on the first track, still paused
+  // The element starts on the first track, still paused, a little under the interface sounds
   useEffect(() => {
     const el = audio.current
-    if (el && !el.getAttribute('src')) el.src = TRACKS[0].track.src
+    if (!el) return
+    if (!el.getAttribute('src')) el.src = TRACKS[0].track.src
+    el.volume = 0.7
   }, [])
 
   const toggle = () => {
