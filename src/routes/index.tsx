@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Footer, Header, SectionHead } from '#/components/site'
 import { ContinueBand } from '#/components/continue-band'
+import { WorldFinder } from '#/components/world-finder'
 import { WorldDealer } from '#/components/world-dealer'
 import { ColdOpen } from '#/components/cold-open'
 import { HowItWorks } from '#/components/how-it-works'
@@ -20,6 +21,7 @@ function Home() {
   return (
     <div className="crt min-h-screen">
       <Header />
+      <WorldFinder />
       <main>
         <Hero />
         <ContinueBand />

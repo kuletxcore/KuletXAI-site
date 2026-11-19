@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { LINKS } from '#/data/content'
+import { openFinder } from '#/components/world-finder'
 
 export function Logo({ className = 'h-8' }: { className?: string }) {
   return <img src="/brand/kuletx-ai-480.webp" srcSet="/brand/kuletx-ai-480.webp 480w, /brand/kuletx-ai-1200.webp 1200w" sizes="240px" alt="KuletX AI" width={480} height={165} className={`w-auto ${className}`} />
@@ -13,7 +14,16 @@ export function Header() {
           <Logo className="h-9 sm:h-10" />
         </Link>
         <nav aria-label="Main" className="flex items-center gap-1 font-gamer text-xs uppercase sm:gap-2 sm:text-sm">
-          <Link to="/" hash="stories" className="inline-flex min-h-11 items-center px-2 text-mute hover:text-neon">
+          <button
+            type="button"
+            onClick={() => openFinder()}
+            aria-haspopup="dialog"
+            className="inline-flex min-h-11 items-center gap-1.5 border border-neon/60 px-2.5 text-neon hover:bg-neon hover:text-void"
+          >
+            <span aria-hidden>⌕</span> Find
+            <kbd className="hidden border border-current px-1 font-gamer text-[9px] opacity-70 md:inline-block">/</kbd>
+          </button>
+          <Link to="/" hash="stories" className="hidden min-h-11 items-center px-2 text-mute hover:text-neon sm:inline-flex">
             Stories
           </Link>
           <Link to="/" hash="trimz" className="inline-flex min-h-11 items-center px-2 text-mute hover:text-neon">
