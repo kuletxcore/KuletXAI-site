@@ -122,7 +122,7 @@ that follows from it:
 - **Finder.** `/` or Cmd/Ctrl-K, a square-cornered dialog over the page, one field, results as rows with rating badges. Loaded on first summon.
 - **Controls sheet.** `?` or Controls in the footer. Actions, not devices: each row shows the keys and the connected pad's buttons that do it, using the Xelu prompt art. Touch screens get a touch note instead of keyboard rows.
 - **Pad legend.** On the home page, a small bottom-right strip of prompts, shown only while a controller is connected.
-- **Share card.** A 1080x1350 poster drawn on the device from the story's cover, hook and live counts, opened from the hub's card button.
+- **Share card.** A 1080x1350 poster drawn on the device, opened from the hub's card button: the world's cover, hook and live counts, or on the Trimz tab the series' poster, summary, episodes and views. The art never runs under the text, the stats always fit their columns, and the footer names the host it was made on.
 - **Settings switches** (hub panel). Sound, Lite graphics, Dark surfaces. Each switch row is a 44px tap target with a one-line note under it.
 
 ## Accessibility floor
@@ -132,6 +132,8 @@ that follows from it:
 - Visible focus on everything (2px neon outline on the front page, white in the hub).
 - Real elements: actions are `<button>`, navigation is `<a href>`. No clickable `div`s.
 - Pointer cursor on every enabled control, not-allowed on disabled ones.
+- Every screen answers a controller, the home page included: the D-pad moves focus to the nearest control in that direction, A selects, B backs out. Focus moved by a pad is always visible and scrolls clear of the sticky header.
+- Keyboard hints show only where there is a fine pointer that can hover; touch screens get touch wording instead (the controls sheet says "touch").
 
 ## Voice
 

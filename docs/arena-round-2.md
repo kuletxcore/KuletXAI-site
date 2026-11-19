@@ -62,6 +62,59 @@ All candidates built cleanly, with no runtime errors on the home page or the hub
 - **Story radio (`3766e60b`).** The hub already plays each world's OST.
 - **Gemini repo extras.** It also dropped the font preloads in `__root.tsx` and set `allowedHosts: true` on the dev server; neither came across.
 
+## After the merge
+
+Changes made on `test` after the picks landed, from your testing and a repo review.
+
+**Controls and controllers**
+- The controls sheet lists actions, not devices. Each row shows the keys and the connected pad's buttons that do it, using Xelu keyboard sprites (`?`, Esc, Ctrl, ⌘, K, 1, 8, Tab). ⌘ shows on a Mac and Ctrl elsewhere. The pack's "Slash" key is a backslash, so `/` stays a text key.
+- On a touch screen the sheet says "touch", hides the keyboard rows and shows a touch note.
+- `KeyLabel` gained a keyboard-only mode, so a keyboard R never draws a Switch R shoulder.
+- The sheet crashed with a pad connected: the D-pad arrows went through the button lookup. Fixed.
+- The sheet dropped two home-page rows that described shortcuts the page never had (arrow keys along the shelf, Space to scroll).
+- **The home page takes a controller** (`src/components/home-pad.tsx`, `src/lib/spatial.ts`):
+  - The D-pad moves focus to the nearest control, and the left stick scrolls.
+  - A selects, B backs out, X opens Find, Y toggles sound, LB/RB jump between sections, and Start opens the controls sheet.
+  - Inside the finder and the sheet, the pad drives the dialog.
+  - A legend shows the buttons while a pad is connected.
+
+**Share cards**
+- The Trimz tab draws a card for that series (poster, summary, episodes, views), with its own world's accent and rating. Before, it drew whichever story the hub had last shown.
+- The cover was drawn unclipped and ran on under the title; it now stays in its box.
+- The stats sit in equal columns that shrink to fit, so "messages" is no longer cut off.
+- The tags use the mono face.
+- The footer prints the host the card was made on instead of a hardcoded `kuletxai.whop.site`.
+
+**Depth on the hub ribbon** (asked for on PR #10)
+- Tiles turn away from the selected one and step back with distance; the selected one comes forward and leans toward a mouse.
+- It's off in Lite mode and under reduced motion, and the lean stops under Pause motion.
+- Frame-budget check on the OPPO F11 profile: median 16.7 ms and p95 33 ms per frame, the same as the flat row.
+
+**Copy that went stale with the new layout**
+- The Dealer now says the 18+ world is in the grid "above".
+- The finder's teaser entry opens the hero scene; it linked to a `#try` section that no longer exists.
+
+**From the repo review**
+- Story cards had no CSP: Cloudflare's `_headers` allows one `*` per rule, so `/isk/*/cards/*` never matched. Now `/isk/:story/cards/*`, verified on test.
+- The card sanitiser in `scripts/build_isk.py` also strips:
+  - HTML comments, `srcdoc` and `formaction`
+  - script schemes in any URL attribute, whether quoted, unquoted or entity-encoded
+  - script-capable CSS inside `style` attributes and `<style>` blocks
+
+  `scripts/test_build_isk.py` holds 25 hostile fixtures. Re-syncing every story changed no card beyond dropping HTML comments.
+- The review guessed that the edge cache fails on workers.dev. It works there; it's Whop that misses, serving most stats requests straight from the platform APIs. Upstream fetches are now cached by Cloudflare for ten minutes, and `/api/isk-stats` reports `x-kx-cache` so this can be confirmed on Whop after its next deploy.
+- New unit tests cover spatial focus, prompt resolution, GT NX halves and the llms/Markdown layer: 43 in all, up from 27.
+- `scripts/smoke.mjs` loads home and hub in a browser, in full and Lite mode on desktop and phone. It checks that:
+  - the finder and the controls sheet open
+  - the D-pad moves focus
+  - in-page links resolve
+  - the Markdown mirror answers
+
+  CI runs it along with the Python tests. It passes against the live test site.
+- `npm run deploy` goes through `scripts/deploy-whop.sh`, which refuses a dirty `wrangler.jsonc` and restores it after `whop apps deploy`.
+- The origin helpers are now one, `publicOriginOf`.
+- The hub's chrome (sound menu, switches, clock, share button, icons) moved to `src/components/hub-chrome.tsx`, taking the route from 2,355 to 2,105 lines.
+
 ## Housekeeping
 
 - The arena branches can be deleted on GitHub once this is on `test`.
