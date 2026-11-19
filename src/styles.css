@@ -523,6 +523,38 @@ svg.ps5-picon {
   outline-offset: 3px;
 }
 
+/* Depth on the ribbon, full mode only: tiles turn away from the selected one and step back with distance,
+   the selected one comes forward and leans toward a mouse. Lite mode and reduced motion keep the flat row. */
+html:not(.kx-lite) .ps5-ribbon-row {
+  perspective: 1100px;
+  perspective-origin: 30% 50%;
+}
+html:not(.kx-lite) .ps5-tile-slot {
+  transform-style: preserve-3d;
+}
+html:not(.kx-lite) .ps5-tile:not(.is-active) {
+  transform: rotateY(calc(var(--side, 0) * -16deg)) translateZ(calc(var(--dist, 0) * -14px));
+}
+html:not(.kx-lite) .ps5-tile:not(.is-active):hover {
+  transform: rotateY(calc(var(--side, 0) * -8deg)) translateZ(calc(var(--dist, 0) * -6px)) translateY(-2px);
+}
+html:not(.kx-lite) .ps5-tile.is-active {
+  transform: translateZ(28px) rotateX(var(--tx, 0deg)) rotateY(var(--ty, 0deg));
+  transition: width 0.2s var(--ps-ease), height 0.2s var(--ps-ease), transform 0.12s ease-out, opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.22s ease;
+}
+html.kx-still .ps5-tile.is-active {
+  transform: translateZ(28px);
+}
+@media (prefers-reduced-motion: reduce) {
+  html .ps5-ribbon-row {
+    perspective: none;
+  }
+  html .ps5-tile:not(.is-active),
+  html .ps5-tile.is-active {
+    transform: none;
+  }
+}
+
 .ps5-title {
   /* Console headlines are large and tightly set: at TV width this is the biggest thing on the screen */
   font-size: clamp(34px, 5.6vw, 84px);

@@ -79,9 +79,7 @@ all at once: a white overscroll bounce, the OS scrollbar, a neon text selection 
 - **Loading is designed too.** The hub's `pendingComponent` shows the console's own black with a quiet line, instead of
   the homepage background while the loader waits.
 
-What is deliberately *not* here: depth, 3D transforms and parallax on the ribbon. The backdrop already does the
-console's signature 1:1 pan; adding perspective to the tiles is a bigger change than this pass and would need a
-frame-budget check on low-end phones before it earns its keep.
+- **The ribbon has depth.** Tiles turn away from the selected one and step back a little more with each place, and the selected tile comes forward and leans toward a mouse pointer. Full mode only: Lite mode and reduced motion keep the flat row, and Pause motion stops the pointer lean. Measured on the OPPO F11 profile (CPU 4× slower) while stepping through the ribbon: median 16.7 ms and p95 33 ms per frame, the same as the flat row.
 
 ## The fold
 
