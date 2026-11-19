@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { LINKS } from '#/data/content'
+import { FindButton } from '#/components/story-finder'
 
 export function Logo({ className = 'h-8' }: { className?: string }) {
   return <img src="/brand/kuletx-ai-480.webp" srcSet="/brand/kuletx-ai-480.webp 480w, /brand/kuletx-ai-1200.webp 1200w" sizes="240px" alt="KuletX AI" width={480} height={165} className={`w-auto ${className}`} />
@@ -22,6 +23,7 @@ export function Header() {
           <Link to="/" hash="watch" className="hidden min-h-11 items-center px-2 text-mute hover:text-neon sm:inline-flex">
             Channels
           </Link>
+          <FindButton />
           <a
             href={LINKS.youtube}
             target="_blank"

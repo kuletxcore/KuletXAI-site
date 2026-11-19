@@ -5,6 +5,7 @@ import { siteOrigin } from '#/lib/origin'
 import { PERF_HEAD_SCRIPT } from '#/lib/perf'
 import { DARK_HEAD_SCRIPT } from '#/lib/dark'
 import { STILL_HEAD_SCRIPT } from '#/lib/still'
+import { StoryFinder } from '#/components/story-finder'
 
 const DESCRIPTION =
   'KuletX AI: interactive AI stories on IsekaiZero and KageSekai, series on Trimz and videos on YouTube.'
@@ -46,6 +47,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <StoryFinder />
         <Scripts />
       </body>
     </html>
