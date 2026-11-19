@@ -6,7 +6,9 @@ import { ContinueBand } from '#/components/continue-band'
 import { WorldDealer } from '#/components/world-dealer'
 import { StoryDemo } from '#/components/story-demo'
 import { play as sfx } from '#/lib/sfx'
-import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
+import { LINKS, STORIES, TRIMZ, storyPlatformName, storyUrl, trimzSeriesUrl } from '#/data/content'
+import type { Story } from '#/data/content'
+import { QuickLook } from '#/components/quick-look'
 import { LiveCount, LiveDot } from '#/components/live-count'
 import { countOf, totalOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
 import { COVER_VIDEOS } from '#/data/cover-videos'
@@ -20,6 +22,7 @@ function Home() {
     <div className="crt min-h-screen">
       <Header />
       <main>
+        <OnAir />
         <Hero />
         <ContinueBand />
         <WorldDealer />
@@ -30,6 +33,53 @@ function Home() {
       </main>
       <Footer />
     </div>
+  )
+}
+
+// The strip under the header: the three worlds players are talking to most right now, each one press to play
+function OnAir() {
+  const live = useIskStats()
+  const top = [...STORIES].sort((a, b) => countOf(live, b, 'messages') - countOf(live, a, 'messages')).slice(0, 3)
+  return (
+    <section aria-label="On air now" className="border-b border-line bg-panel/60">
+      <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 sm:gap-4 sm:px-6">
+        <p className="flex shrink-0 items-center gap-1.5 py-1 font-gamer text-[10px] uppercase text-neon">
+          <LiveDot />
+          On air
+        </p>
+        <ul className="-mr-4 flex min-w-0 flex-1 items-stretch gap-1 overflow-x-auto [scrollbar-width:none] sm:mr-0 [&::-webkit-scrollbar]:hidden">
+          {top.map((s, i) => (
+            <li key={s.slug} className={`min-w-0 shrink-0 ${i === 2 ? 'hidden sm:block' : ''}`}>
+              <a
+                href={storyUrl(s)}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => sfx('enter')}
+                title={`Play ${s.title} on ${storyPlatformName(s)}`}
+                className="group flex min-h-11 items-center gap-2 px-2 hover:bg-void"
+              >
+                <img src={s.cover} alt="" loading="lazy" decoding="async" className="h-7 w-5 shrink-0 border border-line object-cover" />
+                <span className="max-w-40 truncate font-mono text-xs font-bold text-ink group-hover:text-neon sm:max-w-56">
+                  {s.title.split(':')[0]}
+                </span>
+                <span className="hidden font-gamer text-[10px] whitespace-nowrap text-mute md:inline">
+                  <LiveCount value={countOf(live, s, 'messages')} compact /> msg · {storyPlatformName(s)}
+                </span>
+                <span aria-hidden className="font-mono text-[10px] text-neon">
+                  ▶
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <a
+          href="#stories"
+          className="hidden shrink-0 py-3 font-gamer text-[10px] uppercase text-mute hover:text-neon md:block"
+        >
+          All {STORIES.length} worlds →
+        </a>
+      </div>
+    </section>
   )
 }
 
@@ -200,6 +250,7 @@ function Stories() {
   const total = STORIES.length + 1
   const lite = useLite()
   const [hot, setHot] = useState<number | null>(null)
+  const [look, setLook] = useState<Story | null>(null)
   const [shelfLive, setShelfLive] = useState(false)
   const [motionOk, setMotionOk] = useState(false)
   const canPlay = motionOk && !lite
@@ -270,15 +321,10 @@ function Stories() {
         >
           {STORIES.map((s, i) => (
             <li key={s.id} className={SLOT}>
-              <Link
-                to="/stories/$slug"
-                params={{ slug: s.slug }}
-                onClick={() => sfx('enter')}
+              <article
                 onMouseEnter={() => setHot(i)}
                 onMouseLeave={() => cool(i)}
-                onFocus={() => setHot(i)}
-                onBlur={() => cool(i)}
-                className="group flex h-full flex-col border border-line bg-panel hover:border-neon"
+                className="group relative flex h-full flex-col border border-line bg-panel transition-colors hover:border-neon focus-within:border-neon"
               >
                 <div className="cover relative aspect-[3/4] overflow-hidden border-b border-line">
                   <img
@@ -300,9 +346,33 @@ function Stories() {
                       ▶ ON TRIMZ
                     </span>
                   )}
+                  {/* Quick look: the pitch, the hook and the cast, without leaving the shelf */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sfx('nav')
+                      setLook(s)
+                    }}
+                    aria-label={`Quick look at ${s.title}`}
+                    className="absolute top-3 right-3 z-10 inline-flex min-h-11 items-center gap-1 border border-line bg-void/90 px-2.5 font-gamer text-[10px] uppercase text-ink hover:border-neon hover:bg-neon hover:text-void"
+                  >
+                    <span aria-hidden className="text-neon">+</span> Info
+                  </button>
                 </div>
                 <div className="flex flex-1 flex-col p-5">
-                  <h3 className="font-mono text-lg font-bold leading-snug text-ink group-hover:text-neon">{s.title}</h3>
+                  <h3 className="font-mono text-lg font-bold leading-snug text-ink group-hover:text-neon">
+                    {/* The stretched ::after makes the whole card open the world file */}
+                    <Link
+                      to="/stories/$slug"
+                      params={{ slug: s.slug }}
+                      onClick={() => sfx('enter')}
+                      onFocus={() => setHot(i)}
+                      onBlur={() => cool(i)}
+                      className="after:absolute after:inset-0 after:z-0"
+                    >
+                      {s.title}
+                    </Link>
+                  </h3>
                   <p className="mt-2 flex-1 text-sm leading-relaxed text-mute">{s.logline}</p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     {s.tags.map((t) => (
@@ -311,15 +381,32 @@ function Stories() {
                       </span>
                     ))}
                   </div>
-                  <div className="mt-5 flex items-center justify-between border-t border-line pt-4 font-gamer text-xs">
-                    <span className="text-mute" title={`Likes · saves · chats · messages on ${storyPlatformName(s)}`}>
-                      ♥ <LiveCount value={countOf(live, s, 'likes')} /> · ★ <LiveCount value={countOf(live, s, 'saves')} /> · ✉ <LiveCount value={countOf(live, s, 'chats')} /> ·{' '}
-                      <LiveCount value={countOf(live, s, 'messages')} compact /> MSG
-                    </span>
-                    <span className="text-neon">ENTER →</span>
+                  <p className="mt-4 font-gamer text-[10px] text-mute" title={`Likes · saves · chats · messages on ${storyPlatformName(s)}`}>
+                    ♥ <LiveCount value={countOf(live, s, 'likes')} /> · ★ <LiveCount value={countOf(live, s, 'saves')} /> · ✉{' '}
+                    <LiveCount value={countOf(live, s, 'chats')} /> · <LiveCount value={countOf(live, s, 'messages')} compact /> MSG
+                  </p>
+                  {/* Two ways in, at the bottom where the eye lands: play it now, or open the world file */}
+                  <div className="mt-auto grid grid-cols-2 gap-2 border-t border-line pt-4">
+                    <a
+                      href={storyUrl(s)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => sfx('enter')}
+                      className="relative z-10 inline-flex min-h-11 items-center justify-center gap-1.5 bg-neon px-2 font-gamer text-[11px] uppercase text-void hover:bg-ink"
+                    >
+                      <span aria-hidden>▶</span> Play
+                    </a>
+                    <Link
+                      to="/stories/$slug"
+                      params={{ slug: s.slug }}
+                      onClick={() => sfx('enter')}
+                      className="relative z-10 inline-flex min-h-11 items-center justify-center border border-line px-2 font-gamer text-[11px] uppercase text-ink hover:border-neon hover:text-neon"
+                    >
+                      World file →
+                    </Link>
                   </div>
                 </div>
-              </Link>
+              </article>
             </li>
           ))}
           <li className={SLOT}>
@@ -421,6 +508,7 @@ function Stories() {
           </span>
         </div>
       </div>
+      <QuickLook story={look} onClose={() => setLook(null)} />
     </section>
   )
 }
