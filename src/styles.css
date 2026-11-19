@@ -1461,3 +1461,7 @@ html.kx-lite .kx-first-turn, html.kx-still .kx-first-turn { animation: none; }
 @keyframes kxDock { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .kx-dock { animation: none; } }
 html.kx-lite .kx-dock, html.kx-still .kx-dock { animation: none; }
+
+/* Ship 5: below-fold sections cost no layout/paint until scrolled near.
+   contain-intrinsic-size keeps the scrollbar honest while they are skipped. */
+.kx-cv { content-visibility: auto; contain-intrinsic-size: auto 760px; }

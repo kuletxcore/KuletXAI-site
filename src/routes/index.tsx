@@ -1,11 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Footer, Header, SectionHead } from '#/components/site'
 import { ContinueBand } from '#/components/continue-band'
-import { WorldDealer } from '#/components/world-dealer'
 import { FirstTurn } from '#/components/first-turn'
 import { SessionDock } from '#/components/session-dock'
-import { StoryDemo } from '#/components/story-demo'
 import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
 import { LiveCount, LiveDot } from '#/components/live-count'
@@ -16,6 +14,33 @@ import { setStill, useStill } from '#/lib/still'
 
 export const Route = createFileRoute('/')({ component: Home })
 
+// Ship 5: the Dealer (and its motion library) and the Teaser are below the fold.
+// Their code is split out and only fetched when the reader gets near them; the
+// anchors (#dealer, #try) exist from first paint, so links never land nowhere.
+const WorldDealer = lazy(() => import('#/components/world-dealer').then((m) => ({ default: m.WorldDealer })))
+const StoryDemo = lazy(() => import('#/components/story-demo').then((m) => ({ default: m.StoryDemo })))
+
+function Deferred({ id, kicker, children }: { id: string; kicker: string; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [near, setNear] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || !('IntersectionObserver' in window)) { setNear(true); return }
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setNear(true); io.disconnect() } }, { rootMargin: '900px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  if (near) return <Suspense fallback={null}>{children}</Suspense>
+  return (
+    <section id={id} ref={ref as never} className="scroll-mt-16 border-b border-line bg-panel/40" aria-label={kicker}>
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
+        <p className="font-gamer text-sm text-neon">{kicker}</p>
+        <div className="mt-10 min-h-72 border border-line bg-void/50" aria-hidden />
+      </div>
+    </section>
+  )
+}
+
 function Home() {
   return (
     <div className="crt min-h-screen">
@@ -23,9 +48,9 @@ function Home() {
       <main>
         <Hero />
         <ContinueBand />
-        <WorldDealer />
+        <Deferred id="dealer" kicker="{'//'} THE MATCHMAKER"><WorldDealer /></Deferred>
         <Stories />
-        <StoryDemo />
+        <Deferred id="try" kicker="{'//'} THE TEASER"><StoryDemo /></Deferred>
         <Trimz />
         <Channels />
       </main>
@@ -95,13 +120,13 @@ function PosterWall() {
     return () => io.disconnect()
   }, [])
   const art = STORIES.map((s) => s.tile ?? s.cover)
-  const rows = [art, [...art.slice(3), ...art.slice(0, 3)], [...art.slice(5), ...art.slice(0, 5)]]
+  const rows = [art, [...art.slice(3), ...art.slice(0, 3)]]
   return (
     <div ref={wall} className="kx-wall pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
       <div className="absolute -inset-x-1/4 top-[36%] flex -translate-y-1/2 -rotate-6 flex-col gap-3 opacity-45 md:top-1/2">
         {rows.map((row, r) => (
-          <div key={r} className={`kx-wall-row flex w-max gap-3 ${r % 2 ? 'is-rev' : ''}`}>
-            {[...row, ...row, ...row, ...row].map((src, i) => (
+          <div key={r} className={`kx-wall-row flex w-max gap-3 ${r % 2 ? 'is-rev hidden sm:flex' : ''}`}>
+            {[...row, ...row].map((src, i) => (
               <img
                 key={i}
                 src={src}
@@ -255,7 +280,7 @@ function Stories() {
   }
 
   return (
-    <section id="stories" className="scroll-mt-16 border-b border-line">
+    <section id="stories" className="kx-cv scroll-mt-16 border-b border-line">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
         <SectionHead
           kicker="01 // IsekaiZero + KageSekai"
@@ -478,7 +503,7 @@ function Stories() {
 function Trimz() {
   const live = useIskStats()
   return (
-    <section id="trimz" className="scroll-mt-16 border-b border-line bg-panel/40">
+    <section id="trimz" className="kx-cv scroll-mt-16 border-b border-line bg-panel/40">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <SectionHead
@@ -577,7 +602,7 @@ const CHANNELS = [
 
 function Channels() {
   return (
-    <section id="watch" className="scroll-mt-16 border-b border-line">
+    <section id="watch" className="kx-cv scroll-mt-16 border-b border-line">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
         <SectionHead kicker="03 // Channels" title="Four ways in" body="Same universe, different screens." />
         <ul className="mt-12 grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2">
