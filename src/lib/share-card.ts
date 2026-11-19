@@ -1,10 +1,13 @@
 import { storyPlatformName } from '#/data/content'
-import type { Story } from '#/data/content'
+import type { Story, TrimzSeries } from '#/data/content'
 
 // Draws a 1080x1350 share poster for a world: its cover, its rating, its hook and its live numbers.
 // Everything happens on the visitor's device; nothing is uploaded.
 
 export type CardStats = { messages: number; likes: number; saves: number; chats: number }
+export type SeriesStats = { episodes: number; views: number }
+type Stat = { icon?: string; value: number; label: string }
+type CardSpec = { art: string; accent: string; rating: Story['rating']; where: string; title: string; hook: string; tags: string[]; stats: Stat[] }
 
 const W = 1080
 const H = 1350
@@ -32,7 +35,13 @@ function drawCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: numb
   const scale = Math.max(w / img.width, h / img.height)
   const dw = img.width * scale
   const dh = img.height * scale
+  // Clip to the box: a cover taller than it would otherwise run on under the text
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(x, y, w, h)
+  ctx.clip()
   ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh)
+  ctx.restore()
 }
 
 /** Splits text to fit a width, at most `rows` lines, with an ellipsis when it doesn't all fit. */
@@ -73,7 +82,43 @@ function drawLines(ctx: CanvasRenderingContext2D, lines: string[], x: number, y:
 
 const short = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(n >= 10_000 ? 0 : 1)}K` : String(n))
 
-export async function renderStoryCard(story: Story, stats: CardStats): Promise<string> {
+/** The world's card: its cover, rating, platform, hook, tags and live numbers. */
+export function renderStoryCard(story: Story, stats: CardStats) {
+  return renderCard({
+    art: story.cover,
+    accent: story.accent,
+    rating: story.rating,
+    where: storyPlatformName(story),
+    title: story.title,
+    hook: `\u201c${story.hook}\u201d`,
+    tags: story.tags.slice(0, 3),
+    stats: [
+      { icon: '\u2665', value: stats.likes, label: 'likes' },
+      { icon: '\u2605', value: stats.saves, label: 'saves' },
+      { icon: '\u2709', value: stats.chats, label: 'chats' },
+      { value: stats.messages, label: 'messages' },
+    ],
+  })
+}
+
+/** A Trimz series card: its poster and summary, with the parent world's accent and rating. */
+export function renderSeriesCard(series: TrimzSeries, story: Story, stats: SeriesStats) {
+  return renderCard({
+    art: series.poster,
+    accent: story.accent,
+    rating: story.rating,
+    where: 'Trimz',
+    title: series.title,
+    hook: series.summary,
+    tags: ['AI anime', 'series', `from ${story.title.split(':')[0]}`],
+    stats: [
+      { value: stats.episodes, label: stats.episodes === 1 ? 'episode' : 'episodes' },
+      { icon: '\u25b6', value: stats.views, label: 'views' },
+    ],
+  })
+}
+
+async function renderCard(card: CardSpec): Promise<string> {
   await document.fonts.ready
   const canvas = document.createElement('canvas')
   canvas.width = W
@@ -88,9 +133,9 @@ export async function renderStoryCard(story: Story, stats: CardStats): Promise<s
   ctx.fillStyle = '#050806'
   ctx.fillRect(0, 0, W, H)
 
-  // Cover art across the top, dissolved into the ground
+  // Art across the top, dissolved into the ground
   const artH = 760
-  const img = await loadImage(story.cover)
+  const img = await loadImage(card.art)
   if (img) drawCover(ctx, img, 0, 0, W, artH)
   const fade = ctx.createLinearGradient(0, artH * 0.35, 0, artH)
   fade.addColorStop(0, 'rgba(5,8,6,0)')
@@ -100,67 +145,71 @@ export async function renderStoryCard(story: Story, stats: CardStats): Promise<s
   ctx.fillRect(0, artH * 0.35, W, artH * 0.65)
 
   // The world's accent, as the rule under the art
-  ctx.fillStyle = story.accent
+  ctx.fillStyle = card.accent
   ctx.fillRect(0, artH, W, 12)
 
   // Rating, in the site's traffic light, and where it plays
-  const badge = story.rating === 'SFW' ? '#00ff66' : story.rating === '18+' ? '#e5162b' : '#ffb800'
-  const badgeInk = story.rating === '18+' ? '#ffffff' : '#050806'
+  const badge = card.rating === 'SFW' ? '#00ff66' : card.rating === '18+' ? '#e5162b' : '#ffb800'
   ctx.font = gamer
   ctx.textBaseline = 'middle'
-  const bw = ctx.measureText(story.rating).width + 40
+  const bw = ctx.measureText(card.rating).width + 40
   ctx.fillStyle = badge
   ctx.fillRect(64, 64, bw, 56)
-  ctx.fillStyle = badgeInk
-  ctx.fillText(story.rating, 84, 93)
-
+  ctx.fillStyle = card.rating === '18+' ? '#ffffff' : '#050806'
+  ctx.fillText(card.rating, 84, 93)
   ctx.fillStyle = 'rgba(215,245,223,0.92)'
   ctx.textAlign = 'right'
-  ctx.fillText(`ON ${storyPlatformName(story).toUpperCase()}`, W - 64, 93)
+  ctx.fillText(`ON ${card.where.toUpperCase()}`, W - 64, 93)
   ctx.textAlign = 'left'
 
   // Title
   ctx.textBaseline = 'alphabetic'
   ctx.fillStyle = '#d7f5df'
   ctx.font = pixel
-  let y = drawLines(ctx, wrapLines(ctx, story.title, W - 128, 2), 64, artH + 102, 72)
+  let y = drawLines(ctx, wrapLines(ctx, card.title, W - 128, 2), 64, artH + 102, 72)
 
   // Hook
   ctx.font = mono
   ctx.fillStyle = '#8fb399'
-  y = drawLines(ctx, wrapLines(ctx, `“${story.hook}”`, W - 160, 2), 64, y + 12, 38)
+  y = drawLines(ctx, wrapLines(ctx, card.hook, W - 128, 2), 64, y + 12, 38)
 
-  // Tags
-  ctx.font = gamer
+  // Tags, in the mono face: the pixel face has no proper # and spaces its capitals unevenly
+  ctx.font = '24px "Obel Mono"'
   ctx.fillStyle = 'rgba(143,179,153,0.85)'
-  ctx.fillText(story.tags.map((t) => `#${t}`).join('   ').toUpperCase(), 64, y + 14)
-  y += 14
+  ctx.fillText(wrapLines(ctx, card.tags.map((t) => `#${t}`).join('  '), W - 128, 1)[0] ?? '', 64, y + 10)
 
-  // Live numbers, over a hairline
-  const statsY = Math.max(y + 64, H - 196)
+  // Live numbers in equal columns, each shrunk to fit its column
+  const statsY = H - 196
   ctx.fillStyle = 'rgba(29,51,36,1)'
   ctx.fillRect(64, statsY - 46, W - 128, 2)
-  const row = [
-    `\u2665 ${short(stats.likes)} LIKES`,
-    `\u2605 ${short(stats.saves)} SAVES`,
-    `\u2709 ${short(stats.chats)} CHATS`,
-    `${short(stats.messages)} MESSAGES`,
-  ].join('     ')
-  ctx.font = mono
+  const colW = (W - 128) / card.stats.length
   ctx.fillStyle = '#00ff66'
-  ctx.fillText(row, 64, statsY)
+  card.stats.forEach((st, i) => {
+    const text = `${st.icon ? `${st.icon} ` : ''}${short(st.value)} ${st.label.toUpperCase()}`
+    let size = 30
+    ctx.font = `${size}px "Obel Mono"`
+    while (ctx.measureText(text).width > colW - 16 && size > 18) {
+      size -= 1
+      ctx.font = `${size}px "Obel Mono"`
+    }
+    ctx.fillText(text, 64 + i * colW, statsY)
+  })
 
-  // Footer
+  // Footer: the wordmark and the address this card was made on
   ctx.font = pixel
   ctx.fillStyle = '#d7f5df'
   ctx.fillText('KULETX', 64, H - 84)
   const kw = ctx.measureText('KULETX').width
   ctx.fillStyle = '#00ff66'
   ctx.fillText(' AI', 64 + kw, H - 84)
-  ctx.font = gamer
+  const host = window.location.host.toUpperCase()
+  let hostSize = 26
+  ctx.font = `${hostSize}px StrongGamer`
+  // Long preview hosts shrink rather than run into the wordmark
+  while (ctx.measureText(host).width > W - 128 - kw - 220 && hostSize > 14) ctx.font = `${--hostSize}px StrongGamer`
   ctx.fillStyle = 'rgba(143,179,153,0.85)'
   ctx.textAlign = 'right'
-  ctx.fillText('KULETXAI.WHOP.SITE', W - 64, H - 92)
+  ctx.fillText(host, W - 64, H - 92)
   ctx.textAlign = 'left'
 
   return canvas.toDataURL('image/png')

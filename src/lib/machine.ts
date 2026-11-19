@@ -125,7 +125,7 @@ export function llmsTxt(origin: Origin): string {
 
   out.push('## Elsewhere', '')
   out.push(`- [IsekaiZero creator page](${LINKS.isekaiProfile}): where the worlds are played and remixed.`)
-  out.push(`- [KageSekai creator page](${LINKS.kageProfile}): the 18+ worlds, from the same account.`)
+  out.push(`- [KageSekai creator page](${SITE.kageSekai}/creator/kuletxcore): the 18+ worlds. Same account, same storyline ids.`)
   out.push(`- [Trimz](${SITE.trimz}): the series cut from the stories.`)
   out.push(`- [YouTube](${SITE.youtube}): trailers and the making-of.`)
   out.push('')
@@ -134,7 +134,7 @@ export function llmsTxt(origin: Origin): string {
     '## Reading this site',
     '',
     '- Every story page is also available as Markdown: append `.md` to its URL, as in `/stories/acolytes.md`.',
-    '- Ratings: SFW and 17+ are on IsekaiZero; 18+ is on KageSekai, its adult sister site.',
+    '- Ratings: SFW and 17+ are on IsekaiZero; 18+ is on KageSekai, its adult sister site. Storyline ids match on both.',
     '- Numbers are live or not shown. The baked-in figures in the HTML are the last known values; `/api/isk-stats` is the current source.',
     '- The canonical site is `kuletxai.whop.site`; it is mirrored at `kuletxai.kuletxcore.workers.dev`.',
     '- Cast members made by other creators are credited with a "Character by" line, and their profiles are linked from the hub.',

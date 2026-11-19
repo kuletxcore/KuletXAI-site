@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
-import { storyPlatformName } from '#/data/content'
-import type { Story } from '#/data/content'
-import { countOf, useIskStats } from '#/lib/isk-stats'
-import { renderStoryCard } from '#/lib/share-card'
+import { STORIES, storyPlatformName } from '#/data/content'
+import type { Story, TrimzSeries } from '#/data/content'
+import { countOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
+import { renderSeriesCard, renderStoryCard } from '#/lib/share-card'
 import { play as sfx } from '#/lib/sfx'
 
 // POSTER MAKER: turns the world you're looking at into a 1080x1350 card you can post.
 // Drawn on the visitor's device, shared with the native sheet where the browser has one.
 
-export function ShareCard({ story, onClose }: { story: Story; onClose: () => void }) {
+/** A story card, or with `series` (the hub's Trimz tab) a card for that series. */
+export function ShareCard({ story, series, onClose }: { story: Story; series?: TrimzSeries; onClose: () => void }) {
   const live = useIskStats()
+  // A series takes its accent and rating from the world it was cut from, not whichever world the hub last showed
+  const parent = (series && STORIES.find((s) => s.trimz?.includes(series.slug))) || story
   const [src, setSrc] = useState<string | null>(null)
   const [busy, setBusy] = useState(true)
   const [note, setNote] = useState<string | null>(null)
@@ -18,13 +21,15 @@ export function ShareCard({ story, onClose }: { story: Story; onClose: () => voi
   useEffect(() => {
     let alive = true
     setBusy(true)
-    const stats = {
-      messages: countOf(live, story, 'messages'),
-      likes: countOf(live, story, 'likes'),
-      saves: countOf(live, story, 'saves'),
-      chats: countOf(live, story, 'chats'),
-    }
-    renderStoryCard(story, stats)
+    const render = series
+      ? renderSeriesCard(series, parent, { episodes: trimzCountOf(live, series, 'episodes'), views: trimzCountOf(live, series, 'views') })
+      : renderStoryCard(story, {
+          messages: countOf(live, story, 'messages'),
+          likes: countOf(live, story, 'likes'),
+          saves: countOf(live, story, 'saves'),
+          chats: countOf(live, story, 'chats'),
+        })
+    render
       .then((url) => {
         if (alive) {
           setSrc(url)
@@ -38,7 +43,7 @@ export function ShareCard({ story, onClose }: { story: Story; onClose: () => voi
       alive = false
     }
     // One card per world: the live numbers are snapshotted when it opens
-  }, [story.slug])
+  }, [story.slug, series?.slug])
 
   useEffect(() => {
     const before = document.documentElement.style.overflow
@@ -57,12 +62,16 @@ export function ShareCard({ story, onClose }: { story: Story; onClose: () => voi
     }
   }, [onClose])
 
+  const name = series ? series.title : story.title
+  const file = `kuletx-${series ? series.slug : story.slug}-card.png`
+  const blurb = series ? `${series.title} · ${series.summary} · watch it on Trimz` : `${story.title} · ${story.hook} · play it on ${storyPlatformName(story)}`
+
   const download = () => {
     if (!src) return
     sfx('enter')
     const a = document.createElement('a')
     a.href = src
-    a.download = `kuletx-${story.slug}-card.png`
+    a.download = file
     a.click()
     setNote('Saved to your downloads')
   }
@@ -72,14 +81,14 @@ export function ShareCard({ story, onClose }: { story: Story; onClose: () => voi
     sfx('enter')
     try {
       const blob = await (await fetch(src)).blob()
-      const file = new File([blob], `kuletx-${story.slug}-card.png`, { type: 'image/png' })
+      const png = new File([blob], file, { type: 'image/png' })
       const data = {
-        files: [file],
-        title: story.title,
-        text: `${story.title} · ${story.hook} · play it on ${storyPlatformName(story)}`,
+        files: [png],
+        title: name,
+        text: blurb,
         url: window.location.href,
       }
-      if (navigator.canShare?.({ files: [file] })) {
+      if (navigator.canShare?.({ files: [png] })) {
         await navigator.share(data)
         setNote('Shared')
       } else {
@@ -112,7 +121,7 @@ export function ShareCard({ story, onClose }: { story: Story; onClose: () => voi
 
         <div className="p-3">
           {src ? (
-            <img src={src} alt={`Share card for ${story.title}`} className="mx-auto block max-h-[58vh] w-auto max-w-full border border-line" />
+            <img src={src} alt={`Share card for ${name}`} className="mx-auto block max-h-[58vh] w-auto max-w-full border border-line" />
           ) : (
             <div className="grid aspect-[4/5] place-items-center border border-dashed border-line bg-void">
               <p className="pixel font-pixel text-xl text-mute">{busy ? 'Rendering card' : 'No card'}<span className="cursor text-neon" /></p>

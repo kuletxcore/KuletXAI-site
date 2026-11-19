@@ -19,11 +19,11 @@ describe('machine layer', () => {
     }
   })
 
-  it('uses the real creator links and hosts', () => {
+  it('links both creator pages and only real hosts', () => {
     const all = llmsTxt(origin) + llmsFullTxt(origin)
-    expect(all).not.toContain('/creator/kuletxcore')
+    expect(all).toContain('https://www.kagesekai.ai/creator/kuletxcore')
+    expect(all).toMatch(/https:\/\/www\.isekaizero\.ai\/creator\/\S+referralCode=/)
     expect(all).not.toContain('kuletx-core.workers.dev')
-    expect(all).toContain('/creator/6a9457a462f8f09c667828f7')
   })
 
   it('renders a Markdown page for every story, titled and linked back', () => {

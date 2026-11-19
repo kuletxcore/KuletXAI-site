@@ -44,7 +44,7 @@ All candidates built cleanly, with no runtime errors on the home page or the hub
 
 ## Fixed on the way in
 
-- `machine.ts` linked the KageSekai creator page as `/creator/kuletxcore` (it needs the account id), claimed storyline ids match across both platforms, named a host that doesn't exist, and built its own play links without the IsekaiZero referral. All four now come from `LINKS` and `storyUrl`.
+- `machine.ts` named a host that doesn't exist (`kuletx-core.workers.dev`) and built its own play links without the IsekaiZero referral; both now come from `storyUrl`, and the IsekaiZero creator link carries the referral. Its `/creator/kuletxcore` links and its note that storyline ids match on both platforms were right all along and are kept.
 - The Trimz cinema's slate printed the baked-in counts, not the live ones.
 - The cold open's glow is off in Lite mode, which has no blur effects.
 - The controls sheet's close buttons were 36px; they're 44px now. Its finder row said "from anywhere on the site", but the finder is on the home page only.

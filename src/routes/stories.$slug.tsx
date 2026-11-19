@@ -694,7 +694,7 @@ function StoryHub() {
           </div>
         </section>
 
-        {share && <ShareCard story={story} onClose={() => setShare(false)} />}
+        {share && <ShareCard story={story} series={tab === 'series' ? activeSeries : undefined} onClose={() => setShare(false)} />}
 
         {modal && (
           <ModalView
