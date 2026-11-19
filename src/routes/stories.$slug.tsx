@@ -2,7 +2,7 @@ import { Link, createFileRoute, notFound, useNavigate } from '@tanstack/react-ro
 import { memo, startTransition, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { ReactNode } from 'react'
 import { STORIES, TRIMZ, castTrimz, storyPlatform, storyPlatformName, storyUrl, trimzSeriesUrl } from '#/data/content'
-import type { Logo as TitleArt, Story } from '#/data/content'
+import type { Crop, Logo as TitleArt, Story } from '#/data/content'
 import { ISK } from '#/data/isk'
 import { LiveCount, LiveDot } from '#/components/live-count'
 import { countOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
@@ -16,6 +16,7 @@ import { KeyLabel } from '#/components/pad-glyph'
 import { PlatformChip, PlatformIcon, type Platform } from '#/components/platform'
 import { siteOrigin } from '#/lib/origin'
 import { writeSave } from '#/lib/save-state'
+import { HUB_HEAD_SCRIPT, useHubTheme } from '#/lib/hub-theme'
 import { setPerfMode, useLite, usePerfMode, watchFrameRate } from '#/lib/perf'
 import type { LiteReason } from '#/lib/perf'
 import { holdForMedia, playOst, setMusic, setMusicVolume, stopOst, useMusicVolume, useOstState, useWantedMusic } from '#/lib/music'
@@ -48,7 +49,7 @@ export const Route = createFileRoute('/stories/$slug')({
     return { story, videos }
   },
   head: ({ loaderData }) => ({
-    scripts: [{ children: BOOT_HEAD_SCRIPT }],
+    scripts: [{ children: HUB_HEAD_SCRIPT }, { children: BOOT_HEAD_SCRIPT }],
     links: [
       { rel: 'preload', href: '/sfx/ps5-startup.mp3', as: 'audio' },
       { rel: 'preload', href: '/brand/kuletx-ai-1200.webp', as: 'image' },
@@ -72,6 +73,14 @@ export const Route = createFileRoute('/stories/$slug')({
       : [],
   }),
   component: StoryHub,
+  // A console never shows an empty screen between games: the loader waits on YouTube, so this covers the gap
+  pendingComponent: () => (
+    <div className="ps5 grid min-h-dvh place-items-center">
+      <p className="ps5-boot-line" role="status">
+        Loading<span className="ps5-boot-dots" aria-hidden>...</span>
+      </p>
+    </div>
+  ),
   notFoundComponent: () => (
     <div className="ps5 grid min-h-dvh place-items-center px-4 text-center">
       <div>
@@ -146,6 +155,8 @@ function stickScroll(dy: number) {
 function StoryHub() {
   const { story, videos } = Route.useLoaderData()
   useEffect(() => rememberYoutubeVideos(videos), [])
+  // Themed scrollbars, selection and overscroll for as long as a hub page is mounted (src/lib/hub-theme.ts)
+  useHubTheme()
   const navigate = useNavigate()
   const search = Route.useSearch()
   const [tab, setTab] = useState<HubTab>(() => (search.tab === 'trimz' ? 'series' : search.tab === 'youtube' ? 'youtube' : 'stories'))
@@ -533,10 +544,10 @@ function StoryHub() {
       {/* Backdrops for every item, crossfaded by toggling is-active */}
       <div className="ps5-backdrop" data-dir={bg.current.dir < 0 ? 'prev' : 'next'} aria-hidden>
         {STORIES.map((s, i) => (
-          <Backdrop key={s.slug} src={s.cover} video={ISK[s.slug]?.videoCover} active={tab === 'stories' && i === storyIdx} warm={warm('stories', i, storyIdx)} />
+          <Backdrop key={s.slug} src={s.cover} crop={s.crop} video={ISK[s.slug]?.videoCover} active={tab === 'stories' && i === storyIdx} warm={warm('stories', i, storyIdx)} />
         ))}
         {TRIMZ.map((t, i) => (
-          <Backdrop key={t.slug} src={t.poster} video={t.video} active={tab === 'series' && i === seriesIdx} warm={warm('series', i, seriesIdx)} />
+          <Backdrop key={t.slug} src={t.poster} crop={t.crop} video={t.video} active={tab === 'series' && i === seriesIdx} warm={warm('series', i, seriesIdx)} />
         ))}
         {videos.map((v, i) => (
           <Backdrop key={v.id} src={ytThumb(v.id, 'maxresdefault')} blurSrc={ytThumb(v.id)} softSrc={ytThumb(v.id, 'default')} active={tab === 'youtube' && i === ytIdx} warm={warm('youtube', i, ytIdx)} />
@@ -735,6 +746,7 @@ const Backdrop = memo(function Backdrop({
   video: videoSrc,
   active,
   warm,
+  crop,
 }: {
   src: string
   blurSrc?: string
@@ -743,7 +755,11 @@ const Backdrop = memo(function Backdrop({
   active: boolean
   /** Load the images before the layer is shown. A layer never warmed stays empty, so hidden backgrounds don't all download at once. */
   warm: boolean
+  /** Where the art's subject sits, so the hub's crop follows the picture instead of one shared guess */
+  crop?: Crop
 }) {
+  // The old single crop was `center 20%`; that stays the default for anything without art direction
+  const focus = { objectPosition: `${crop?.x ?? 50}% ${crop?.y ?? 20}%` }
   const [wanted, setWanted] = useState(() => active || warm)
   if ((active || warm) && !wanted) setWanted(true)
   // Lite graphics: the still image only
@@ -827,12 +843,13 @@ const Backdrop = memo(function Backdrop({
       ) : (
         <img className="ps5-layer-blur" src={blurSrc ?? src} alt="" loading={active ? 'eager' : 'lazy'} />
       )}
-      <img ref={artRef} className={`ps5-layer-art ${settled >= 1 && video ? 'invisible' : ''}`} src={src} alt="" loading={active ? 'eager' : 'lazy'} />
+      <img ref={artRef} className={`ps5-layer-art ${settled >= 1 && video ? 'invisible' : ''}`} src={src} alt="" loading={active ? 'eager' : 'lazy'} style={focus} />
       {plan?.preview && webm && (
         <video
           ref={previewRef}
           className={`ps5-layer-art ps5-fade ${stage >= 1 ? 'opacity-100' : 'opacity-0'} ${settled >= 2 ? 'invisible' : ''}`}
           src={webm}
+          style={focus}
           muted
           loop
           playsInline
@@ -846,6 +863,7 @@ const Backdrop = memo(function Backdrop({
           ref={fullRef}
           className={`ps5-layer-art ps5-fade ${stage >= 2 ? 'opacity-100' : 'opacity-0'}`}
           src={video}
+          style={focus}
           muted
           loop
           playsInline
@@ -2023,20 +2041,20 @@ function BottomBar({
           <Hint kbm keys={['Q', 'E']} label="Tabs" />
         </>
       )}
-      {/* Touch: real buttons */}
-      <div className="flex gap-2 md:hidden">
-        <button type="button" onClick={onPrev} className="ps5-round !size-11 !rounded-xl" aria-label="Previous">
+      {/* Touch: real buttons, wearing the same glass as the rest of the console instead of raw rectangles */}
+      <div className="flex items-center gap-2 md:hidden">
+        <button type="button" onClick={onPrev} className="ps5-round !size-11" aria-label="Previous">
           ←
         </button>
-        <button type="button" onClick={onNext} className="ps5-round !size-11 !rounded-xl" aria-label="Next">
+        <button type="button" onClick={onNext} className="ps5-round !size-11" aria-label="Next">
           →
         </button>
       </div>
-      <button type="button" onClick={onPrimary} className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 font-semibold text-white md:hidden">
+      <button type="button" onClick={onPrimary} className="ps5-cta !px-4 !py-2.5 !text-sm md:hidden">
         Enter
       </button>
-      <button type="button" onClick={toggleTab} className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 font-semibold text-white md:hidden">
-        Switch Tab
+      <button type="button" onClick={toggleTab} className="ps5-round !h-11 !w-auto !rounded-full px-4 text-xs font-semibold md:hidden">
+        Switch tab
       </button>
     </footer>
   )
@@ -2232,7 +2250,12 @@ function Clock() {
     const id = setInterval(tick, 15000)
     return () => clearInterval(id)
   }, [])
-  return <span className="hidden min-w-16 text-right text-lg font-semibold tabular-nums md:inline">{now}</span>
+  // A fixed slot whether or not the time has arrived, so the chrome never reflows once it does
+  return (
+    <span className="hidden min-w-16 text-right text-lg font-semibold tabular-nums md:inline">
+      {now ? <time suppressHydrationWarning>{now}</time> : null}
+    </span>
+  )
 }
 
 function ShareButton() {
