@@ -29,6 +29,8 @@ export type TrimzSeries = {
   /** Title logotype and square tile art from the IsekaiZero "logotypes" folder */
   logo?: Logo
   tile?: string
+  /** Focal point for the hub backdrop crop (see Crop) */
+  crop?: Crop
   episodes: number
   views: number
 }
@@ -44,6 +46,7 @@ export const TRIMZ: TrimzSeries[] = [
     summary:
       'Maid café waitresses by day, unkillable black-ops agents by night, and nobody on the block knows.',
     poster: '/trimz/acolytes.webp',
+    crop: { x: 50, y: 26 },
     video: '/trimz/acolytes.mp4',
     episodes: 4,
     views: 163,
@@ -56,6 +59,7 @@ export const TRIMZ: TrimzSeries[] = [
     title: 'Acolytes: Maid for your Protection (Side B)',
     summary: 'Beneath a maid café, a new squad leader runs secret tactical missions.',
     poster: '/trimz/acolytes-side-b.webp',
+    crop: { x: 50, y: 26 },
     video: '/trimz/acolytes-side-b.mp4',
     episodes: 1,
     views: 90,
@@ -74,6 +78,13 @@ const CAST_TRIMZ: Record<string, string> = {
 export const castTrimz = (castId: string) => TRIMZ.find((t) => t.slug === CAST_TRIMZ[castId])
 
 export type Logo = { src: string; w: number; h: number }
+
+/**
+ * Where the interesting part of a cover sits, as percentages of the image (0–100). The hub crops covers to a band on
+ * phones and to a column on desktop, and every cover is composed differently, so one shared guess cuts faces off.
+ * Set by eye from the artwork: x follows the subject, y is the band you want kept when the crop gets tight.
+ */
+export type Crop = { x: number; y: number }
 
 export type Story = {
   slug: string
@@ -100,6 +111,8 @@ export type Story = {
   trimz?: string[]
   logo?: Logo
   tile?: string
+  /** Focal point for the hub backdrop crop (see Crop) */
+  crop?: Crop
 }
 
 // Storylines from the kuletxcore account on IsekaiZero and KageSekai (Nov 2026)
@@ -113,6 +126,7 @@ export const STORIES: Story[] = [
     logline:
       'By day, you serve tea and cake. By night, you lead an elite black-ops unit no government will admit exists.',
     cover: '/covers/1.webp',
+    crop: { x: 50, y: 32 },
     rating: '17+',
     tags: ['Spy', 'Thriller', 'Undercover'],
     likes: 170,
@@ -148,6 +162,7 @@ export const STORIES: Story[] = [
     logline:
       'You can grow from human height to 300 meters. When kaiju rise from the coastal rifts, you are the only one who can meet them at their own scale.',
     cover: '/covers/3.webp',
+    crop: { x: 46, y: 30 },
     rating: '17+',
     tags: ['Kaiju', 'Giantess', 'Apocalypse'],
     likes: 36,
@@ -179,6 +194,7 @@ export const STORIES: Story[] = [
     logline:
       'You arrived as a nobody. Climb the social hierarchy until the entire school has to acknowledge you.',
     cover: '/covers/5.webp',
+    crop: { x: 50, y: 52 },
     rating: 'SFW',
     tags: ['High School', 'Rivals', 'Slow Burn'],
     likes: 14,
@@ -216,6 +232,7 @@ export const STORIES: Story[] = [
     logline:
       "Cursed with a power you can't control, you spawn random fragments of other worlds into reality. Survive the chaos.",
     cover: '/covers/4.webp',
+    crop: { x: 50, y: 30 },
     rating: 'SFW',
     tags: ['Academy', 'Superpower', 'Comedy'],
     likes: 11,
@@ -249,6 +266,7 @@ export const STORIES: Story[] = [
     logline:
       'You become The Table™, an unbreakable, sentient table in a fantasy world. Chaos, comedy and furniture-based destiny follow.',
     cover: '/covers/2.webp',
+    crop: { x: 50, y: 58 },
     rating: 'SFW',
     tags: ['Fantasy', 'Comedy', 'Transmigration'],
     likes: 5,
@@ -283,6 +301,7 @@ export const STORIES: Story[] = [
     logline:
       'A cancelled comic’s costume bonds to you, a fan, granting goddess powers you never earned, in a world with no heroes.',
     cover: '/covers/6.webp',
+    crop: { x: 46, y: 44 },
     rating: '17+',
     tags: ['Superpower', 'Transformation', 'Mystery'],
     likes: 6,
@@ -318,6 +337,7 @@ export const STORIES: Story[] = [
     title: 'Wristbound: Zero to Hero',
     logline: 'You find a magical artifact that turns you into different women. Now use that to become a hero.',
     cover: '/covers/7.webp?v=e1e00166',
+    crop: { x: 53, y: 22 },
     rating: '18+',
     tags: ['Transformation', 'Body Horror', 'Modern'],
     likes: 0,

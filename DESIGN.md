@@ -54,6 +54,33 @@ Rules:
 
 The three pixel and mono faces are under the SIL Open Font License (credited in the footer). **SST is Sony's typeface and is not openly licensed.** Confirm you can use it, or swap in an open lookalike, before relying on it.
 
+## The console, all the way down
+
+The hub's job is to feel like a console, and a console never shows you the browser. Where the illusion breaks, it breaks
+all at once — a white overscroll bounce, the OS scrollbar, a neon text selection over black glass. So:
+
+- **The hub owns the browser chrome.** `[data-hub]` (set before first paint by `HUB_HEAD_SCRIPT`) gives the page
+  `color-scheme: dark`, a themed thin scrollbar, `overscroll-behavior-y: none` and a neutral selection. It applies to
+  the hub and its trophy list, and is removed the moment you leave. The homepage keeps its own look.
+- **Covers get art direction, not a shared crop.** Every cover is composed differently, so `Story.crop` carries a focal
+  point (`{ x, y }`, percentages) that drives `object-position` on the still and both video layers. The old single
+  `center 20%` stays the default, so any art without a focal point does not move.
+- **Type is set for a TV.** The story title runs to 84px with `-0.035em` tracking; the selected tile's name runs to 21px
+  on desktop. At 1080p the title is the largest thing on screen, which is what makes the screen read as a console.
+- **The information card arrives as one object.** The console lifts the whole card on a selection change, so the title
+  and pill row hold still while `.ps5-details` moves — otherwise it reads as a website loading in pieces.
+- **Every surface has a definition.** `.ps5-panel` is the main reading surface and had no base style at all (it existed
+  only inside the short-landscape query). It now has its own radius, padding and the hairline top highlight that makes
+  glass read as a raised card.
+- **No raw rectangles.** The touch bottom bar was the one place the idiom was abandoned; it now uses `ps5-cta` and
+  `ps5-round` like everything else.
+- **Loading is designed too.** The hub's `pendingComponent` shows the console's own black with a quiet line, instead of
+  the homepage background while the loader waits.
+
+What is deliberately *not* here: depth, 3D transforms and parallax on the ribbon. The backdrop already does the
+console's signature 1:1 pan; adding perspective to the tiles is a bigger change than this pass and would need a
+frame-budget check on low-end phones before it earns its keep.
+
 ## Layout
 
 - One centered column, `max-w-6xl`, 16px side padding on phones and 24px from `sm`.

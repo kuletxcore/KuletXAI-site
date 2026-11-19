@@ -11,6 +11,7 @@ import type { PadButton } from '#/lib/gamepad'
 import { setMusic, stopOst } from '#/lib/music'
 import { isMuted, play as sfx, setMuted } from '#/lib/sfx'
 import { glideIntoView, stopAllGlides } from '#/lib/smooth-scroll'
+import { HUB_HEAD_SCRIPT, useHubTheme } from '#/lib/hub-theme'
 
 export const Route = createFileRoute('/stories_/$slug/trophies')({
   loader: ({ params }) => {
@@ -20,6 +21,7 @@ export const Route = createFileRoute('/stories_/$slug/trophies')({
     return { story, set }
   },
   head: ({ loaderData }) => ({
+    scripts: [{ children: HUB_HEAD_SCRIPT }],
     links: [
       { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
       { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
@@ -53,6 +55,8 @@ type Sort = 'default' | 'grade'
 
 function TrophyPage() {
   const { story, set } = Route.useLoaderData()
+  // Same browser chrome as the hub: themed scrollbars, selection and overscroll (src/lib/hub-theme.ts)
+  useHubTheme()
   const navigate = useNavigate()
   const [sort, setSort] = useState<Sort>('default')
   const [selected, setSelected] = useState(0)
