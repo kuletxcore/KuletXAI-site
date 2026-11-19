@@ -146,6 +146,8 @@ export function StoryDemo() {
   useEffect(() => {
     if (!inView || phase !== 'choices') return
     const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null
+      if (t && /^(input|textarea|select)$/i.test(t.tagName)) return
       const n = Number.parseInt(e.key, 10)
       const choices = node.choices ?? []
       if (n >= 1 && n <= choices.length) pick(choices[n - 1])

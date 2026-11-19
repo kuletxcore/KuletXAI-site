@@ -4,6 +4,7 @@ import { Footer, Header, SectionHead } from '#/components/site'
 import { ContinueBand } from '#/components/continue-band'
 import { WorldDealer } from '#/components/world-dealer'
 import { FirstTurn } from '#/components/first-turn'
+import { FinderTrigger, WorldFinder } from '#/components/world-finder'
 import { StoryDemo } from '#/components/story-demo'
 import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
@@ -19,6 +20,7 @@ function Home() {
   return (
     <div className="crt min-h-screen">
       <Header />
+      <WorldFinder />
       <main>
         <Hero />
         <ContinueBand />
@@ -73,6 +75,7 @@ function Hero() {
             <span><LiveCount value={totalOf(live, 'saves')} /> saves</span>
             <span className="text-warn">outslopping the competition</span>
           </p>
+          <FinderTrigger />
         </div>
 
         <FirstTurn />
