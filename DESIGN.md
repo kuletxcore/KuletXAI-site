@@ -81,7 +81,23 @@ What is deliberately *not* here: depth, 3D transforms and parallax on the ribbon
 console's signature 1:1 pan; adding perspective to the tiles is a bigger change than this pass and would need a
 frame-budget check on low-end phones before it earns its keep.
 
+## The fold
+
+The first screen has one job: prove the product. So the hero is not a poster and a promise, it is a working console —
+a real scene from a real world that types itself in, offers one choice and ends on that world's play button. The rule
+that follows from it:
+
+- **The primary button always does the thing.** No "Play" that scrolls to a section that deals a card that has another
+  button. The hero's call to action opens the world currently on screen, and names it.
+- **Proof before explanation.** The console runs above the fold; what happens after you press play is explained
+  further down (`THE LOOP`), once the visitor has already felt it. Never the other way round.
+- **No two competing demos.** One scripted surface per page. A second, deeper teaser splits attention and delays the
+  hand-off; depth belongs in the world file and the hub, not in a second script.
+- **Motion rules apply here too.** Reduced motion, Lite mode and Pause motion all get the scene instantly, with no
+  typewriter, and the console never types while the tab is hidden or scrolled away.
+
 ## Layout
+
 
 - One centered column, `max-w-6xl`, 16px side padding on phones and 24px from `sm`.
 - Section padding is 64px on phones and 80px from `md`. The hero gets more room on desktop.
