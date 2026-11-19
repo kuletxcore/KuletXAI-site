@@ -8,6 +8,8 @@ Dial: ENERGY 3 / RHYTHM 2 / MOTION 2
 - **RHYTHM 2.** Sections share one frame (kicker, pixel title, short body) but change what sits inside it: a poster shelf, a card table, a playable demo, a two-up series list, a four-door grid.
 - **MOTION 2.** Motion shows that the worlds are alive (drifting posters, cover videos, a typing storyteller). It never runs without an off switch.
 
+Arena rounds and what each one added or left out: [`docs/arena-findings.md`](docs/arena-findings.md) (round 1) and [`docs/arena-round-2.md`](docs/arena-round-2.md) (round 2).
+
 ## Two surfaces, one family
 
 | | Front page | Story hub (`/stories/*`) |
