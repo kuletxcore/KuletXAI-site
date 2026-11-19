@@ -1468,3 +1468,56 @@ html.kx-lite .kx-deal-cta {
     animation: none;
   }
 }
+
+/* STORY RADIO (src/components/story-radio.tsx): the equaliser moves while the track plays */
+.kx-eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+  color: var(--color-neon);
+}
+.kx-eq i {
+  width: 2px;
+  height: 100%;
+  background: currentColor;
+  transform-origin: bottom;
+  animation: kxEq 900ms ease-in-out infinite alternate;
+}
+.kx-eq i:nth-child(2) {
+  animation-delay: 120ms;
+  animation-duration: 700ms;
+}
+.kx-eq i:nth-child(3) {
+  animation-delay: 40ms;
+  animation-duration: 1100ms;
+}
+.kx-eq i:nth-child(4) {
+  animation-delay: 220ms;
+  animation-duration: 820ms;
+}
+.kx-eq i:nth-child(5) {
+  animation-delay: 90ms;
+  animation-duration: 980ms;
+}
+.kx-eq.is-idle i {
+  animation: none;
+  transform: scaleY(0.25);
+}
+.kx-still .kx-eq i {
+  animation-play-state: paused;
+}
+@keyframes kxEq {
+  from {
+    transform: scaleY(0.25);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kx-eq i {
+    animation: none;
+    transform: scaleY(0.45);
+  }
+}

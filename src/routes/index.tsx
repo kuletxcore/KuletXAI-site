@@ -10,6 +10,7 @@ import { LINKS, STORIES, TRIMZ, storyPlatformName, storyUrl, trimzSeriesUrl } fr
 import type { Story } from '#/data/content'
 import { QuickLook } from '#/components/quick-look'
 import { ForYou } from '#/components/for-you'
+import { StoryRadio } from '#/components/story-radio'
 import { recordOpen } from '#/lib/taste'
 import { LiveCount, LiveDot } from '#/components/live-count'
 import { countOf, totalOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
@@ -31,6 +32,7 @@ function Home() {
         <Stories />
         <StoryDemo />
         <Trimz />
+        <StoryRadio />
         <Channels />
       </main>
       <Footer />
@@ -720,7 +722,7 @@ function Channels() {
   return (
     <section id="watch" className="scroll-mt-16 border-b border-line">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
-        <SectionHead kicker="03 // Channels" title="Four ways in" body="Same universe, different screens." />
+        <SectionHead kicker="04 // Channels" title="Four ways in" body="Same universe, different screens." />
         <ul className="mt-12 grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2">
           {CHANNELS.map((c, i) => (
             <li key={c.key} className="bg-void">
