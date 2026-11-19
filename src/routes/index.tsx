@@ -8,6 +8,7 @@ import { FinderTrigger, WorldFinder } from '#/components/world-finder'
 import { SessionDock } from '#/components/session-dock'
 import { Challenge } from '#/components/challenge'
 import { QuickPeek, openPeek } from '#/components/quick-peek'
+import { Finale } from '#/components/finale'
 import { readSavedWorlds, toggleSavedWorld } from '#/lib/saved'
 import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
@@ -46,6 +47,7 @@ function Deferred({ id, kicker, children }: { id: string; kicker: string; childr
 function Home() {
   return (
     <div className="crt min-h-screen">
+      <a href="#stories" className="sr-only z-[90] bg-neon px-4 py-3 font-gamer text-xs uppercase text-void focus:not-sr-only focus:fixed focus:top-2 focus:left-2">Skip to the worlds ↓</a>
       <Header />
       <WorldFinder />
       <main>
@@ -57,6 +59,7 @@ function Home() {
         <Trimz />
         <Channels />
         <Challenge />
+        <Finale />
       </main>
       <Footer />
       <SessionDock />
