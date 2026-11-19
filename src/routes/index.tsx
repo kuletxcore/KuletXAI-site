@@ -722,7 +722,7 @@ const CHANNELS = [
 
 function Channels() {
   return (
-    <section id="watch" className="scroll-mt-16 border-b border-line">
+    <section id="watch" className="kx-lazy scroll-mt-16 border-b border-line">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
         <SectionHead kicker="04 // Channels" title="Four ways in" body="Same universe, different screens." />
         <ul className="mt-12 grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2">

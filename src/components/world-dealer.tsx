@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { motion } from 'motion/react'
 import { LINKS, STORIES, storyPlatformName, storyUrl } from '#/data/content'
 import type { Story } from '#/data/content'
 import { LiveCount, LiveDot } from '#/components/live-count'
@@ -199,11 +198,8 @@ function DealtCard({
     story.rating === 'SFW' ? 'bg-neon text-void' : story.rating === '18+' ? 'bg-danger text-white' : 'bg-warn text-void'
 
   return (
-    <motion.article
-      initial={lite ? { opacity: 0 } : { opacity: 0, y: 90, rotate: -7, scale: 0.85 }}
-      animate={lite ? { opacity: 1 } : { opacity: 1, y: 0, rotate: 0, scale: 1 }}
-      transition={lite ? { duration: 0.15 } : { type: 'spring', stiffness: 210, damping: 21 }}
-      className="relative overflow-hidden border border-line bg-void"
+    <article
+      className={`kx-dealt relative overflow-hidden border border-line bg-void ${lite ? 'is-lite' : ''}`}
       style={{ boxShadow: `0 0 90px -18px ${story.accent}59, inset 0 0 60px -40px ${story.accent}40` }}
       aria-label={`Dealt world: ${story.title}`}
     >
@@ -285,6 +281,6 @@ function DealtCard({
           </div>
         </div>
       </div>
-    </motion.article>
+    </article>
   )
 }

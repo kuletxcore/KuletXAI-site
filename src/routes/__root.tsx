@@ -6,6 +6,7 @@ import { PERF_HEAD_SCRIPT } from '#/lib/perf'
 import { DARK_HEAD_SCRIPT } from '#/lib/dark'
 import { STILL_HEAD_SCRIPT } from '#/lib/still'
 import { StoryFinder } from '#/components/story-finder'
+import { ControlsSheet } from '#/components/controls-sheet'
 
 const DESCRIPTION =
   'KuletX AI: interactive AI stories on IsekaiZero and KageSekai, series on Trimz and videos on YouTube.'
@@ -48,6 +49,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body>
         {children}
         <StoryFinder />
+        <ControlsSheet />
         <Scripts />
       </body>
     </html>

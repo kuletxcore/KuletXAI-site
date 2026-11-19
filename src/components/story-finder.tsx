@@ -8,6 +8,7 @@ import type { SaveState } from '#/lib/save-state'
 import { play as sfx, setMuted, useMuted } from '#/lib/sfx'
 import { setPerfMode, useLite } from '#/lib/perf'
 import { setStill, useStill } from '#/lib/still'
+import { openControls } from '#/components/controls-sheet'
 
 // STORY FINDER: one field over every world, character, series, video and command on the site.
 // Opens with Cmd/Ctrl+K or /, runs on the arrow keys and Enter, and works from any page.
@@ -186,6 +187,15 @@ export function StoryFinder() {
         meta: ['Setting'],
         keywords: 'sound audio mute volume',
         run: () => setMuted(!muted),
+      },
+      {
+        id: 'do:controls',
+        kind: 'action',
+        title: 'Controls and shortcuts',
+        sub: 'Every key and every controller button, on one sheet',
+        meta: ['Help'],
+        keywords: 'controls keys shortcuts keyboard gamepad controller help',
+        run: openControls,
       },
       {
         id: 'do:lite',

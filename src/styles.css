@@ -1521,3 +1521,33 @@ html.kx-lite .kx-deal-cta {
     transform: scaleY(0.45);
   }
 }
+
+/* THE WORLD DEALER (src/components/world-dealer.tsx): the dealt card slides across the table in CSS, so the
+   home page doesn't ship a motion library for one spring */
+.kx-dealt {
+  animation: kxDeal 520ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+.kx-dealt.is-lite {
+  animation-duration: 140ms;
+}
+.kx-still .kx-dealt {
+  animation: none;
+}
+@keyframes kxDeal {
+  from {
+    opacity: 0;
+    transform: translateY(90px) rotate(-7deg) scale(0.85);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kx-dealt {
+    animation: none;
+  }
+}
+
+/* Sections far below the fold skip layout and paint until they're near the viewport (the sizes are the
+   phone estimate, so the scroll bar doesn't jump). */
+.kx-lazy {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
