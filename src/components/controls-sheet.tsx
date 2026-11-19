@@ -1,49 +1,62 @@
 import { useEffect, useState } from 'react'
 import { KeyLabel } from '#/components/pad-glyph'
 import { PAD_LABEL, usePadInfo } from '#/lib/gamepad'
+import type { PadKind } from '#/lib/gamepad'
 import { play as sfx } from '#/lib/sfx'
 
-// THE CONTROLS SHEET: the whole machine's keyboard and controller map in one place, on ? or from the footer.
-// Prompts follow the pad you actually have plugged in (src/components/pad-glyph.tsx).
+// Every shortcut as an action, with the keys and the connected pad's buttons that do it. Opens on ? or from the footer.
 
 export const openControls = () => {
   if (typeof window !== 'undefined') window.dispatchEvent(new Event('kx:controls'))
 }
 
-type Row = { keys: string[]; label: string }
+type Btn = 'a' | 'b' | 'x' | 'y' | 'lb' | 'rb'
+// A pad entry is a face or shoulder button (named per controller below) or a fixed glyph such as the D-pad
+type PadKey = Btn | '◀' | '▶' | '▲' | '▼' | 'LS'
+type Row = { label: string; keys?: string[]; pad?: PadKey[] }
 
-const ANYWHERE: Row[] = [
-  { keys: ['/'], label: 'Find a world (home page)' },
-  { keys: ['⌘K'], label: 'Same, with Ctrl+K on Windows' },
-  { keys: ['?'], label: 'This sheet' },
-  { keys: ['Esc'], label: 'Close a card, the finder or this sheet' },
+const MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
+
+const GROUPS = (mod: string): { title: string; rows: Row[] }[] => [
+  {
+    title: 'Anywhere',
+    rows: [
+      { label: 'Find a world (home page)', keys: ['/'], pad: ['x'] },
+      { label: 'Find, even while typing (home page)', keys: [mod, 'K'] },
+      { label: 'This sheet', keys: ['?'] },
+      { label: 'Close a card, the finder or this sheet', keys: ['Esc'], pad: ['b'] },
+    ],
+  },
+  {
+    title: 'Home',
+    rows: [
+      { label: 'Resume the world you left off in', keys: ['R'] },
+      { label: 'Move to the next control', keys: ['Tab'], pad: ['◀', '▶'] },
+      { label: 'Select it', keys: ['Enter'], pad: ['a'] },
+      { label: 'Jump between sections', pad: ['lb', 'rb'] },
+      { label: 'Scroll', pad: ['LS'] },
+    ],
+  },
+  {
+    title: 'Story hub',
+    rows: [
+      { label: 'Previous or next world', keys: ['←', '→'], pad: ['◀', '▶'] },
+      { label: 'Move between sections', keys: ['↑', '↓'], pad: ['▲', '▼'] },
+      { label: 'Jump to section 1 to 8', keys: ['1', '8'] },
+      { label: 'Switch tab: story, series, video', keys: ['Q', 'E'], pad: ['lb', 'rb'] },
+      { label: 'Play the world, series or video', keys: ['Enter'], pad: ['a'] },
+      { label: 'Open the selected section', pad: ['x'] },
+      { label: 'Unredact the intro card', keys: ['R'], pad: ['x'] },
+      { label: 'Sound on or off', pad: ['y'] },
+      { label: 'Back to the home page', pad: ['b'] },
+      { label: 'Scroll', pad: ['LS'] },
+    ],
+  },
 ]
 
-const HOME: Row[] = [
-  { keys: ['R'], label: 'Resume the world you left off in' },
-  { keys: ['←', '→'], label: 'Move along the world shelf' },
-  { keys: ['Enter'], label: 'Open the focused world' },
-  { keys: ['Space'], label: 'Scroll the page' },
-]
-
-const HUB: Row[] = [
-  { keys: ['←', '→'], label: 'Previous or next world' },
-  { keys: ['↑', '↓'], label: 'Move between sections' },
-  { keys: ['1', '…', '8'], label: 'Jump to a section' },
-  { keys: ['Q', 'E'], label: 'Switch tab: story, series, video' },
-  { keys: ['Enter'], label: 'Play the world, series or video' },
-]
-
-const PAD: Row[] = [
-  { keys: ['◀', '▶'], label: 'Worlds, characters and gallery items' },
-  { keys: ['▲', '▼'], label: 'Sections' },
-  { keys: ['A'], label: 'Play or open' },
-  { keys: ['B'], label: 'Back' },
-  { keys: ['X'], label: 'Enter the open section' },
-  { keys: ['Y'], label: 'Sound on or off' },
-  { keys: ['LB', 'RB'], label: 'Tabs' },
-  { keys: ['LS'], label: 'Scroll' },
-]
+const KIND_NAME: Record<PadKind, string> = { xbox: 'Xbox controller', playstation: 'PlayStation controller', switch: 'Switch controller', gtnx: 'GT NX', generic: 'controller' }
+const BTNS = new Set<string>(['a', 'b', 'x', 'y', 'lb', 'rb'])
+const padGlyph = (k: PadKey, kind: PadKind) => (BTNS.has(k) ? PAD_LABEL[kind][k as Btn] : k)
 
 export function ControlsSheet() {
   const [open, setOpen] = useState(false)
@@ -88,14 +101,10 @@ export function ControlsSheet() {
     setOpen(false)
   }
 
-  // The pad half follows the controller that is actually connected
-  const labels = PAD_LABEL[pad.kind]
-  const padRows: Row[] = pad.connected
-    ? PAD.map((r) => ({
-        ...r,
-        keys: r.keys.map((k) => (k === 'A' ? labels.a : k === 'B' ? labels.b : k === 'X' ? labels.x : k === 'Y' ? labels.y : k === 'LB' ? labels.lb : k === 'RB' ? labels.rb : k)),
-      }))
-    : []
+  // Rows that only a controller can do are hidden until one is connected
+  const groups = GROUPS(MAC ? '⌘' : 'Ctrl')
+    .map((g) => ({ ...g, rows: g.rows.filter((r) => r.keys || pad.connected) }))
+    .filter((g) => g.rows.length)
 
   return (
     <div className="fixed inset-0 z-[68] flex items-start justify-center overflow-y-auto p-3 pt-[6vh] sm:p-6 sm:pt-[9vh]" role="dialog" aria-modal="true" aria-labelledby="kx-controls-title">
@@ -103,25 +112,60 @@ export function ControlsSheet() {
       <div className="kx-find-panel relative w-full max-w-3xl border border-line bg-panel shadow-[0_40px_120px_rgba(0,0,0,0.85)]">
         <div className="flex items-center justify-between gap-3 border-b border-line bg-void/60 px-4 py-2.5">
           <p id="kx-controls-title" className="font-gamer text-[10px] uppercase text-neon">
-            {'//'} Controls <span className="text-mute">· keyboard{pad.connected ? ' + controller' : ''}</span>
+            {'//'} Controls{' '}
+            <span className="text-mute">
+              · {pad.connected ? `keyboard and ${pad.model ?? KIND_NAME[pad.kind]}` : 'keyboard'}
+            </span>
           </p>
           <button type="button" onClick={close} aria-label="Close controls" className="grid size-11 place-items-center border border-line font-gamer text-xs text-mute hover:border-danger-ink hover:text-danger-ink">
             ✕
           </button>
         </div>
 
+        <p className="kx-touch-only border-b border-line px-4 py-3 text-sm leading-relaxed text-mute">
+          On a touch screen, tap anything and swipe the world shelf. Every action below also has an on-screen button.
+        </p>
+
         <div className="grid gap-6 p-4 sm:grid-cols-2 sm:p-5">
-          <Block title="Anywhere" rows={ANYWHERE} />
-          <Block title="Home" rows={HOME} />
-          <Block title="Story hub" rows={HUB} />
-          {pad.connected ? (
-            <Block title={`Your controller · ${pad.model ?? pad.kind}`} rows={padRows} />
-          ) : (
+          {groups.map((g) => (
+            <div key={g.title} className={`${g.title === 'Story hub' ? 'sm:row-span-2' : ''} ${g.rows.some((r) => r.pad && pad.connected) ? '' : 'kx-kbm-only'}`}>
+              <p className="font-gamer text-[10px] uppercase text-mute">{g.title}</p>
+              <dl className="mt-2 divide-y divide-line/70 border-t border-line/70">
+                {g.rows.map((r) => (
+                  <div key={`${g.title}-${r.label}`} className={`flex items-center justify-between gap-3 py-1.5 ${r.pad && pad.connected ? '' : 'kx-kbm-only'}`}>
+                    <dt className="flex shrink-0 items-center gap-2">
+                      {r.keys && (
+                        <span className="kx-kbm-only flex items-center gap-0.5" aria-label={`Keys: ${r.keys.join(' ')}`}>
+                          {r.keys.map((k) => (
+                            <span key={k} className="ps5-key">
+                              <KeyLabel k={k} keyboard />
+                            </span>
+                          ))}
+                        </span>
+                      )}
+                      {r.keys && r.pad && pad.connected && <span className="kx-kbm-only text-[10px] text-mute">or</span>}
+                      {r.pad && pad.connected && (
+                        <span className="flex items-center gap-0.5">
+                          {r.pad.map((k) => (
+                            <span key={k} className="ps5-key">
+                              <KeyLabel k={padGlyph(k, pad.kind)} />
+                            </span>
+                          ))}
+                        </span>
+                      )}
+                    </dt>
+                    <dd className="min-w-0 text-right text-xs leading-snug text-mute">{r.label}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ))}
+          {!pad.connected && (
             <div>
               <p className="font-gamer text-[10px] uppercase text-mute">Controller</p>
               <p className="mt-2 text-sm leading-relaxed text-mute">
-                Plug in a pad and press any button. Every screen works with PlayStation, Xbox and Switch controllers, and
-                with the Infinix GT NX in split mode.
+                Connect any controller and press a button: the story hub works with all of it, and this sheet shows your
+                pad's own buttons.
               </p>
             </div>
           )}
@@ -132,31 +176,6 @@ export function ControlsSheet() {
           <span className="text-ink"> Pause motion </span> button stops everything that loops.
         </div>
       </div>
-    </div>
-  )
-}
-
-function Block({ title, rows }: { title: string; rows: Row[] }) {
-  return (
-    <div>
-      <p className="font-gamer text-[10px] uppercase text-mute">{title}</p>
-      <dl className="mt-2 divide-y divide-line/70 border-t border-line/70">
-        {rows.map((r) => (
-          <div key={`${title}-${r.label}`} className="flex items-center justify-between gap-3 py-1.5">
-            <dt className="flex shrink-0 items-center gap-1">
-              {r.keys.map((k) => (
-                <kbd
-                  key={k}
-                  className="inline-flex min-h-7 min-w-7 items-center justify-center border border-line bg-void px-1.5 font-gamer text-[10px] text-ink"
-                >
-                  {/^[A-Z]{1,2}$|^(LS|LB|RB|LT|RT)$/.test(k) || /^[✕○□△◀▶▲▼]$/.test(k) ? <KeyLabel k={k} /> : k}
-                </kbd>
-              ))}
-            </dt>
-            <dd className="min-w-0 text-right text-xs leading-snug text-mute">{r.label}</dd>
-          </div>
-        ))}
-      </dl>
     </div>
   )
 }

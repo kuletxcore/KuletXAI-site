@@ -15,7 +15,8 @@ Live at [kuletxai.whop.site](https://kuletxai.whop.site), mirrored at [kuletxai.
 - **The Loop.** Below the shelf, three beats explain what happens after you press play, then hand you the door.
 - **Story hub.** Every story gets its own screen with an overview, intro card, cast, gallery, soundtrack player and trophies. It works with a controller, a keyboard or touch.
 - **Controller prompts.** Button prompts match the pad you plug in: PlayStation (PS5 glyphs on light, PS4 on dark, and always PS4 for a DualShock 4), Xbox, Nintendo Switch, and the Infinix GT NX in split mode, where each half is read like a sideways Joy-Con. Keyboard hints show only on devices with a mouse. Prompt art is Nicolae "Xelu" Berbece's free set (CC0), at 256px in full mode and 100px in Lite mode.
-- **Controls sheet.** Press `?` anywhere (or Controls in the footer) for every keyboard and controller shortcut, drawn with the prompts of the pad you have plugged in.
+- **Controller on the home page.** The D-pad moves between controls, A selects, B backs out, X opens Find, LB/RB jump between sections and Start opens the controls sheet. A small legend shows the buttons while a pad is connected.
+- **Controls sheet.** Press `?` anywhere (or Controls in the footer) for every shortcut as an action: Xelu keyboard keys (⌘ on a Mac, Ctrl elsewhere) beside the buttons of the pad you have plugged in. Touch screens get a touch note instead of the keyboard rows.
 - **Share cards.** The hub's card button draws a 1080x1350 poster of the world on your device, with its live counts, to save or share.
 - **Trimz cinema.** The series section is a screen with the cover reel running (off in Lite mode and with Pause motion) beside the whole slate.
 - **Live badges.** The world shelf marks the most played and most saved worlds, worked out from the live counts.

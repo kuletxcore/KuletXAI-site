@@ -5,6 +5,7 @@ import { ContinueBand } from '#/components/continue-band'
 import { jsonLd, siteJsonLd } from '#/lib/machine'
 import { siteOrigin } from '#/lib/origin'
 import { WorldFinder } from '#/components/world-finder'
+import { HomePad } from '#/components/home-pad'
 import { ColdOpen } from '#/components/cold-open'
 import { HowItWorks } from '#/components/how-it-works'
 import { play as sfx } from '#/lib/sfx'
@@ -51,6 +52,7 @@ function Home() {
     <div className="crt min-h-screen">
       <Header />
       <WorldFinder />
+      <HomePad />
       <main>
         <Hero />
         <ContinueBand />

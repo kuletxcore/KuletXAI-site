@@ -90,6 +90,8 @@
 
 html {
   scroll-behavior: smooth;
+  /* Keeps a focused control clear of the sticky header */
+  scroll-padding-top: 4.5rem;
 }
 
 html,
@@ -703,10 +705,14 @@ svg.ps5-picon {
   font-size: 10px;
   line-height: 1;
 }
-/* Keyboard prompts: hidden on touch screens, where there's no key to press */
-/* Keyboard hints hide on touch screens, whatever their width */
+/* Keyboard hints hide on touch screens, whatever their width; touch notes show only there */
 @media not ((hover: hover) and (pointer: fine)) {
   .kx-kbm-only {
+    display: none !important;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .kx-touch-only {
     display: none !important;
   }
 }

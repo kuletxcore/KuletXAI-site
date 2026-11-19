@@ -67,23 +67,32 @@ const KEYS: Record<string, Entry> = {
   Q: ['key-q', 'Q key'],
   E: ['key-e', 'E key'],
   R: ['key-r', 'R key'],
+  K: ['key-k', 'K key'],
+  '1': ['key-1', '1 key'],
+  '8': ['key-8', '8 key'],
+  '?': ['key-question', 'Question mark key'],
+  Esc: ['key-esc', 'Escape key'],
+  Tab: ['key-tab', 'Tab key'],
+  Ctrl: ['key-ctrl', 'Ctrl key'],
+  '⌘': ['key-command', 'Command key'],
 }
 
 /** Label inside a button-prompt chip: the connected pad's prompt image, a keyboard key, or the text itself. */
-export function KeyLabel({ k }: { k: string }) {
+export function KeyLabel({ k, keyboard = false }: { k: string; keyboard?: boolean }) {
   const lite = useLite()
   const dark = useDark()
   const pad = usePadInfo()
-  if (k.includes('/')) {
+  if (k.length > 1 && k.includes('/')) {
     return (
       <span className="inline-flex items-center gap-0.5">
         {k.split('/').map((part) => (
-          <KeyLabel key={part} k={part} />
+          <KeyLabel key={part} k={part} keyboard={keyboard} />
         ))}
       </span>
     )
   }
-  const hit = (pad.connected ? PAD[pad.kind][k] : undefined) ?? KEYS[k]
+  // keyboard skips the pad set, so a keyboard R never draws a Switch R shoulder
+  const hit = (pad.connected && !keyboard ? PAD[pad.kind][k] : undefined) ?? KEYS[k]
   if (!hit) return <>{k}</>
   const [file, name] = hit
   const ps4 = file.startsWith('ps-') && (dark || pad.model === 'DUALSHOCK 4')
