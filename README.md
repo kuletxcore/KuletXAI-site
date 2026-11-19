@@ -8,6 +8,11 @@ Live at [kuletxai.whop.site](https://kuletxai.whop.site), mirrored at [kuletxai.
 
 ## What's in it
 
+- **Playable hero.** Your first turn is on the first screen: two real moves of I AM THE TABLE in the hero, ending in the free play link. The live totals ride along as a one-line ticker.
+- **The ranked shelf.** The world grid filters by rating, Trimz and comedy, sorts by what players actually do (most played / saved / liked), and wears badges computed from the live counts. MOST PLAYED cannot be faked, because it is derived, not written.
+- **The Matchmaker.** The World Dealer grew up: three answers (vibe, heat limit, flavour) score every world, the winner shows its reasons and a runner-up, and the 18+ world only enters when you open that door. SURPRISE ME still deals at random.
+- **The Session Dock.** Once you scroll, your likeliest next play stays pinned to your thumb: save state first, then your Matchmaker verdict, then the most-played world. Play, world file, share (Web Share or clipboard), dismiss for the session.
+- **Speed Run.** The hero poster wall renders 28 images instead of 84 (14 on phones), the Matchmaker and Teaser are code-split and load only when near, and the big below-fold sections use content-visibility.
 - **Save State.** The hub remembers you: it writes a memory card on every visit (world, tab, section), and returning players are greeted on the home page with a CONTINUE band — one tap (or the R key) back where they left off. One slot, erase anytime.
 - **The World Dealer.** Can't pick a world? Tap a vibe (or SURPRISE ME) and the deck deals you a card: poster, live stats, a one-tap link to play on IsekaiZero, or its world file here. SFW/17+ only.
 - **The Teaser.** A scripted, playable teaser of the AI storyteller embedded on the landing page — I AM THE TABLE (comedy) and the full Acolytes café-to-contact arc (warm café register into the tactical brief) — branching choices, keyboard picks, and a deep link into the real storyline at the end. No account needed.
