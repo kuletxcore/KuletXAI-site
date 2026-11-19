@@ -147,7 +147,7 @@ function buildItems(save: SaveState | null, still: boolean): Item[] {
   })
   items.push(
     go('dealer', 'Deal me a world', 'Pick a vibe, the World Dealer deals you a card', 'dealer random surprise pick choose vibe deal card cant decide', { to: { hash: 'dealer' } }),
-    go('teaser', 'Try the playable teaser', 'Ninety seconds of the storyteller, no account needed', 'try play demo teaser test sample table acolytes', { to: { hash: 'try' } }),
+    go('teaser', 'Play the opening scene', 'A scene from the storyteller at the top of the page, no account needed', 'try play demo teaser test sample scene cold open table acolytes', { to: { hash: 'top' } }),
     go('stories', 'Browse all worlds', 'The full grid, every rating, with live counts', 'all worlds stories grid browse list', { to: { hash: 'stories' } }),
     go('trimz', 'Binge on Trimz', 'Series cut from the stories', 'trimz watch series binge', { to: { hash: 'trimz' } }),
     go('isekai', 'Play on IsekaiZero', 'Where the SFW and 17+ worlds live', 'isekai isekaizero play account', { href: LINKS.isekaiProfile }),

@@ -141,7 +141,7 @@ export function WorldDealer() {
               )}
             </button>
             <p className="mt-3 font-gamer text-[11px] uppercase text-mute">
-              Deck: {deckSize} SFW + 17+ worlds · the 18+ world sits this one out, find it in the grid below
+              Deck: {deckSize} SFW + 17+ worlds · the 18+ world sits this one out, find it in the grid above
             </p>
           </div>
 
