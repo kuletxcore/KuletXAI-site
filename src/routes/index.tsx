@@ -177,13 +177,22 @@ function Stories() {
   const live = useIskStats()
   const shelf = useRef<HTMLUListElement>(null)
   const [at, setAt] = useState(0)
-  const total = STORIES.length + 1
   const lite = useLite()
   const [hot, setHot] = useState<number | null>(null)
   const [shelfLive, setShelfLive] = useState(false)
   const [motionOk, setMotionOk] = useState(false)
   const canPlay = motionOk && !lite
   const still = useStill()
+
+  const [filter, setFilter] = useState<'all'|'SFW'|'17+'|'18+'|'trimz'|'comedy'>('all')
+  const [sort, setSort] = useState<'curated'|'played'|'saved'|'liked'>('curated')
+  const topBy=(k:'messages'|'saves')=>STORIES.reduce((a,b)=>countOf(live,b,k)>countOf(live,a,k)?b:a)
+  const mostPlayed=topBy('messages'), mostSaved=topBy('saves')
+  const visible=STORIES.filter((x)=>filter==='all'?true:filter==='trimz'?!!x.trimz:filter==='comedy'?x.tags.includes('Comedy'):x.rating===filter)
+    .sort((a,b)=>sort==='curated'?0:countOf(live,b,sort==='played'?'messages':sort==='saved'?'saves':'likes')-countOf(live,a,sort==='played'?'messages':sort==='saved'?'saves':'likes'))
+  const showCreator=filter==='all'
+  const total = visible.length + (showCreator ? 1 : 0)
+  useEffect(()=>{ setAt(0); if(shelf.current) shelf.current.scrollLeft=0 },[filter,sort])
 
   // Posters move only for people who want motion and are not saving data
   useEffect(() => {
@@ -244,11 +253,25 @@ function Stories() {
           title="Pick a world"
           body="Interactive AI storylines. You make the choices, the storyteller keeps up. Open a world to see its cast and lore."
         />
+        <div className="mt-8 flex flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter worlds">
+            {([['all','All worlds'],['SFW','SFW'],['17+','17+'],['18+','18+'],['trimz','On Trimz'],['comedy','Comedy']] as const).map(([k,l])=>(
+              <button key={k} type="button" aria-pressed={filter===k} onClick={()=>{sfx('tab');setFilter(k)}} className={`inline-flex min-h-11 items-center border px-3 font-gamer text-[11px] uppercase ${filter===k?'border-neon bg-neon text-void':'border-line text-ink hover:border-neon hover:text-neon'}`}>{l}</button>
+            ))}
+            <span aria-live="polite" className="ml-1 font-gamer text-[11px] uppercase text-mute">{visible.length} world{visible.length===1?'':'s'}</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Sort worlds">
+            <span className="font-gamer text-[10px] uppercase text-mute">Sort:</span>
+            {([['curated','Curated'],['played','Most played'],['saved','Most saved'],['liked','Most liked']] as const).map(([k,l])=>(
+              <button key={k} type="button" aria-pressed={sort===k} onClick={()=>{sfx('tab');setSort(k)}} className={`inline-flex min-h-11 items-center border px-3 font-gamer text-[11px] uppercase ${sort===k?'border-ink bg-ink text-void':'border-line text-mute hover:border-ink hover:text-ink'}`}>{l}</button>
+            ))}
+          </div>
+        </div>
         <ul
           ref={shelf}
           className="relative mt-12 -mx-4 flex snap-x snap-mandatory scroll-pl-4 gap-4 overflow-x-auto overscroll-x-contain px-4 py-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:scroll-pl-0 sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:px-0 sm:py-0 lg:grid-cols-3 [&::-webkit-scrollbar]:hidden"
         >
-          {STORIES.map((s, i) => (
+          {visible.map((s, i) => (
             <li key={s.id} className={SLOT}>
               <Link
                 to="/stories/$slug"
@@ -274,6 +297,10 @@ function Stories() {
                     }`}
                   >
                     {s.rating}
+                  </span>
+                  <span className="absolute top-3 right-3 flex flex-col items-end gap-1">
+                    {s.slug===mostPlayed.slug && <span className="bg-neon px-2 py-1 font-gamer text-[10px] text-void">★ MOST PLAYED</span>}
+                    {s.slug===mostSaved.slug && <span className="bg-ink px-2 py-1 font-gamer text-[10px] text-void">★ MOST SAVED</span>}
                   </span>
                   {s.trimz && (
                     <span className="absolute bottom-3 left-3 bg-void/85 px-2 py-1 font-gamer text-xs text-ink">
@@ -302,6 +329,7 @@ function Stories() {
               </Link>
             </li>
           ))}
+          {showCreator && (
           <li className={SLOT}>
             <div className="group relative flex h-full flex-col border border-dashed border-line bg-panel hover:border-solid hover:border-neon">
               {/* Cover slot: the five worlds tiled, dimmed, with the loading line on top */}
@@ -368,6 +396,7 @@ function Stories() {
               </div>
             </div>
           </li>
+          )}
         </ul>
         {/* Eight dots can't each be 44px on a phone, so they only show position and the arrows steer */}
         <div className="mt-4 flex items-center justify-between gap-3 font-gamer text-xs text-mute sm:hidden">
