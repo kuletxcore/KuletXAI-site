@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Footer, Header, SectionHead } from '#/components/site'
 import { ContinueBand } from '#/components/continue-band'
 import { WorldDealer } from '#/components/world-dealer'
-import { StoryDemo } from '#/components/story-demo'
+import { ColdOpen } from '#/components/cold-open'
+import { HowItWorks } from '#/components/how-it-works'
 import { play as sfx } from '#/lib/sfx'
-import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
+import { LINKS, STORIES, TRIMZ, storyPlatformName, storyUrl, trimzSeriesUrl } from '#/data/content'
+import type { DemoWorld } from '#/data/demo'
 import { LiveCount, LiveDot } from '#/components/live-count'
 import { countOf, totalOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
 import { COVER_VIDEOS } from '#/data/cover-videos'
@@ -22,9 +23,9 @@ function Home() {
       <main>
         <Hero />
         <ContinueBand />
-        <WorldDealer />
         <Stories />
-        <StoryDemo />
+        <WorldDealer />
+        <HowItWorks />
         <Trimz />
         <Channels />
       </main>
@@ -33,17 +34,23 @@ function Home() {
   )
 }
 
+const HERO_DEFAULT: DemoWorld['slug'] = 'i-am-the-table'
+
 function Hero() {
   const live = useIskStats()
+  // The hero owns which world the cold open is showing, so the button under the headline always
+  // points at the world on screen instead of at a section they then have to hunt through.
+  const [world, setWorld] = useState<DemoWorld['slug']>(HERO_DEFAULT)
+  const heroStory = STORIES.find((s) => s.slug === world)!
   return (
     <section id="top" className="relative overflow-hidden border-b border-line">
       <PosterWall />
       <div className="grid-bg absolute inset-0" aria-hidden />
       <MotionToggle />
-      <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 md:grid-cols-[1.3fr_1fr] md:items-center md:py-28">
+      <div className="relative mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-center lg:gap-12">
         <div>
           <p className="font-gamer text-sm text-neon">&gt; boot storyteller.exe</p>
-          <h1 className="pixel mt-5 font-pixel text-5xl leading-[1.05] text-ink sm:text-7xl">
+          <h1 className="pixel mt-5 font-pixel text-5xl leading-[1.05] text-ink sm:text-6xl xl:text-7xl">
             AI stories
             <br />
             you <span className="text-neon glow">play</span>,
@@ -55,40 +62,69 @@ function Hero() {
             KuletX builds interactive worlds on IsekaiZero and KageSekai, cuts them into series on Trimz, and
             breaks it all down on YouTube.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <a href="#dealer" className="pixel bg-neon px-5 py-3 font-gamer text-sm uppercase text-void hover:bg-ink">
-              ▶ Play a story
+
+          {/* One primary action, and it is the one that actually starts a story */}
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <a
+              href={storyUrl(heroStory)}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => sfx('enter')}
+              className="pixel bg-neon px-5 py-3 font-gamer text-sm uppercase text-void hover:bg-ink"
+            >
+              ▶ Play {world === 'acolytes' ? 'Acolytes' : 'I AM THE TABLE'}
             </a>
             <a
-              href="#trimz"
+              href="#stories"
               className="pixel border border-line px-5 py-3 font-gamer text-sm uppercase text-ink hover:border-neon hover:text-neon"
             >
-              Binge on Trimz
+              Browse all {STORIES.length} worlds
             </a>
           </div>
+          <p className="mt-3 font-gamer text-[10px] uppercase text-mute">
+            Free to start · no account on this side · picks up in your browser
+          </p>
+
+          {/* The receipts, kept as one quiet strip so they sell without shouting */}
+          <dl className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line pt-5 font-gamer text-[11px] uppercase text-mute">
+            <div className="flex items-baseline gap-2">
+              <dt className="flex items-center">
+                messages <LiveDot className="ml-1" />
+              </dt>
+              <dd className="font-pixel text-lg text-neon">
+                <LiveCount value={totalOf(live, 'messages')} compact />
+              </dd>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <dt>likes</dt>
+              <dd className="font-pixel text-lg text-neon">
+                <LiveCount value={totalOf(live, 'likes')} compact />
+              </dd>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <dt>chats</dt>
+              <dd className="font-pixel text-lg text-neon">
+                <LiveCount value={totalOf(live, 'chats')} compact />
+              </dd>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <dt>motto</dt>
+              <dd className="text-warn">outslopping the competition</dd>
+            </div>
+          </dl>
         </div>
 
-        <div className="border border-line bg-panel/80 p-5 font-mono text-sm">
-          <div className="flex items-center justify-between border-b border-line pb-3 font-gamer text-xs text-mute">
-            <span>STATUS.LOG</span>
-            <span className="text-neon">● ONLINE</span>
-          </div>
-          <dl className="mt-4 space-y-3">
-            <Stat label="public storylines" value={STORIES.length} />
-            <Stat
-              label={
-                <>
-                  messages sent <LiveDot className="ml-1" />
-                </>
-              }
-              value={<LiveCount value={totalOf(live, 'messages')} />}
-            />
-            <Stat label="player likes" value={<LiveCount value={totalOf(live, 'likes')} />} />
-            <Stat label="story saves" value={<LiveCount value={totalOf(live, 'saves')} />} />
-            <Stat label="chats started" value={<LiveCount value={totalOf(live, 'chats')} />} />
-            <Stat label="trimz series" value={TRIMZ.length} />
-            <Stat label="motto" value="outslopping the competition" small />
-          </dl>
+        <div className="lg:pl-2">
+          <p className="mb-2 flex items-center gap-2 font-gamer text-[10px] uppercase text-mute">
+            <span className="text-warn">▸ playable now</span>
+            <span className="h-px flex-1 bg-line" aria-hidden />
+            <span>no sign-up</span>
+          </p>
+          <ColdOpen slug={world} onSlug={setWorld} />
+          <p className="mt-2 text-center font-gamer text-[10px] uppercase text-mute/70">
+            Press <kbd className="border border-line px-1 text-ink">1</kbd> or{' '}
+            <kbd className="border border-line px-1 text-ink">2</kbd> to choose
+          </p>
         </div>
       </div>
     </section>
@@ -144,15 +180,6 @@ function MotionToggle() {
       <span aria-hidden>{still ? '▶' : '❚❚'}</span>
       {still ? 'Play motion' : 'Pause motion'}
     </button>
-  )
-}
-
-function Stat({ label, value, small }: { label: ReactNode; value: ReactNode; small?: boolean }) {
-  return (
-    <div className="flex items-baseline justify-between gap-4">
-      <dt className="flex items-center text-mute">{label}</dt>
-      <dd className={small ? 'text-right text-warn' : 'pixel font-pixel text-2xl text-neon'}>{value}</dd>
-    </div>
   )
 }
 

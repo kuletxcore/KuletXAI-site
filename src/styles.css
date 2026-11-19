@@ -1449,3 +1449,50 @@ html.kx-lite .kx-deal-scan,
 html.kx-lite .kx-deal-cta {
   animation: none;
 }
+
+/* COLD OPEN — the playable scene in the hero. Its accent is the world's colour, set inline per story. */
+.kx-console {
+  --kx-accent: var(--color-neon);
+  /* A soft light from the world's colour, thrown under the console so it reads as a screen in the dark */
+  box-shadow:
+    0 0 80px -24px var(--kx-accent),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+/* The scanline texture that makes it read as a CRT rather than a card */
+.kx-console [role="log"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0, 0, 0, 0.18) 2px 3px);
+}
+/* Recording dot: slow, so it reads as "live" and not as an alarm */
+.kx-rec {
+  animation: kxRec 2.2s ease-in-out infinite;
+}
+@keyframes kxRec {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* The hero console is the first thing the eye should land on after the headline */
+@media (min-width: 1024px) {
+  .kx-console {
+    position: relative;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kx-rec {
+    animation: none;
+  }
+}
+html.kx-lite .kx-rec,
+html.kx-still .kx-rec {
+  animation: none;
+}
