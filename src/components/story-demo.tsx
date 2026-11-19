@@ -319,7 +319,7 @@ export function StoryDemo() {
                   <a
                     href={storyUrl(story)}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     onClick={() => sfx('enter')}
                     className="pixel mt-3 inline-block px-5 py-3 font-gamer text-sm uppercase text-void transition-transform hover:scale-[1.02]"
                     style={{ background: accent }}

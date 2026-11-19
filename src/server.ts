@@ -6,7 +6,17 @@ import { refreshIskStats } from '#/lib/isk-stats.server'
  * run (the app's `schedule`, hourly), which refreshes the IsekaiZero and Trimz counts.
  */
 export default {
-  fetch: handler.fetch,
+  async fetch(request: Request, env: unknown, ctx: unknown) {
+    const res = await (handler.fetch as (r: Request, e: unknown, c: unknown) => Promise<Response>)(request, env, ctx)
+    // Safe headers for SSR responses (static assets get theirs from public/_headers).
+    // No CSP here: the app uses inline head scripts, so a strict policy would break it.
+    // No X-Frame-Options either: on Whop the whole app is rendered inside whop.com's iframe.
+    const headers = new Headers(res.headers)
+    headers.set('X-Content-Type-Options', 'nosniff')
+    headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+    headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+    return new Response(res.body, { status: res.status, statusText: res.statusText, headers })
+  },
   async scheduled() {
     const stats = await refreshIskStats()
     if (!stats) throw new Error('isk-stats: IsekaiZero refresh failed')

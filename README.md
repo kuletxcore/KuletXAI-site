@@ -24,16 +24,26 @@ Live at [kuletxai.whop.site](https://kuletxai.whop.site), mirrored at [kuletxai.
 
 [TanStack Start](https://tanstack.com/start) (React 19) on Vite, styled with Tailwind CSS 4. It runs on Cloudflare Workers and on Whop.
 
+The story hub uses SST as its primary face with Plus Jakarta Sans as fallback (`src/styles.css`). SST is Sony's typeface and is not openly licensed (see `DESIGN.md`); the site is non-commercial and the fallback keeps the hub readable if SST is ever removed.
+
 ## Run it locally
 
-Built and tested on Node 22.
+Built and tested on Node 22 (see `engines` in `package.json`). Use npm; `package-lock.json` is the lockfile.
 
 ```bash
 npm install
 npm run dev
 ```
 
-The dev server is at http://localhost:3000. `npm run typecheck`, `npm run build` and `npm run preview` do what they say.
+The dev server is at http://localhost:3000. `npm run typecheck`, `npm test`, `npm run build` and `npm run preview` do what they say. CI (`.github/workflows/ci.yml`) runs typecheck, tests and build on every push and pull request.
+
+`npm test` runs Vitest in plain Node (`vitest.config.ts`, not the Cloudflare/Whop Vite config) over four kinds of guard: the OST allowlist and byte-range rules (`src/lib/ost-rules.test.ts`), the live-count maths (`src/lib/isk-stats.test.ts`), gamepad name detection (`src/lib/gamepad.test.ts`), and a data-integrity check that every cover/tile/logo/poster path in `content.ts` exists on disk (`src/data/content.test.ts`). That last one is the one to run after a refresh script.
+
+## Headers and routes worth knowing
+
+- SSR responses pick up `X-Content-Type-Options`, `Referrer-Policy` and `Permissions-Policy` in `src/server.ts`. Two things are deliberately left out: no CSP, because the app injects inline head scripts (lite mode, dark theme, pause motion) before paint; and no `X-Frame-Options`, because on Whop the whole app runs inside whop.com's iframe.
+- Static assets get their caching from `public/_headers`. Generated story cards under `/isk/*/cards/*` additionally get a `default-src 'none'`-style CSP with `frame-ancestors 'self'`, so remote HTML that slips past the builder's sanitiser still can't run scripts.
+- `/sitemap.xml` is built at request time from `content.ts` and `trophies.ts` (`src/routes/sitemap[.]xml.ts`); `public/robots.txt` points at it.
 
 ## Where things are
 
@@ -56,7 +66,9 @@ python3 scripts/build_isk.py wristbound
 python3 scripts/build_ost.py wristbound
 ```
 
-`build_isk.py` downloads covers, gallery images, cast portraits and intro cards from the public APIs into `public/isk` and rewrites `src/data/isk.ts`. `build_ost.py` rewrites `src/data/ost.ts`. Soundtrack audio is not hosted here: it streams from the platforms through `/api/ost`. Leave the story name off to refresh every story.
+`build_isk.py` downloads covers, gallery images, cast portraits and intro cards from the public APIs into `public/isk` and rewrites `src/data/isk.ts`. `build_ost.py` rewrites `src/data/ost.ts`. Soundtrack audio is not hosted here: it streams from the platforms through `/api/ost` (allowlisted to the platforms' music CDNs in `src/lib/ost-rules.ts`). Leave the story name off to refresh every story. Pass `--force` to `build_isk.py` to re-download assets that already exist.
+
+Live counts are refreshed hourly by the Worker cron (`17 * * * *` in `wrangler.jsonc`, handled in `src/server.ts` via `src/lib/isk-stats.server.ts`); `/api/isk-stats` serves the cached copy and falls back to the last good one.
 
 ## Branches and deploys
 

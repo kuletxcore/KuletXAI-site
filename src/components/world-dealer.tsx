@@ -253,7 +253,7 @@ function DealtCard({
             <a
               href={storyUrl(story)}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               onClick={() => sfx('enter')}
               className="pixel block bg-neon px-4 py-3 text-center font-gamer text-sm uppercase text-void transition-colors hover:bg-ink"
             >
@@ -278,7 +278,7 @@ function DealtCard({
             </div>
             <p className="mt-3 text-center font-mono text-[10px] text-mute/70">
               Free to start · runs in your browser ·{' '}
-              <a href={LINKS.isekai} target="_blank" rel="noreferrer" className="underline hover:text-neon">
+              <a href={LINKS.isekai} target="_blank" rel="noopener noreferrer" className="underline hover:text-neon">
                 isekaizero.ai
               </a>
             </p>

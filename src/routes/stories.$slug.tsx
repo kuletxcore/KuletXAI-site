@@ -630,7 +630,7 @@ function StoryHub() {
             <a
               href={primaryHref}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="ps5-cta grow sm:grow-0"
               onClick={(e) => {
                 e.preventDefault()
@@ -641,12 +641,12 @@ function StoryHub() {
               {tab === 'stories' ? `Play on ${storyPlatformName(story)}` : tab === 'series' ? 'Watch on Trimz' : activeVideo ? (activeVideo.short ? 'Play Short' : 'Play video') : 'Open channel'}
             </a>
             {tab === 'youtube' && activeVideo && (
-              <a href={ytWatchUrl(activeVideo)} target="_blank" rel="noreferrer" className="ps5-round" aria-label="Open on YouTube" title="Open on YouTube" onClick={() => sfx('enter')}>
+              <a href={ytWatchUrl(activeVideo)} target="_blank" rel="noopener noreferrer" className="ps5-round" aria-label="Open on YouTube" title="Open on YouTube" onClick={() => sfx('enter')}>
                 <YtIcon />
               </a>
             )}
             {tab === 'stories' && series[0] && (
-              <a href={trimzSeriesUrl(series[0].slug)} target="_blank" rel="noreferrer" className="ps5-round" aria-label="Watch the series on Trimz" title="Watch on Trimz" onClick={() => sfx('enter')}>
+              <a href={trimzSeriesUrl(series[0].slug)} target="_blank" rel="noopener noreferrer" className="ps5-round" aria-label="Watch the series on Trimz" title="Watch on Trimz" onClick={() => sfx('enter')}>
                 <PlatformIcon platform="trimz" className="!h-[22px]" />
               </a>
             )}
@@ -1250,7 +1250,7 @@ function StoryDetails({
             {STORY_MUSIC[story.slug]?.ost && (
               <p className="text-xs text-white/55">
                 ♪ Soundtrack:{' '}
-                <a href={STORY_MUSIC[story.slug].ost!.url} target="_blank" rel="noreferrer" className="font-semibold text-white/85 hover:text-white hover:underline">
+                <a href={STORY_MUSIC[story.slug].ost!.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-white/85 hover:text-white hover:underline">
                   {STORY_MUSIC[story.slug].ost!.title}
                 </a>
               </p>
@@ -1344,7 +1344,7 @@ function StoryDetails({
           <ul className="flex gap-4">
             {series.map((t) => (
               <li key={t.slug} className="w-28 shrink-0">
-                <a href={trimzSeriesUrl(t.slug)} target="_blank" rel="noreferrer" data-sub-item className="group block">
+                <a href={trimzSeriesUrl(t.slug)} target="_blank" rel="noopener noreferrer" data-sub-item className="group block">
                   <img src={t.poster} alt={`Poster for ${t.title}`} className="aspect-[2/3] w-full rounded-xl border-2 border-transparent object-cover group-hover:border-white" />
                   <p className="mt-2 text-xs font-semibold leading-snug text-white/85 group-hover:text-white">{t.title}</p>
                   <p className="text-[11px] text-white/55">
@@ -1402,7 +1402,7 @@ function SeriesDetails({ idx, onOpenStory }: { idx: number; onOpenStory: (slug: 
       {SERIES_MUSIC[t.slug] && (
         <p className="ps5-shadow text-xs text-white/60">
           ♪ Now playing:{' '}
-          <a href={SERIES_MUSIC[t.slug].trackUrl} target="_blank" rel="noreferrer" className="font-semibold text-white/85 hover:text-white hover:underline">
+          <a href={SERIES_MUSIC[t.slug].trackUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-white/85 hover:text-white hover:underline">
             {SERIES_MUSIC[t.slug].title}
           </a>
         </p>
@@ -1430,7 +1430,7 @@ function OstPanel({ slug, platform }: { slug: string; platform: string }) {
       <div className="flex items-center gap-3">
         {album.image && <img src={album.image} alt="" className="size-12 shrink-0 rounded-lg object-cover" />}
         <div className="min-w-0">
-          <a href={album.url} target="_blank" rel="noreferrer" className="block truncate text-sm font-bold text-white hover:underline">
+          <a href={album.url} target="_blank" rel="noopener noreferrer" className="block truncate text-sm font-bold text-white hover:underline">
             {album.title}
           </a>
           <p className="text-xs text-white/55">
@@ -1462,7 +1462,7 @@ function OstPanel({ slug, platform }: { slug: string; platform: string }) {
               <a
                 href={t.url}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="grid size-8 shrink-0 place-items-center rounded-full text-white/45 hover:bg-white/10 hover:text-white"
                 aria-label={`Open ${t.title} on IsekaiZero`}
                 title="Open on IsekaiZero"
@@ -1786,10 +1786,29 @@ function ModalView({ modal, setModal, padLabel, padX }: { modal: Modal; setModal
       if ((e.key === 'r' || e.key === 'R') && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) toggleRedaction('modal')
       if (isGallery && e.key === 'ArrowRight') go(1)
       if (isGallery && e.key === 'ArrowLeft') go(-1)
+      // Keep Tab inside the dialog
+      if (e.key === 'Tab') {
+        // Scoped to this dialog, so a nested one (or another on the page) can't steal the trap
+        const dialog = closeRef.current?.closest('[role="dialog"]')
+        if (!dialog) return
+        const focusable = Array.from(
+          dialog.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'),
+        ).filter((el) => !el.hasAttribute('disabled'))
+        if (!focusable.length) return
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  })
+  }, [isGallery, modal, setModal])
 
   const title =
     modal.kind === 'cast'
@@ -1879,7 +1898,7 @@ function ModalView({ modal, setModal, padLabel, padX }: { modal: Modal; setModal
                         <a
                           href={creator.url}
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener noreferrer"
                           className="ps5-pill ml-auto inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap"
                           title={`${modal.cast.name} was made by ${creator.name} on ${plat === 'kage' ? 'KageSekai' : 'IsekaiZero'}`}
                           onClick={() => sfx('enter')}
@@ -1899,7 +1918,7 @@ function ModalView({ modal, setModal, padLabel, padX }: { modal: Modal; setModal
                         <a
                           href={trimzSeriesUrl(watch.slug)}
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener noreferrer"
                           className="ps5-pill ml-auto inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap"
                           title={`Watch ${watch.title} on Trimz`}
                           onClick={() => sfx('enter')}
@@ -2109,14 +2128,14 @@ function SoundMenu({ nowPlaying }: { nowPlaying: Track | null }) {
               <>
                 <p>
                   {volume === 0 ? 'Stopped (volume at 0):' : 'Now playing:'}{' '}
-                  <a href={nowPlaying.trackUrl} target="_blank" rel="noreferrer" className="font-semibold text-white hover:underline">
+                  <a href={nowPlaying.trackUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-white hover:underline">
                     {nowPlaying.title}
                   </a>
                 </p>
                 {nowPlaying.ost && (
                   <p className="mt-1">
                     From{' '}
-                    <a href={nowPlaying.ost.url} target="_blank" rel="noreferrer" className="font-semibold text-white hover:underline">
+                    <a href={nowPlaying.ost.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-white hover:underline">
                       {nowPlaying.ost.title}
                     </a>
                   </p>

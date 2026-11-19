@@ -4,6 +4,7 @@ Fetches each storyline from its platform's public API, downloads covers,
 gallery media, cast portraits and cover videos, writes sanitized HTML cards,
 and emits src/data/isk.ts. Run: python3 scripts/build_isk.py [slug ...]
 Naming slugs refreshes only those stories and keeps the rest of isk.ts as it is.
+Assets already on disk are kept; pass --force to re-download them.
 """
 import hashlib
 import html as htmllib
@@ -84,8 +85,11 @@ def fetch(url):
         return r.read()
 
 
+FORCE = '--force' in sys.argv
+
+
 def save_image(url, path, max_w, max_h, quality=80):
-    if os.path.exists(path):
+    if os.path.exists(path) and not FORCE:
         im = Image.open(path)
         return im.size
     im = Image.open(io.BytesIO(fetch(url)))
@@ -97,7 +101,7 @@ def save_image(url, path, max_w, max_h, quality=80):
 
 
 def save_file(url, path, limit=None):
-    if os.path.exists(path):
+    if os.path.exists(path) and not FORCE:
         return True
     data = fetch(url)
     if limit and len(data) > limit:

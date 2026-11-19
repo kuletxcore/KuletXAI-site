@@ -13,8 +13,12 @@ const API = { isk: 'https://api-global.isekaizero.ai/api/storylines/', kage: 'ht
 // One public listing covers every series on trimz.tv/u/kuletxcore
 const TRIMZ_API = 'https://api.trimz.tv/api/ms/public-series?limit=50&order=updated_desc&owner_username=kuletxcore&locale=en'
 const UA = 'kuletx-hub/1.0 (+https://kuletxai.whop.site)'
-const FRESH_KEY = 'https://kuletxai.whop.site/__cache/isk-stats/v4'
-const LAST_KEY = 'https://kuletxai.whop.site/__cache/isk-stats/v4-last'
+// Cache API keys are URLs but never fetched: scope them to whichever host served the request
+// (custom domain, whop.site preview, localhost) so deploys don't share one stash.
+const ORIGIN =
+  ((globalThis as { location?: { origin?: string } }).location?.origin || 'https://kuletxai.whop.site').replace(/\/$/, '')
+const FRESH_KEY = `${ORIGIN}/__cache/isk-stats/v4`
+const LAST_KEY = `${ORIGIN}/__cache/isk-stats/v4-last`
 
 let memory: IskStats | null = null
 let inflight: Promise<IskStats | null> | null = null

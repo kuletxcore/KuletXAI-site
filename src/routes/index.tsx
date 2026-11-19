@@ -117,6 +117,8 @@ function PosterWall() {
                 key={i}
                 src={src}
                 alt=""
+                width={300}
+                height={400}
                 decoding="async"
                 fetchPriority="low"
                 className="size-32 shrink-0 rounded-sm object-cover sm:size-40"
@@ -353,7 +355,7 @@ function Stories() {
                   <a
                     href={LINKS.isekaiProfile}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     onClick={() => sfx('enter')}
                     className="after:absolute after:inset-0"
                   >
@@ -377,7 +379,7 @@ function Stories() {
                     <a
                       href={LINKS.kageProfile}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       onClick={() => sfx('enter')}
                       className="relative z-10 -my-3.5 inline-flex min-h-11 items-center text-danger-ink hover:text-ink"
                     >
@@ -439,7 +441,7 @@ function Trimz() {
           <a
             href={LINKS.trimz}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="inline-flex min-h-11 shrink-0 items-center self-start border border-neon px-4 font-gamer text-xs uppercase text-neon hover:bg-neon hover:text-void sm:self-auto"
           >
             Follow on Trimz →
@@ -451,7 +453,7 @@ function Trimz() {
               <a
                 href={trimzSeriesUrl(t.slug)}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="group grid h-full grid-cols-[2fr_3fr] border border-line bg-void hover:border-neon"
               >
                 <div className="cover relative overflow-hidden border-r border-line">
@@ -533,7 +535,7 @@ function Channels() {
         <ul className="mt-12 grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2">
           {CHANNELS.map((c, i) => (
             <li key={c.key} className="bg-void">
-              <a href={c.href} target="_blank" rel="noreferrer" className="group flex h-full flex-col p-6 hover:bg-panel sm:p-8">
+              <a href={c.href} target="_blank" rel="noopener noreferrer" className="group flex h-full flex-col p-6 hover:bg-panel sm:p-8">
                 <span className="font-gamer text-xs text-mute">0{i + 1}</span>
                 <span className="pixel mt-4 font-pixel text-4xl text-neon glow">{c.verb}</span>
                 <span className="mt-1 font-mono text-lg font-bold text-ink">on {c.name}</span>

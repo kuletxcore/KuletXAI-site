@@ -25,7 +25,7 @@ export function Header() {
           <a
             href={LINKS.youtube}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="hidden min-h-11 items-center border border-neon px-3 text-neon hover:bg-neon hover:text-void sm:inline-flex"
           >
             Subscribe
@@ -55,16 +55,16 @@ export function Footer() {
           <p className="mt-2 text-sm text-mute">AI storytelling. © {new Date().getFullYear()} KuletX.</p>
         </div>
         <nav aria-label="Elsewhere" className="flex flex-wrap items-center gap-x-2 font-gamer text-xs [&>a]:px-1">
-          <a href={LINKS.isekai} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-mute hover:text-neon">
+          <a href={LINKS.isekai} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-mute hover:text-neon">
             IsekaiZero
           </a>
-          <a href={LINKS.kageProfile} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-mute hover:text-neon">
+          <a href={LINKS.kageProfile} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-mute hover:text-neon">
             KageSekai
           </a>
-          <a href={LINKS.trimz} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-mute hover:text-neon">
+          <a href={LINKS.trimz} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-mute hover:text-neon">
             Trimz
           </a>
-          <a href={LINKS.youtube} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-mute hover:text-neon">
+          <a href={LINKS.youtube} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-mute hover:text-neon">
             YouTube
           </a>
         </nav>

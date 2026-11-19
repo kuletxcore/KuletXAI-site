@@ -235,7 +235,7 @@ function TrophyPage() {
                 </span>
               </>
             )}
-            <a href={storyUrl(story)} target="_blank" rel="noreferrer" onClick={() => sfx('enter')} className="ml-auto rounded-full bg-white px-4 py-1.5 font-bold text-black hover:scale-[1.03]">
+            <a href={storyUrl(story)} target="_blank" rel="noopener noreferrer" onClick={() => sfx('enter')} className="ml-auto rounded-full bg-white px-4 py-1.5 font-bold text-black hover:scale-[1.03]">
               ▶ Play on {storyPlatformName(story)}
             </a>
           </div>

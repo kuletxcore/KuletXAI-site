@@ -36,7 +36,43 @@ export const Route = createRootRoute({
     scripts: [{ children: PERF_HEAD_SCRIPT }, { children: DARK_HEAD_SCRIPT }, { children: STILL_HEAD_SCRIPT }],
   }),
   shellComponent: RootDocument,
+  errorComponent: RootError,
+  notFoundComponent: RootNotFound,
 })
+
+function RootError({ error, reset }: { error: unknown; reset: () => void }) {
+  return (
+    <div className="grid min-h-dvh place-items-center px-4 text-center">
+      <div>
+        <p className="font-gamer text-sm uppercase text-mute">Something glitched</p>
+        <p className="mt-3 text-ink">That screen didn’t load. Try again, or head home.</p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <button type="button" onClick={reset} className="border border-line px-5 py-3 font-gamer text-sm uppercase text-ink hover:border-neon hover:text-neon">
+            Retry
+          </button>
+          <a href="/" className="bg-neon px-5 py-3 font-gamer text-sm uppercase text-void hover:bg-ink">
+            Home
+          </a>
+        </div>
+        <p className="mt-4 text-xs text-mute/70">{error instanceof Error ? error.message : 'Unknown error'}</p>
+      </div>
+    </div>
+  )
+}
+
+function RootNotFound() {
+  return (
+    <div className="grid min-h-dvh place-items-center px-4 text-center">
+      <div>
+        <p className="font-gamer text-sm uppercase text-mute">404 // not found</p>
+        <p className="mt-3 text-ink">That page hasn’t spawned yet.</p>
+        <a href="/" className="mt-6 inline-block bg-neon px-5 py-3 font-gamer text-sm uppercase text-void hover:bg-ink">
+          Back to KuletX AI
+        </a>
+      </div>
+    </div>
+  )
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (

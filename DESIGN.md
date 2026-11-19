@@ -52,7 +52,7 @@ Rules:
 | Obel Mono (`font-mono`) | Body copy | Monospace body reads as the storyteller's log, which is the site's motif. |
 | SST, Plus Jakarta Sans | Story hub | The console surface uses a console face. |
 
-The three pixel and mono faces are under the SIL Open Font License (credited in the footer). **SST is Sony's typeface and is not openly licensed.** Confirm you can use it, or swap in an open lookalike, before relying on it.
+The three pixel and mono faces are under the SIL Open Font License (credited in the footer). **SST is Sony's typeface and is not openly licensed.** It stays by decision: the site is non-commercial and Plus Jakarta Sans is already the declared fallback in `@font-face`, so removing SST would leave the hub readable. Revisit if the site is ever monetised; swapping in an open lookalike then only means changing the `src` list in `src/styles.css`.
 
 ## Layout
 

@@ -1,5 +1,12 @@
 # Static files keep their names between deploys, so they can't be cached forever like /assets/*.
 # A day without asking the server, then the cached copy is used at once while a fresh one is fetched.
+# Story cards are generated HTML from remote data: never run scripts, even on direct navigation.
+# frame-ancestors 'self' keeps the hub's same-origin iframe embeds working.
+# Note: this file only covers static assets. SSR pages get headers from src/server.ts.
+/isk/*/cards/*
+  Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https:; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'; script-src 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
 /covers/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 /soft/*

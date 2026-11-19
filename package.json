@@ -5,19 +5,22 @@
   "imports": {
     "#/*": "./src/*"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite dev --port 3000",
     "generate-routes": "vite build",
     "build": "vite build",
     "preview": "vite preview",
     "deploy": "whop apps deploy",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
-    "@tanstack/react-devtools": "0.10.14",
     "@tanstack/react-router": "1.170.46",
-    "@tanstack/react-router-devtools": "1.167.2",
     "@tanstack/react-start": "1.169.4",
     "motion": "^14.9.1",
     "react": "^19.2.0",
@@ -27,21 +30,16 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.26.0",
     "@tanstack/devtools-vite": "0.8.6",
+    "@tanstack/react-devtools": "0.10.14",
+    "@tanstack/react-router-devtools": "1.167.2",
     "@types/node": "^22.10.2",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.1",
-    "@whop/cli": "latest",
+    "@whop/cli": "0.34.1",
     "typescript": "^6.0.2",
     "vite": "^8.0.0",
+    "vitest": "^5.1.1",
     "wrangler": "^4.70.0"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "lightningcss",
-      "sharp",
-      "workerd"
-    ]
   }
 }
