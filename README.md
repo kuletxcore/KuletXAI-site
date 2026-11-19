@@ -8,6 +8,7 @@ Live at [kuletxai.whop.site](https://kuletxai.whop.site), mirrored at [kuletxai.
 
 ## What's in it
 
+- **Ten conversion ships (this branch).** Playable hero (your first turn on the first screen) · KX://FIND (`/` or ⌘K, lazy-loaded panel) · the Matchmaker (3 answers, scored match, reasons, runner-up) · a ranked, filterable shelf with badges computed from live counts · the Session Dock (save state > saved > match > most-played, with share) · Challenge Mode dares · Quick Peek world files without leaving the shelf · Saved Worlds bookmarks · a Speed Run (poster wall 84→28 images, Dealer/Teaser code-split, content-visibility) · and The Last Screen finale (GAME NOT OVER, three doors at the end of the page).
 - **Save State.** The hub remembers you: it writes a memory card on every visit (world, tab, section), and returning players are greeted on the home page with a CONTINUE band — one tap (or the R key) back where they left off. One slot, erase anytime.
 - **The World Dealer.** Can't pick a world? Tap a vibe (or SURPRISE ME) and the deck deals you a card: poster, live stats, a one-tap link to play on IsekaiZero, or its world file here. SFW/17+ only.
 - **The Teaser.** A scripted, playable teaser of the AI storyteller embedded on the landing page — I AM THE TABLE (comedy) and the full Acolytes café-to-contact arc (warm café register into the tactical brief) — branching choices, keyboard picks, and a deep link into the real storyline at the end. No account needed.
