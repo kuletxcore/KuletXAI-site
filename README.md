@@ -8,6 +8,7 @@ Live at [kuletxai.whop.site](https://kuletxai.whop.site), mirrored at [kuletxai.
 
 ## What's in it
 
+- **KX://FIND.** One input to every world, series, channel and action. Press `/` (or ⌘K) anywhere on the home page, or tap FIND in the header or the hero's command bar, then type a vibe, a world or a rating ("kaiju", "comedy", "18+"). Enter opens a world's file, Shift+Enter plays it on its platform, and the empty state jumps you back into your save state and recent worlds. It renders and loads its art only when opened, so the first paint pays nothing for it.
 - **Save State.** The hub remembers you: it writes a memory card on every visit (world, tab, section), and returning players are greeted on the home page with a CONTINUE band — one tap (or the R key) back where they left off. One slot, erase anytime.
 - **The World Dealer.** Can't pick a world? Tap a vibe (or SURPRISE ME) and the deck deals you a card: poster, live stats, a one-tap link to play on IsekaiZero, or its world file here. SFW/17+ only.
 - **The Teaser.** A scripted, playable teaser of the AI storyteller embedded on the landing page — I AM THE TABLE (comedy) and the full Acolytes café-to-contact arc (warm café register into the tactical brief) — branching choices, keyboard picks, and a deep link into the real storyline at the end. No account needed.

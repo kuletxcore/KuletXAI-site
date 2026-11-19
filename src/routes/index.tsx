@@ -4,6 +4,7 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { Footer, Header, SectionHead } from '#/components/site'
 import { ContinueBand } from '#/components/continue-band'
 import { WorldDealer } from '#/components/world-dealer'
+import { FinderTrigger, WorldFinder } from '#/components/world-finder'
 import { StoryDemo } from '#/components/story-demo'
 import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
@@ -19,6 +20,7 @@ function Home() {
   return (
     <div className="crt min-h-screen">
       <Header />
+      <WorldFinder />
       <main>
         <Hero />
         <ContinueBand />
@@ -55,7 +57,8 @@ function Hero() {
             KuletX builds interactive worlds on IsekaiZero and KageSekai, cuts them into series on Trimz, and
             breaks it all down on YouTube.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <FinderTrigger />
+          <div className="mt-5 flex flex-wrap gap-3">
             <a href="#dealer" className="pixel bg-neon px-5 py-3 font-gamer text-sm uppercase text-void hover:bg-ink">
               ▶ Play a story
             </a>
