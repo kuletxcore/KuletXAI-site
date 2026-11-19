@@ -7,6 +7,7 @@ import { readSave, saveLabel } from '#/lib/save-state'
 import { readMatch } from '#/lib/match'
 import type { Match } from '#/lib/match'
 import { play as sfx } from '#/lib/sfx'
+import { shareWorld } from '#/lib/share'
 
 /** Ship 5: the Session Dock — save state, else your match, else the hottest
  *  world, pinned to the thumb once you scroll. Play / file / share / dismiss. */
@@ -47,9 +48,8 @@ export function SessionDock() {
   const { story, reason, kind } = state
 
   const share = async () => {
-    const url = `${window.location.origin}/stories/${story.slug}`
-    try { if (navigator.share) { await navigator.share({ title: story.title, text: `${story.title} — ${story.logline}`, url }); return } throw new Error('x') }
-    catch { try { await navigator.clipboard.writeText(url); setCopied(true); sfx('enter'); window.setTimeout(() => setCopied(false), 2000) } catch { /* rests */ } }
+    const r = await shareWorld(story, window.location.origin)
+    if (r === 'copied') { setCopied(true); sfx('enter'); window.setTimeout(() => setCopied(false), 2000) }
   }
   return (
     <aside aria-label="Your next session" className="kx-rise fixed inset-x-3 bottom-3 z-40 sm:inset-x-auto sm:right-6 sm:bottom-5 sm:w-[26rem]">

@@ -6,6 +6,7 @@ import { WorldDealer } from '#/components/world-dealer'
 import { FirstTurn } from '#/components/first-turn'
 import { FinderTrigger, WorldFinder } from '#/components/world-finder'
 import { SessionDock } from '#/components/session-dock'
+import { Challenge } from '#/components/challenge'
 import { StoryDemo } from '#/components/story-demo'
 import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
@@ -30,6 +31,7 @@ function Home() {
         <StoryDemo />
         <Trimz />
         <Channels />
+        <Challenge />
       </main>
       <Footer />
       <SessionDock />
