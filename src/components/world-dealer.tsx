@@ -37,14 +37,9 @@ const FLAVORS: { key: FlavorKey; label: string; tags: string[] }[] = [
   { key: 'story', label: 'STORY & SECRETS', tags: ['Mystery', 'Thriller', 'Slow Burn'] },
   { key: 'power', label: 'POWER TRIPS', tags: ['Superpower', 'Kaiju', 'Transformation', 'Giantess'] },
 ]
-export const MATCH_KEY = 'kx_match'
-export type Match = { slug: string; why: string[]; at: number }
-export const readMatch = (): Match | null => {
-  try {
-    const v = JSON.parse(localStorage.getItem(MATCH_KEY) ?? 'null') as Match | null
-    return v && typeof v.slug === 'string' && Array.isArray(v.why) ? v : null
-  } catch { return null }
-}
+export { MATCH_KEY, readMatch } from '#/lib/match'
+export type { Match } from '#/lib/match'
+import { writeMatch } from '#/lib/match'
 const bySlug = new Map(DECK.map((s) => [s.slug, s]))
 const poolFor = (key: VibeKey) => {
   const slugs = VIBES.find((v) => v.key === key)?.slugs ?? []
@@ -103,11 +98,7 @@ export function WorldDealer() {
     setDealt(story)
     setWhy(reasons)
     setRunner(second)
-    try {
-      const match: Match = { slug: story.slug, why: reasons, at: Date.now() }
-      localStorage.setItem(MATCH_KEY, JSON.stringify(match))
-      window.dispatchEvent(new CustomEvent('kx:match', { detail: match }))
-    } catch { /* the match still shows; it just is not remembered */ }
+    writeMatch({ slug: story.slug, why: reasons, at: Date.now() })
   }
   const deal = (key: VibeKey = vibe) => {
     if (phase === 'shuffling') return

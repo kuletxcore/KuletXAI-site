@@ -4,6 +4,7 @@ import { Footer, Header, SectionHead } from '#/components/site'
 import { ContinueBand } from '#/components/continue-band'
 import { WorldDealer } from '#/components/world-dealer'
 import { FirstTurn } from '#/components/first-turn'
+import { SessionDock } from '#/components/session-dock'
 import { StoryDemo } from '#/components/story-demo'
 import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
@@ -29,6 +30,7 @@ function Home() {
         <Channels />
       </main>
       <Footer />
+      <SessionDock />
     </div>
   )
 }
