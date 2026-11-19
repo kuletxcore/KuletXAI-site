@@ -7,6 +7,7 @@ import { LiveCount, LiveDot } from '#/components/live-count'
 import { countOf, useIskStats } from '#/lib/isk-stats'
 import { useLite } from '#/lib/perf'
 import { play as sfx } from '#/lib/sfx'
+import { writeMatch } from '#/lib/match'
 
 // One tap on a vibe deals a world with its poster, live stats and a play link. The 18+ world stays out of the deck.
 
@@ -21,7 +22,17 @@ const VIBES: { key: VibeKey; label: string; slugs: string[] }[] = [
   { key: 'powers', label: 'POWERS & MYSTERY', slugs: ['godsmarked', 'problem-spawner'] },
 ]
 
-const DECK = STORIES.filter((s) => s.rating !== '18+')
+const DECK = STORIES
+const HEATS = [{ key: 'safe', label: 'SFW ONLY', max: 0 }, { key: 'max17', label: 'UP TO 17+', max: 1 }, { key: 'any', label: '18+ OK', max: 2 }] as const
+type HeatKey = (typeof HEATS)[number]['key']
+const RATING_RANK: Record<Story['rating'], number> = { SFW: 0, '17+': 1, '18+': 2 }
+type FlavorKey = 'any' | 'chaos' | 'story' | 'power'
+const FLAVORS: { key: FlavorKey; label: string; tags: string[] }[] = [
+  { key: 'any', label: 'NO PREFERENCE', tags: [] },
+  { key: 'chaos', label: 'CHAOS', tags: ['Comedy', 'Academy'] },
+  { key: 'story', label: 'STORY & SECRETS', tags: ['Mystery', 'Thriller', 'Slow Burn'] },
+  { key: 'power', label: 'POWER TRIPS', tags: ['Superpower', 'Kaiju', 'Transformation', 'Giantess'] },
+]
 const bySlug = new Map(DECK.map((s) => [s.slug, s]))
 const poolFor = (key: VibeKey) => {
   const slugs = VIBES.find((v) => v.key === key)?.slugs ?? []
@@ -42,6 +53,10 @@ export function WorldDealer() {
   const [dealt, setDealt] = useState<Story | null>(null)
   const [dealNo, setDealNo] = useState(0)
   const [shuffleIdx, setShuffleIdx] = useState(0)
+  const [heat, setHeat] = useState<HeatKey>('max17')
+  const [flavor, setFlavor] = useState<FlavorKey>('any')
+  const [why, setWhy] = useState<string[]>([])
+  const [runner, setRunner] = useState<Story | null>(null)
 
   // Posters fly only for people who want motion and are not on a weak device
   useEffect(() => {
@@ -75,10 +90,31 @@ export function WorldDealer() {
   const deal = (key: VibeKey = vibe) => {
     if (phase === 'shuffling') return
     setVibe(key)
-    setDealt(pick(poolFor(key), dealt?.slug))
-    setPhase('shuffling')
-    sfx('tab')
+    const cap = HEATS.find((h) => h.key === heat)?.max ?? 1
+    const pool = DECK.filter((x) => RATING_RANK[x.rating] <= cap)
+    let chosen: Story, reasons: string[], second: Story | null = null
+    if (key === 'surprise' && flavor === 'any') {
+      chosen = pick(pool, dealt?.slug); reasons = ['Pure chance. The deck insists.']
+    } else {
+      const mood = poolFor(key)
+      const tags = FLAVORS.find((f) => f.key === flavor)?.tags ?? []
+      const scored = pool.map((x) => {
+        const r: string[] = []; let sc = Math.min(2, x.messages / 1500)
+        if (mood.includes(x)) { sc += 6; r.push(`Fits the ${VIBES.find((v) => v.key === key)?.label.toLowerCase()} mood you picked`) }
+        for (const t of x.tags) if (tags.includes(t)) { sc += 3; r.push(`Has the ${t.toLowerCase()} you asked for`) }
+        if (x.rating === '18+') r.push('The adults-only door, as requested')
+        if (x.trimz) r.push('Also a series on Trimz, if you would rather watch first')
+        return { x, sc, r }
+      }).sort((a, b) => b.sc - a.sc)
+      const top = scored.find((v) => v.x.slug !== dealt?.slug) ?? scored[0]
+      chosen = top.x; reasons = top.r.length ? top.r : ['The closest fit in the deck for those answers']
+      second = scored.find((v) => v.x.slug !== chosen.slug)?.x ?? null
+    }
+    setDealt(chosen); setWhy(reasons); setRunner(second)
+    writeMatch({ slug: chosen.slug, why: reasons, at: Date.now() })
+    setPhase('shuffling'); sfx('tab')
   }
+  const pickRunner = () => { if (!runner) return; const r = runner; setRunner(dealt); setDealt(r); setWhy(['Your runner-up, promoted. The deck keeps no grudges.']); writeMatch({ slug: r.slug, why: ['Your runner-up, promoted.'], at: Date.now() }); setPhase('shuffling') }
 
   const deckSize = DECK.length
   const shuffleCover = DECK[shuffleIdx % DECK.length]?.cover ?? DECK[0].cover
@@ -89,7 +125,7 @@ export function WorldDealer() {
         <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-14">
           <div>
             <p className="font-gamer text-sm text-neon">
-              {'//'} THE WORLD DEALER<span className="text-mute"> v1.0</span>
+              {'//'} THE MATCHMAKER<span className="text-mute"> v2.0 · was the World Dealer</span>
             </p>
             <h2 className="pixel mt-3 font-pixel text-4xl leading-[1.05] text-ink sm:text-6xl">
               CAN'T
@@ -97,20 +133,20 @@ export function WorldDealer() {
               DECIDE<span className="text-neon glow">?</span>
             </h2>
             <p className="mt-4 max-w-md text-base leading-relaxed text-mute">
-              {deckSize} worlds, one deck. Pick a vibe and the Dealer shuffles, then slides your card across the
-              counter. One tap to start playing.
+              Three answers, one match, and the reasons why. The Matchmaker scores every world against your
+              mood, your heat limit and your flavour, then slides the winner across the counter.
             </p>
 
             <fieldset className="mt-7">
-              <legend className="font-gamer text-xs uppercase text-mute">Today's vibe</legend>
+              <legend className="font-gamer text-xs uppercase text-mute">1 · Today's vibe</legend>
               <div className="mt-3 flex flex-wrap gap-2">
                 {VIBES.map((v) => {
-                  const active = phase !== 'idle' && vibe === v.key
+                  const active = vibe === v.key
                   return (
                     <button
                       key={v.key}
                       type="button"
-                      onClick={() => deal(v.key)}
+                      onClick={() => { setVibe(v.key); sfx('tab') }}
                       aria-pressed={active}
                       disabled={phase === 'shuffling'}
                       className={`min-h-11 border px-3 font-gamer text-xs uppercase transition-colors active:bg-neon/10 disabled:cursor-not-allowed disabled:opacity-60 ${
@@ -125,6 +161,14 @@ export function WorldDealer() {
                 })}
               </div>
             </fieldset>
+            <fieldset className="mt-5"><legend className="font-gamer text-xs uppercase text-mute">2 · How hot can it get?</legend>
+              <div className="mt-3 flex flex-wrap gap-2">{HEATS.map((h) => (
+                <button key={h.key} type="button" onClick={() => { setHeat(h.key); sfx('tab') }} aria-pressed={heat === h.key} className={`min-h-11 border px-3 font-gamer text-xs uppercase ${heat === h.key ? 'border-warn bg-warn text-void' : 'border-line text-ink hover:border-warn hover:text-warn'}`}>{h.label}</button>))}
+              </div></fieldset>
+            <fieldset className="mt-5"><legend className="font-gamer text-xs uppercase text-mute">3 · Pick a flavour</legend>
+              <div className="mt-3 flex flex-wrap gap-2">{FLAVORS.map((f) => (
+                <button key={f.key} type="button" onClick={() => { setFlavor(f.key); sfx('tab') }} aria-pressed={flavor === f.key} className={`min-h-11 border px-3 font-gamer text-xs uppercase ${flavor === f.key ? 'border-neon bg-neon text-void' : 'border-line text-ink hover:border-neon hover:text-neon'}`}>{f.label}</button>))}
+              </div></fieldset>
 
             <button
               type="button"
@@ -135,13 +179,13 @@ export function WorldDealer() {
               {phase === 'shuffling' ? (
                 <>Shuffling…</>
               ) : phase === 'dealt' ? (
-                <>↻ Deal me another</>
+                <>↻ Match me again</>
               ) : (
-                <>▶ Deal me in</>
+                <>▶ Match my world</>
               )}
             </button>
             <p className="mt-3 font-gamer text-[11px] uppercase text-mute">
-              Deck: {deckSize} SFW + 17+ worlds · the 18+ world sits this one out, find it in the grid below
+              Deck: all {deckSize} worlds · the 18+ world only enters when you open that door above
             </p>
           </div>
 
@@ -152,7 +196,7 @@ export function WorldDealer() {
             </p>
 
             {phase === 'dealt' && dealt ? (
-              <DealtCard key={`${dealt.slug}-${dealNo}`} story={dealt} lite={noMotion} onRedeal={() => deal(vibe)} live={live} />
+              <DealtCard key={`${dealt.slug}-${dealNo}`} story={dealt} lite={noMotion} onRedeal={() => deal(vibe)} live={live} why={why} runner={runner} onRunner={pickRunner} />
             ) : (
               <div className="kx-card-back relative flex min-h-[26rem] flex-col items-center justify-center overflow-hidden border border-line bg-void p-8 text-center sm:min-h-[30rem]">
                 {phase === 'shuffling' && (
@@ -188,11 +232,17 @@ function DealtCard({
   lite,
   onRedeal,
   live,
+  why,
+  runner,
+  onRunner,
 }: {
   story: Story
   lite: boolean
   onRedeal: () => void
   live: ReturnType<typeof useIskStats>
+  why?: string[]
+  runner?: Story | null
+  onRunner?: () => void
 }) {
   const platform = storyPlatformName(story)
   const ratingClass =
@@ -243,6 +293,13 @@ function DealtCard({
               </span>
             ))}
           </div>
+          {why && why.length > 0 && (
+            <div className="mt-4 border border-line bg-panel/60 p-3">
+              <p className="font-gamer text-[10px] uppercase text-neon">Why this world</p>
+              <ul className="mt-1.5 space-y-1 text-xs text-mute">{why.map((w) => <li key={w} className="flex gap-2"><span className="text-neon">▸</span>{w}</li>)}</ul>
+              {runner && onRunner && <button type="button" onClick={onRunner} className="mt-2 inline-flex min-h-11 items-center font-gamer text-[10px] uppercase text-warn hover:text-ink">Runner-up: {runner.title} · deal it instead →</button>}
+            </div>
+          )}
           <p className="mt-4 font-gamer text-xs text-mute" title={`Likes · saves · chats · messages on ${platform}`}>
             ♥ <LiveCount value={countOf(live, story, 'likes')} /> · ★ <LiveCount value={countOf(live, story, 'saves')} /> · ✉{' '}
             <LiveCount value={countOf(live, story, 'chats')} />{' '}
