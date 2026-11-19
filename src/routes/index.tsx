@@ -8,6 +8,7 @@ import { FinderTrigger, WorldFinder } from '#/components/world-finder'
 import { SessionDock } from '#/components/session-dock'
 import { Challenge } from '#/components/challenge'
 import { QuickPeek, openPeek } from '#/components/quick-peek'
+import { readSavedWorlds, toggleSavedWorld } from '#/lib/saved'
 import { StoryDemo } from '#/components/story-demo'
 import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
@@ -190,11 +191,17 @@ function Stories() {
   const canPlay = motionOk && !lite
   const still = useStill()
 
-  const [filter, setFilter] = useState<'all'|'SFW'|'17+'|'18+'|'trimz'|'comedy'>('all')
+  const [savedSlugs, setSavedSlugs] = useState<string[]>(() => readSavedWorlds())
+  useEffect(() => {
+    const on = (e: Event) => setSavedSlugs((e as CustomEvent<string[]>).detail)
+    window.addEventListener('kx:saved', on)
+    return () => window.removeEventListener('kx:saved', on)
+  }, [])
+  const [filter, setFilter] = useState<'all'|'SFW'|'17+'|'18+'|'trimz'|'comedy'|'saved'>('all')
   const [sort, setSort] = useState<'curated'|'played'|'saved'|'liked'>('curated')
   const topBy=(k:'messages'|'saves')=>STORIES.reduce((a,b)=>countOf(live,b,k)>countOf(live,a,k)?b:a)
   const mostPlayed=topBy('messages'), mostSaved=topBy('saves')
-  const visible=STORIES.filter((x)=>filter==='all'?true:filter==='trimz'?!!x.trimz:filter==='comedy'?x.tags.includes('Comedy'):x.rating===filter)
+  const visible=STORIES.filter((x)=>filter==='saved'?savedSlugs.includes(x.slug):filter==='all'?true:filter==='trimz'?!!x.trimz:filter==='comedy'?x.tags.includes('Comedy'):x.rating===filter)
     .sort((a,b)=>sort==='curated'?0:countOf(live,b,sort==='played'?'messages':sort==='saved'?'saves':'likes')-countOf(live,a,sort==='played'?'messages':sort==='saved'?'saves':'likes'))
   const showCreator=filter==='all'
   const total = visible.length + (showCreator ? 1 : 0)
@@ -261,7 +268,7 @@ function Stories() {
         />
         <div className="mt-8 flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter worlds">
-            {([['all','All worlds'],['SFW','SFW'],['17+','17+'],['18+','18+'],['trimz','On Trimz'],['comedy','Comedy']] as const).map(([k,l])=>(
+            {([['all','All worlds'],['SFW','SFW'],['17+','17+'],['18+','18+'],['trimz','On Trimz'],['comedy','Comedy'],['saved',`Saved ★ ${savedSlugs.length}`]] as const).map(([k,l])=>(
               <button key={k} type="button" aria-pressed={filter===k} onClick={()=>{sfx('tab');setFilter(k)}} className={`inline-flex min-h-11 items-center border px-3 font-gamer text-[11px] uppercase ${filter===k?'border-neon bg-neon text-void':'border-line text-ink hover:border-neon hover:text-neon'}`}>{l}</button>
             ))}
             <span aria-live="polite" className="ml-1 font-gamer text-[11px] uppercase text-mute">{visible.length} world{visible.length===1?'':'s'}</span>
@@ -333,10 +340,16 @@ function Stories() {
                   </div>
                 </div>
               </Link>
-              <button type="button" onClick={() => openPeek(s.slug)} aria-label={`Quick look at ${s.title}`}
-                className="absolute top-3 right-3 z-10 inline-flex min-h-11 items-center border border-line bg-void/85 px-3 font-gamer text-[10px] uppercase text-ink hover:border-neon hover:text-neon">
-                ◉ Peek
-              </button>
+              <span className="absolute top-3 right-3 z-10 flex gap-2">
+                <button type="button" onClick={() => toggleSavedWorld(s.slug)} aria-pressed={savedSlugs.includes(s.slug)} aria-label={savedSlugs.includes(s.slug) ? `Remove ${s.title} from saved worlds` : `Save ${s.title} for later`}
+                  className={`inline-flex min-h-11 items-center border px-3 font-gamer text-[10px] uppercase ${savedSlugs.includes(s.slug) ? 'border-warn bg-warn text-void' : 'border-line bg-void/85 text-ink hover:border-warn hover:text-warn'}`}>
+                  {savedSlugs.includes(s.slug) ? '★ Saved' : '☆ Save'}
+                </button>
+                <button type="button" onClick={() => openPeek(s.slug)} aria-label={`Quick look at ${s.title}`}
+                  className="inline-flex min-h-11 items-center border border-line bg-void/85 px-3 font-gamer text-[10px] uppercase text-ink hover:border-neon hover:text-neon">
+                  ◉ Peek
+                </button>
+              </span>
             </li>
           ))}
           {showCreator && (
@@ -408,6 +421,11 @@ function Stories() {
           </li>
           )}
         </ul>
+        {filter === 'saved' && visible.length === 0 && (
+          <p className="mt-8 border border-dashed border-line p-6 text-center font-mono text-sm text-mute">
+            Nothing saved yet. Tap <span className="text-neon">★ Save</span> on any world and it waits for you here, and in the dock below.
+          </p>
+        )}
         {/* Eight dots can't each be 44px on a phone, so they only show position and the arrows steer */}
         <div className="mt-4 flex items-center justify-between gap-3 font-gamer text-xs text-mute sm:hidden">
           <span aria-live="polite">

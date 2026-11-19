@@ -5,6 +5,7 @@ import type { Story } from '#/data/content'
 import { countOf, formatCount, useIskStats } from '#/lib/isk-stats'
 import { readSave, saveLabel } from '#/lib/save-state'
 import { readMatch } from '#/lib/match'
+import { readSavedWorlds } from '#/lib/saved'
 import type { Match } from '#/lib/match'
 import { play as sfx } from '#/lib/sfx'
 import { shareWorld } from '#/lib/share'
@@ -17,6 +18,7 @@ export function SessionDock() {
   const [dismissed, setDismissed] = useState(false)
   const [save, setSave] = useState<{ slug: string; reason: string } | null>(null)
   const [match, setMatch] = useState<Match | null>(null)
+  const [savedList, setSavedList] = useState<string[]>(() => readSavedWorlds())
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -28,13 +30,16 @@ export function SessionDock() {
     onScroll(); window.addEventListener('scroll', onScroll, { passive: true })
     const onMatch = (e: Event) => { setMatch((e as CustomEvent<Match>).detail); setDismissed(false) }
     window.addEventListener('kx:match', onMatch)
-    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('kx:match', onMatch) }
+    const onSaved = (e: Event) => { setSavedList((e as CustomEvent<string[]>).detail); setDismissed(false) }
+    window.addEventListener('kx:saved', onSaved)
+    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('kx:match', onMatch); window.removeEventListener('kx:saved', onSaved) }
   }, [])
 
   const hot = STORIES.reduce((a, b) => (countOf(live, b, 'messages') > countOf(live, a, 'messages') ? b : a))
   const bySlug = (slug?: string) => STORIES.find((s) => s.slug === slug)
   const state: { story: Story; reason: string; kind: string } | null = dismissed ? null
     : save && bySlug(save.slug) ? { story: bySlug(save.slug)!, reason: save.reason, kind: '▣ Save state' }
+    : savedList.length && bySlug(savedList[0]) ? { story: bySlug(savedList[0])!, reason: 'You saved this for later. Later is now.', kind: '★ Saved for later' }
     : match && bySlug(match.slug) ? { story: bySlug(match.slug)!, reason: match.why[0] ?? 'Your match', kind: '▸ Your match' }
     : { story: hot, reason: `Most played right now · ${formatCount(countOf(live, hot, 'messages'))} messages`, kind: '▸ Next session' }
 
