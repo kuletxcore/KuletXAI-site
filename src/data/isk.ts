@@ -1318,7 +1318,7 @@ export const ISK: Record<string, IskStory> = {
       {
         "id": "6af3c910f475b5dfb9c1696f",
         "name": "Mitsuki",
-        "summary": "She wove the Wristbound by hand: a black braid with a pale stone that ties itself to one wrist. Her own knot sits first in the braid, and she keeps it closed until she is satisfied.",
+        "summary": "She wove the Wristbound by hand: a black braid with a pale stone that ties itself to one wrist. Her own knot sits first of the twelve, and she keeps it closed until she is satisfied.",
         "rating": "18+",
         "role": "character",
         "portrait": "/isk/wristbound/cast/6af3c910f475b5dfb9c1696f.webp",
@@ -1477,6 +1477,6 @@ export const ISK: Record<string, IskStory> = {
       }
     ],
     "videoCover": "/isk/wristbound/cover.mp4?v=79e2b7d5",
-    "introCard": "/isk/wristbound/cards/intro.html?v=f7ee4d72"
+    "introCard": "/isk/wristbound/cards/intro.html?v=6bd34e5c"
   }
 }

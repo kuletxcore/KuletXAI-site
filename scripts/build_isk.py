@@ -70,8 +70,9 @@ CARD_FIXES = {
     ],
     'wristbound': [
         ('width:100%; max-width:640px; background', 'width:100%; max-width:640px; margin:0 auto; background'),
-        # The braid went from twelve knots to ten; Mitsuki's summary still counts twelve
-        ('sits first of the twelve', 'sits first in the braid'),
+        # The braid is twelve knots (the storyteller's rules); the intro still counts ten in places
+        ('Ten knots in one braid', 'Twelve knots in one braid'),
+        ('Live through all ten,', 'Live through all twelve,'),
     ],
 }
 IRREGULAR = {'is': 'are', 'was': 'were', 'has': 'have', 'does': 'do', "isn't": "aren't", "wasn't": "weren't", "hasn't": "haven't", "doesn't": "don't"}
