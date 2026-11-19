@@ -6,6 +6,7 @@ import { ISK } from '#/data/isk'
 import { countOf, useIskStats } from '#/lib/isk-stats'
 import { LiveCount, LiveDot } from '#/components/live-count'
 import { play as sfx } from '#/lib/sfx'
+import { recordOpen } from '#/lib/taste'
 
 // QUICK LOOK: everything a card can't fit, without leaving the page. The pitch, the hook, who you meet,
 // the live numbers, and one press to play the real thing or open its world file.
@@ -145,7 +146,10 @@ export function QuickLook({ story, onClose }: { story: Story | null; onClose: ()
                 href={storyUrl(story)}
                 target="_blank"
                 rel="noreferrer"
-                onClick={() => sfx('enter')}
+                onClick={() => {
+                  sfx('enter')
+                  recordOpen(story.slug)
+                }}
                 className="pixel inline-flex min-h-12 items-center justify-center gap-2 bg-neon px-4 font-gamer text-sm uppercase text-void hover:bg-ink"
               >
                 ▶ Play on {platform}

@@ -9,6 +9,8 @@ import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, storyPlatformName, storyUrl, trimzSeriesUrl } from '#/data/content'
 import type { Story } from '#/data/content'
 import { QuickLook } from '#/components/quick-look'
+import { ForYou } from '#/components/for-you'
+import { recordOpen } from '#/lib/taste'
 import { LiveCount, LiveDot } from '#/components/live-count'
 import { countOf, totalOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
 import { COVER_VIDEOS } from '#/data/cover-videos'
@@ -315,6 +317,7 @@ function Stories() {
           title="Pick a world"
           body="Interactive AI storylines. You make the choices, the storyteller keeps up. Open a world to see its cast and lore."
         />
+        <ForYou />
         <ul
           ref={shelf}
           className="relative mt-12 -mx-4 flex snap-x snap-mandatory scroll-pl-4 gap-4 overflow-x-auto overscroll-x-contain px-4 py-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:scroll-pl-0 sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:px-0 sm:py-0 lg:grid-cols-3 [&::-webkit-scrollbar]:hidden"
@@ -391,7 +394,10 @@ function Stories() {
                       href={storyUrl(s)}
                       target="_blank"
                       rel="noreferrer"
-                      onClick={() => sfx('enter')}
+                      onClick={() => {
+                        sfx('enter')
+                        recordOpen(s.slug)
+                      }}
                       className="relative z-10 inline-flex min-h-11 items-center justify-center gap-1.5 bg-neon px-2 font-gamer text-[11px] uppercase text-void hover:bg-ink"
                     >
                       <span aria-hidden>▶</span> Play

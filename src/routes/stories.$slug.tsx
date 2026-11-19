@@ -16,6 +16,7 @@ import { KeyLabel } from '#/components/pad-glyph'
 import { PlatformChip, PlatformIcon, type Platform } from '#/components/platform'
 import { siteOrigin } from '#/lib/origin'
 import { writeSave } from '#/lib/save-state'
+import { recordOpen } from '#/lib/taste'
 import { setPerfMode, useLite, usePerfMode, watchFrameRate } from '#/lib/perf'
 import type { LiteReason } from '#/lib/perf'
 import { holdForMedia, playOst, setMusic, setMusicVolume, stopOst, useMusicVolume, useOstState, useWantedMusic } from '#/lib/music'
@@ -160,6 +161,9 @@ function StoryHub() {
       at: Date.now(),
     })
   }, [story.slug, tab, section])
+
+  // Feed the taste profile the home page's FOR YOU band reads: once per world visited, not per tab tap
+  useEffect(() => recordOpen(story.slug), [story.slug])
   const [seriesIdx, setSeriesIdx] = useState(() => Math.max(0, TRIMZ.findIndex((t) => t.key === search.series)))
   const [ytIdx, setYtIdx] = useState(() => Math.max(0, videos.findIndex((v) => v.id === search.v)))
   const activeVideo: YtVideo | undefined = videos[ytIdx]
