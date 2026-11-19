@@ -28,11 +28,14 @@ import { YT_CHANNEL_URL, loadYoutubeVideos, rememberYoutubeVideos, ytEmbedUrl, y
 import type { YtVideo } from '#/data/youtube'
 import { MotionConfig } from 'motion/react'
 import type { IskCast, IskMedia } from '#/data/isk'
+import { Arcade } from '#/components/minigame/shell'
+import { ArcadeTile } from '#/components/minigame/arcade-tile'
+import { GAMES, gameFor } from '#/components/minigame/games'
 
 const ALL_TRACKS: Track[] = [...Object.values(STORY_MUSIC), ...Object.values(SERIES_MUSIC)]
 
 /** Shareable hub state: which tab, and which series / video / section is open. */
-type HubSearch = { tab?: 'trimz' | 'youtube'; series?: string; v?: string; section?: string }
+type HubSearch = { tab?: 'trimz' | 'youtube'; series?: string; v?: string; section?: string; play?: string }
 
 export const Route = createFileRoute('/stories/$slug')({
   validateSearch: (s: Record<string, unknown>): HubSearch => ({
@@ -40,6 +43,8 @@ export const Route = createFileRoute('/stories/$slug')({
     series: typeof s.series === 'string' ? s.series : undefined,
     v: typeof s.v === 'string' ? s.v : undefined,
     section: typeof s.section === 'string' ? s.section : undefined,
+    // ?play=<slug> opens the arcade on that world's mini-app
+    play: typeof s.play === 'string' ? s.play : undefined,
   }),
   loader: async ({ params }) => {
     const story = STORIES.find((s) => s.slug === params.slug)
@@ -190,10 +195,40 @@ function StoryHub() {
     if (!sections.includes(section)) setSection('overview')
   }, [sections.join(), section])
 
+  // THE ARCADE — the mini-app for this world, opened from the shelf tile or a ?play= link.
+  // Only the page's own world (and Trimz) are launchable here; the shelf inside the arcade
+  // navigates to another world, which loads that world's own page.
+  const launchable = GAMES.filter((g) => g.slug === story.slug || g.slug === 'trimz')
+  // A link to another world's game (?play=colossus on the Acolytes page) is not honoured here: the tile it
+  // belongs to is on that world's page, and opening it here would describe a story you are not reading.
+  const allowed = (slug: string | undefined) => (slug && (slug === story.slug || slug === 'trimz') ? slug : null)
+  const [arcadeSlug, setArcadeSlug] = useState<string | null>(() => allowed(search.play))
+  useEffect(() => {
+    const wanted = allowed(search.play)
+    setArcadeSlug((cur) => (cur === wanted ? cur : wanted))
+  }, [search.play, story.slug])
+  const arcadeGame = arcadeSlug ? gameFor(arcadeSlug) : undefined
+  useEffect(() => {
+    if (!search.play || arcadeSlug) return
+    // Nothing opened: clean the address rather than leave a dead parameter behind
+    const { play: _drop, ...rest } = search
+    navigate({ to: '/stories/$slug', params: { slug: story.slug }, search: rest, replace: true, resetScroll: false })
+  }, [search, arcadeSlug, story.slug, navigate])
+  const openArcade = (slug: string) => {
+    sfx('enter')
+    setArcadeSlug(slug)
+    navigate({ to: '/stories/$slug', params: { slug: story.slug }, search: { ...search, play: slug }, replace: true, resetScroll: false })
+  }
+  const closeArcade = () => {
+    setArcadeSlug(null)
+    const { play: _drop, ...rest } = search
+    navigate({ to: '/stories/$slug', params: { slug: story.slug }, search: rest, replace: true, resetScroll: false })
+  }
+
   const wantTab = useRef(tab)
   // Address and hub state follow each other: our own changes use replace (so Back still leaves the page),
   // and an address we didn't write (Back/Forward, a pasted link) drives the state
-  const searchKey = (q: HubSearch) => [q.tab ?? '', q.series ?? '', q.v ?? '', q.section ?? ''].join('|')
+  const searchKey = (q: HubSearch) => [q.tab ?? '', q.series ?? '', q.v ?? '', q.section ?? '', q.play ?? ''].join('|')
   const written = useRef(searchKey(search))
   useEffect(() => {
     const current = searchKey(search)
@@ -208,10 +243,10 @@ function StoryHub() {
     }
     const next: HubSearch =
       tab === 'series'
-        ? { tab: 'trimz', series: TRIMZ[seriesIdx]?.key }
+        ? { tab: 'trimz', series: TRIMZ[seriesIdx]?.key, play: search.play }
         : tab === 'youtube'
-          ? { tab: 'youtube', v: videos[ytIdx]?.id }
-          : { section: section !== 'overview' ? section : undefined }
+          ? { tab: 'youtube', v: videos[ytIdx]?.id, play: search.play }
+          : { section: section !== 'overview' ? section : undefined, play: search.play }
     const nextKey = searchKey(next)
     if (nextKey === current) return
     // Written once the switching stops: each write re-renders the whole hub through the router
@@ -611,7 +646,17 @@ function StoryHub() {
 
         <section ref={detailsRef} data-sub-scope className="ps5-details mt-auto flex flex-col gap-3 pt-24 pb-4 md:max-w-[680px] md:pt-6">
           {tab === 'stories' ? (
-            <StoryDetails story={story} section={section} setSection={pickSection} sections={sections} series={series} openModal={openModal} padConnected={pad.connected} />
+            <StoryDetails
+              story={story}
+              section={section}
+              setSection={pickSection}
+              sections={sections}
+              series={series}
+              openModal={openModal}
+              padConnected={pad.connected}
+              arcade={launchable}
+              onLaunch={openArcade}
+            />
           ) : tab === 'series' ? (
             <SeriesDetails
               idx={seriesIdx}
@@ -667,6 +712,7 @@ function StoryHub() {
         )}
 
         <BottomBar onPrev={() => step(-1)} onNext={() => step(1)} onPrimary={primary} toggleTab={() => cycleTab(1)} pad={pad} tab={tab} canEnter={canEnter} inSub={subIdx !== null} section={section} />
+        {arcadeGame && <Arcade game={arcadeGame} onExit={closeArcade} />}
       </div>
     </div>
     </MotionConfig>
@@ -1196,6 +1242,8 @@ function StoryDetails({
   series,
   openModal,
   padConnected,
+  arcade,
+  onLaunch,
 }: {
   story: Story
   section: Section
@@ -1204,6 +1252,9 @@ function StoryDetails({
   series: typeof TRIMZ
   openModal: (m: Modal) => void
   padConnected: boolean
+  /** The mini-apps that belong to this page, offered as a shelf under the world's other doors */
+  arcade: typeof GAMES
+  onLaunch: (slug: string) => void
 }) {
   const isk = ISK[story.slug]
   const live = useIskStats()
@@ -1221,6 +1272,17 @@ function StoryDetails({
       />
       <TitleLogo key={story.slug} title={story.title} logo={story.logo} />
       <p className="ps5-shadow max-w-[560px] text-sm leading-relaxed text-white/85 md:text-[15px]">{story.logline}</p>
+
+      {/* THE ARCADE — the world's mini-app, offered where a console puts the game tile: above the tabs, always visible */}
+      {arcade.length > 0 && (
+        <div className="mt-1 flex flex-wrap gap-2">
+          {arcade.map((g) => (
+            <button key={g.slug} type="button" data-sub-item onClick={() => onLaunch(g.slug)} className="text-left">
+              <ArcadeTile game={g} />
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="mt-1 flex flex-wrap gap-2" role="tablist" aria-label="Story sections">
         {sections.map((s) => (

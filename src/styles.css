@@ -1449,3 +1449,66 @@ html.kx-lite .kx-deal-scan,
 html.kx-lite .kx-deal-cta {
   animation: none;
 }
+
+/* THE ARCADE — the hub's mini-games launch like a console title. The shell replaces the hub entirely while open. */
+.ps5-arcade {
+  background: #030407;
+  color: #fff;
+  font-family: "SST", "Plus Jakarta Sans", system-ui, sans-serif;
+}
+/* The launch card and the rank card arrive the way a console game does: a short lift, no bounce */
+.ps5-arcade-launch {
+  animation: kxArcadeIn 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.ps5-arcade-result {
+  animation: kxArcadeResult 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes kxArcadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes kxArcadeResult {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* The rank plate gets one sweep of light — the only flourish on the card, and it stops */
+.ps5-arcade-result::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 40%, rgba(255, 255, 255, 0.14) 50%, transparent 60%);
+  animation: kxArcadeSweep 900ms ease-out 250ms both;
+}
+@keyframes kxArcadeSweep {
+  from {
+    transform: translateX(-60%);
+  }
+  to {
+    transform: translateX(60%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ps5-arcade-launch,
+  .ps5-arcade-result,
+  .ps5-arcade-result::before {
+    animation: none;
+  }
+}
+html.kx-lite .ps5-arcade-launch,
+html.kx-lite .ps5-arcade-result,
+html.kx-lite .ps5-arcade-result::before {
+  animation: none;
+}

@@ -54,7 +54,24 @@ Rules:
 
 The three pixel and mono faces are under the SIL Open Font License (credited in the footer). **SST is Sony's typeface and is not openly licensed.** Confirm you can use it, or swap in an open lookalike, before relying on it.
 
+## The arcade
+
+A world page can launch a mini-app, and it should feel like starting a game on a console — title card, chrome, a rank at
+the end — but it exists to describe the world, so the rules are:
+
+- **The mechanic is the premise.** Not a reskin: Acolytes' one button is the double life, Colossus' burn is the cost of
+  growing, the Table's tilt is being furniture. If a game could be re-skinned onto any other world, it is not finished.
+- **Twenty seconds, one idea.** Long enough to feel the world, short enough to sit above the real story rather than in
+  front of it. No accounts, no saving mid-run, nothing to unlock.
+- **The world stays the product.** The mini-app never gates or replaces "Play on IsekaiZero"; it ends on that door.
+- **It borrows the console's grammar, not its noise.** The shell replaces the hub while open, dims the world's own art
+  behind it, and keeps the shelf of other mini-apps one press away. Reduced motion, Lite mode and Pause motion drop the
+  launch and rank animations.
+- **Launchable from the page it describes.** A link to another world's game does not open here — it belongs to that
+  world's page, and opening it on the wrong page would describe a story you are not reading.
+
 ## Layout
+
 
 - One centered column, `max-w-6xl`, 16px side padding on phones and 24px from `sm`.
 - Section padding is 64px on phones and 80px from `md`. The hero gets more room on desktop.
