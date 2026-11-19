@@ -96,6 +96,8 @@ export function ControlsSheet() {
   }, [open])
 
   if (!open) return null
+  // Same test as the CSS that hides keyboard hints: no fine pointer that can hover means a touch screen
+  const touch = !window.matchMedia('(hover: hover) and (pointer: fine)').matches
   const close = () => {
     sfx('back')
     setOpen(false)
@@ -114,7 +116,8 @@ export function ControlsSheet() {
           <p id="kx-controls-title" className="font-gamer text-[10px] uppercase text-neon">
             {'//'} Controls{' '}
             <span className="text-mute">
-              · {pad.connected ? `keyboard and ${pad.model ?? KIND_NAME[pad.kind]}` : 'keyboard'}
+              · {touch ? 'touch' : 'keyboard'}
+              {pad.connected ? ` and ${pad.model ?? KIND_NAME[pad.kind]}` : ''}
             </span>
           </p>
           <button type="button" onClick={close} aria-label="Close controls" className="grid size-11 place-items-center border border-line font-gamer text-xs text-mute hover:border-danger-ink hover:text-danger-ink">
@@ -123,7 +126,7 @@ export function ControlsSheet() {
         </div>
 
         <p className="kx-touch-only border-b border-line px-4 py-3 text-sm leading-relaxed text-mute">
-          On a touch screen, tap anything and swipe the world shelf. Every action below also has an on-screen button.
+          Tap anything and swipe the world shelf. Every action has an on-screen button, so there's nothing to learn.
         </p>
 
         <div className="grid gap-6 p-4 sm:grid-cols-2 sm:p-5">
