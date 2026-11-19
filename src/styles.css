@@ -1449,3 +1449,215 @@ html.kx-lite .kx-deal-scan,
 html.kx-lite .kx-deal-cta {
   animation: none;
 }
+
+/* ---- The Cold Open (home hero) --------------------------------------------------------------
+   A first playable beat, in the hero's right column. It has to read as a different machine from
+   the STATUS.LOG panel it replaces, so it borrows the hub's film frame: black, one hairline,
+   the world's own accent, and type that behaves like a screen instead of a card. */
+
+.kx-open {
+  position: relative;
+  border: 1px solid var(--color-line);
+  background: #030508;
+  font-family: var(--font-mono);
+  isolation: isolate;
+  /* the world's accent, set inline per cold open */
+  --kx-accent: var(--color-neon);
+}
+
+/* The world's poster, held behind everything and dissolved into the black */
+.kx-open-art {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  object-fit: cover;
+  object-position: center 28%;
+  opacity: 0.34;
+  filter: saturate(0.9);
+  mask-image: linear-gradient(195deg, #000 0%, rgba(0, 0, 0, 0.55) 46%, transparent 82%);
+  -webkit-mask-image: linear-gradient(195deg, #000 0%, rgba(0, 0, 0, 0.55) 46%, transparent 82%);
+  animation: kxOpenArt 1.4s ease-out both;
+}
+@keyframes kxOpenArt {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+}
+
+/* A slow accent scan down the frame: the only loop here, and it stops like everything else */
+.kx-open-scan {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--kx-accent) 18%, transparent), transparent)
+    top / 100% 7rem no-repeat;
+  animation: kxOpenScan 6.5s linear infinite;
+  opacity: 0.7;
+}
+@keyframes kxOpenScan {
+  from {
+    transform: translateY(-7rem);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+.kx-open-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--color-line);
+  padding: 10px 14px;
+  font-family: var(--font-gamer);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: var(--color-mute);
+}
+.kx-open-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--kx-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--kx-accent) 70%, transparent);
+}
+
+/* The reply lands on its own; the opening lines are there when the page is, like a screen already on */
+.kx-open-line {
+  animation: kxOpenLine 0.42s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+@keyframes kxOpenLine {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.kx-open-speaker {
+  font-family: var(--font-gamer);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--kx-accent);
+}
+
+/* Your move reads as a reply you typed, not a button: amber rule, like the Teaser's log */
+.kx-open-said {
+  border-left: 2px solid color-mix(in srgb, var(--color-warn) 70%, transparent);
+  padding-left: 10px;
+  color: color-mix(in srgb, var(--color-warn) 92%, white);
+}
+
+/* The choices: the hero's real call to action. Each one is a move, and each one is 44px tall. */
+.kx-open-move {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--color-line);
+  background: rgba(5, 8, 6, 0.55);
+  padding: 9px 11px;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--color-ink);
+  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+.kx-open-move:hover,
+.kx-open-move:focus-visible {
+  border-color: var(--kx-accent);
+  background: color-mix(in srgb, var(--kx-accent) 9%, #030508);
+}
+.kx-open-move-key {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border: 1px solid var(--color-line);
+  font-family: var(--font-gamer);
+  font-size: 10px;
+  color: var(--color-mute);
+}
+.kx-open-move:hover .kx-open-move-key,
+.kx-open-move:focus-visible .kx-open-move-key {
+  border-color: var(--kx-accent);
+  color: var(--kx-accent);
+}
+
+/* "Play a story" in the hero wakes the screen: the moves flash once, then settle */
+.kx-open-moves.is-waking .kx-open-move {
+  animation: kxOpenWake 0.62s ease-out 1;
+}
+.kx-open-moves.is-waking .kx-open-move:nth-child(2) {
+  animation-delay: 0.08s;
+}
+@keyframes kxOpenWake {
+  0% {
+    border-color: var(--kx-accent);
+    background: color-mix(in srgb, var(--kx-accent) 22%, #030508);
+  }
+  100% {
+    border-color: var(--color-line);
+  }
+}
+
+/* The exit: the only accent-filled control on the front page's first screen */
+.kx-open-cta {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  background: var(--kx-accent);
+  font-family: var(--font-gamer);
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #05070a;
+  transition: filter 0.16s ease, transform 0.16s ease;
+}
+.kx-open-cta:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+}
+
+.kx-open-link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  padding: 0 4px;
+  font-family: var(--font-gamer);
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--color-mute);
+}
+.kx-open-link:hover {
+  color: var(--color-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kx-open-art,
+  .kx-open-line,
+  .kx-open-scan,
+  .kx-open-moves.is-waking .kx-open-move {
+    animation: none;
+  }
+  .kx-open-cta:hover {
+    transform: none;
+  }
+}
+html.kx-still .kx-open-scan {
+  animation-play-state: paused;
+}
+html.kx-lite .kx-open-art {
+  filter: none;
+  opacity: 0.28;
+}
+html.kx-lite .kx-open-scan {
+  display: none;
+}

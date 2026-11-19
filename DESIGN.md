@@ -54,6 +54,24 @@ Rules:
 
 The three pixel and mono faces are under the SIL Open Font License (credited in the footer). **SST is Sony's typeface and is not openly licensed.** Confirm you can use it, or swap in an open lookalike, before relying on it.
 
+## The Cold Open
+
+The first screen used to end in a STATUS.LOG panel: live numbers, honest, and asking nothing of anyone. The one
+thing a visitor could do above the fold was scroll. The Cold Open replaces it with a decision.
+
+- **One beat, ten seconds.** Two lines of situation, two moves, one line of consequence. Not the Teaser: the Teaser
+  is two worlds and whole arcs, for someone already curious. This is for someone who just landed.
+- **The exit is the point.** The only accent-filled control on the first screen is "Keep playing", and it leaves for
+  the platform. The world file and "Another world" sit under it in plain type, so the screenshot-reader still has a
+  door either way.
+- **It says it is scripted.** Standing rule: numbers are live or not shown, and a demo is a demo. The card ends on
+  "Scripted cold open · the live story improvises from here".
+- **One screen per visit, and it does not move.** The height is reserved, so answering does not re-flow the hero
+  under a thumb, and the opening world is fixed rather than shuffled, so server HTML and the first client render are
+  the same screen. Returning players get the world they left through the CONTINUE band.
+- **The numbers did not leave, they stepped down.** Messages, worlds and series on one line under the hero's
+  buttons: proof, not pitch.
+
 ## Layout
 
 - One centered column, `max-w-6xl`, 16px side padding on phones and 24px from `sm`.

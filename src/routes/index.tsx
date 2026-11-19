@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Footer, Header, SectionHead } from '#/components/site'
 import { ContinueBand } from '#/components/continue-band'
 import { WorldDealer } from '#/components/world-dealer'
 import { StoryDemo } from '#/components/story-demo'
+import { ColdOpen } from '#/components/cold-open'
 import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
 import { LiveCount, LiveDot } from '#/components/live-count'
@@ -56,7 +56,11 @@ function Hero() {
             breaks it all down on YouTube.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a href="#dealer" className="pixel bg-neon px-5 py-3 font-gamer text-sm uppercase text-void hover:bg-ink">
+            <a
+              href="#cold-open"
+              onClick={() => window.dispatchEvent(new CustomEvent('kx:cold-open'))}
+              className="pixel bg-neon px-5 py-3 font-gamer text-sm uppercase text-void hover:bg-ink"
+            >
               ▶ Play a story
             </a>
             <a
@@ -66,30 +70,21 @@ function Hero() {
               Binge on Trimz
             </a>
           </div>
+
+          {/* The live numbers stay, demoted to one line: they are proof, not the pitch */}
+          <p className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 font-gamer text-[11px] uppercase text-mute">
+            <LiveDot />
+            <span>
+              <LiveCount value={totalOf(live, 'messages')} /> messages played
+            </span>
+            <span aria-hidden className="text-line">|</span>
+            <span>{STORIES.length} worlds</span>
+            <span aria-hidden className="text-line">|</span>
+            <span>{TRIMZ.length} series on Trimz</span>
+          </p>
         </div>
 
-        <div className="border border-line bg-panel/80 p-5 font-mono text-sm">
-          <div className="flex items-center justify-between border-b border-line pb-3 font-gamer text-xs text-mute">
-            <span>STATUS.LOG</span>
-            <span className="text-neon">● ONLINE</span>
-          </div>
-          <dl className="mt-4 space-y-3">
-            <Stat label="public storylines" value={STORIES.length} />
-            <Stat
-              label={
-                <>
-                  messages sent <LiveDot className="ml-1" />
-                </>
-              }
-              value={<LiveCount value={totalOf(live, 'messages')} />}
-            />
-            <Stat label="player likes" value={<LiveCount value={totalOf(live, 'likes')} />} />
-            <Stat label="story saves" value={<LiveCount value={totalOf(live, 'saves')} />} />
-            <Stat label="chats started" value={<LiveCount value={totalOf(live, 'chats')} />} />
-            <Stat label="trimz series" value={TRIMZ.length} />
-            <Stat label="motto" value="outslopping the competition" small />
-          </dl>
-        </div>
+        <ColdOpen />
       </div>
     </section>
   )
@@ -144,15 +139,6 @@ function MotionToggle() {
       <span aria-hidden>{still ? '▶' : '❚❚'}</span>
       {still ? 'Play motion' : 'Pause motion'}
     </button>
-  )
-}
-
-function Stat({ label, value, small }: { label: ReactNode; value: ReactNode; small?: boolean }) {
-  return (
-    <div className="flex items-baseline justify-between gap-4">
-      <dt className="flex items-center text-mute">{label}</dt>
-      <dd className={small ? 'text-right text-warn' : 'pixel font-pixel text-2xl text-neon'}>{value}</dd>
-    </div>
   )
 }
 

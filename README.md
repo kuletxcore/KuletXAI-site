@@ -8,6 +8,7 @@ Live at [kuletxai.whop.site](https://kuletxai.whop.site), mirrored at [kuletxai.
 
 ## What's in it
 
+- **Cold Open.** The hero's right-hand screen is the first thing you can play, not a stats panel: one situation, two moves, one line of consequence, then the way into the real story. Six worlds, the 18+ one left out of the deck. Keyboard `1` / `2`, and the hero's "Play a story" button wakes the screen rather than scrolling you away from it. Scripted and labelled as scripted.
 - **Save State.** The hub remembers you: it writes a memory card on every visit (world, tab, section), and returning players are greeted on the home page with a CONTINUE band — one tap (or the R key) back where they left off. One slot, erase anytime.
 - **The World Dealer.** Can't pick a world? Tap a vibe (or SURPRISE ME) and the deck deals you a card: poster, live stats, a one-tap link to play on IsekaiZero, or its world file here. SFW/17+ only.
 - **The Teaser.** A scripted, playable teaser of the AI storyteller embedded on the landing page — I AM THE TABLE (comedy) and the full Acolytes café-to-contact arc (warm café register into the tactical brief) — branching choices, keyboard picks, and a deep link into the real storyline at the end. No account needed.
@@ -39,8 +40,8 @@ The dev server is at http://localhost:3000. `npm run typecheck`, `npm run build`
 
 ```
 src/routes      pages (home, story hub, trophy list) and the two API routes
-src/components  site chrome, boot screen, platform badges
-src/data        story copy, cast and gallery, soundtracks, music, trophies
+src/components  site chrome, boot screen, platform badges, the hero's Cold Open
+src/data        story copy, cast and gallery, soundtracks, music, trophies, cold opens
 src/lib         sound, gamepad, lite-mode detection, live counts
 scripts         build_isk.py and build_ost.py, which refresh data from the platforms
 public          covers, tiles, hosted story art and cards, music, fonts
