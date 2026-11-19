@@ -1449,3 +1449,93 @@ html.kx-lite .kx-deal-scan,
 html.kx-lite .kx-deal-cta {
   animation: none;
 }
+
+/* ---- The first beat (story page Overview) ----------------------------------------------------
+   It sits in the console's glass panel, so it wears the console's dress: one hairline, the story's
+   accent only where the world answers, and the moves shaped like the rest of the hub's controls. */
+
+.kx-beat {
+  --beat-accent: #fff;
+}
+.kx-beat-dot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--beat-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--beat-accent) 65%, transparent);
+}
+.kx-beat-move {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 9px 12px;
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 600;
+  color: #fff;
+  transition: border-color 0.16s ease, background 0.16s ease;
+}
+.kx-beat-move:hover,
+.kx-beat-move:focus-visible {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+}
+.kx-beat-key {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+}
+.kx-beat-move:hover .kx-beat-key {
+  border-color: #fff;
+  color: #fff;
+}
+.kx-beat-in {
+  animation: kxBeatIn 0.34s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.kx-beat-hook {
+  animation: kxBeatIn 0.34s cubic-bezier(0.2, 0.7, 0.3, 1) 0.12s both;
+}
+@keyframes kxBeatIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+}
+.kx-beat-cta {
+  width: 100%;
+  font-size: 14px;
+  padding: 10px 18px;
+}
+.kx-beat-link {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+.kx-beat-link:hover {
+  color: #fff;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kx-beat-in,
+  .kx-beat-hook {
+    animation: none;
+  }
+}

@@ -54,6 +54,21 @@ Rules:
 
 The three pixel and mono faces are under the SIL Open Font License (credited in the footer). **SST is Sony's typeface and is not openly licensed.** Confirm you can use it, or swap in an open lookalike, before relying on it.
 
+## Playable copy, and copy a model can read
+
+Two sides of the same rule: the words on this site are the story's, and nothing should stand between a reader and them.
+
+**The first beat.** Every story page's Overview opens on a turn you can take, not a wall of pitch. It is assembled from that story's own data: the scene header as the slug line, the first pitch line as the situation, the player's persona as the way in, the world rules as the answer, and the author's hook as the closing cut. Two moves, both of which reach the platform. The full pitch is still there, one `<details>` down, because the playable version is a door and not a replacement.
+- Derived, not written per story. Seven hand-written scenes would be better prose and worse engineering: they would be the one place on this site where the words are not the story's own, and the one thing that could silently disagree with the page around it.
+- It says it is scripted. Standing rule: numbers are live or absent, and a demo is a demo.
+
+**The reading layer.** Models are readers. They get plain text at stable URLs rather than a console UI to parse:
+- `llms.txt` (the published spec), `llms-full.txt`, and `llms.json`, all generated from `src/data`.
+- A Markdown mirror of every story page, with the canonical HTML page in a `Link` header.
+- JSON-LD on the pages: a `CreativeWork` per storyline with its cast of genres and live interaction counters, a `FAQPage` answering what people actually ask ("where can I play it", "how long is it", "is it SFW"), and a breadcrumb.
+- `robots.txt` names the AI crawlers and allows them. Discovery is the point; the site is public and its premise is the product.
+- Vendor-neutral on purpose: no MCP server, no proprietary feed, nothing that privileges one assistant's format. Text, JSON, and schema.org, which everything reads.
+
 ## Layout
 
 - One centered column, `max-w-6xl`, 16px side padding on phones and 24px from `sm`.

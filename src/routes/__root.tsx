@@ -26,6 +26,9 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
+      // The machine-facing layer: a text index for models, a sitemap for crawlers, Markdown mirrors of story pages
+      { rel: 'alternate', type: 'text/plain', href: '/llms.txt', title: 'llms.txt' },
+      { rel: 'alternate', type: 'application/json', href: '/llms.json', title: 'Site index as JSON' },
       { rel: 'icon', href: '/favicon.ico', sizes: '48x48' },
       { rel: 'icon', href: '/icon-192.png', type: 'image/png', sizes: '192x192' },
       { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },

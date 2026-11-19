@@ -41,12 +41,21 @@ The dev server is at http://localhost:3000. `npm run typecheck`, `npm run build`
 src/routes      pages (home, story hub, trophy list) and the two API routes
 src/components  site chrome, boot screen, platform badges
 src/data        story copy, cast and gallery, soundtracks, music, trophies
-src/lib         sound, gamepad, lite-mode detection, live counts
+src/lib         sound, gamepad, lite-mode detection, live counts, machine.ts (llms/sitemap/JSON-LD)
 scripts         build_isk.py and build_ost.py, which refresh data from the platforms
 public          covers, tiles, hosted story art and cards, music, fonts
 ```
 
 Story copy, tags and links are written by hand in `src/data/content.ts`. `src/data/isk.ts` and `src/data/ost.ts` are generated, so refresh them with the scripts instead of editing them.
+
+## Reading the site without a browser
+
+```bash
+curl https://kuletxai.whop.site/llms.txt          # index: every storyline, one line each
+curl https://kuletxai.whop.site/stories/acolytes.md   # one page, as Markdown
+```
+
+Everything under `src/lib/machine.ts` is built from `src/data`, so those files always match the pages. `src/lib/machine.server.ts` answers them from the Worker entry, before the router runs, which is why they work on every host and in dev.
 
 ## Refreshing story data
 

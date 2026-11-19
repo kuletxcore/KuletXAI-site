@@ -12,8 +12,15 @@ import { countOf, totalOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
 import { COVER_VIDEOS } from '#/data/cover-videos'
 import { useLite } from '#/lib/perf'
 import { setStill, useStill } from '#/lib/still'
+import { jsonLd, siteJsonLd } from '#/lib/machine'
 
-export const Route = createFileRoute('/')({ component: Home })
+export const Route = createFileRoute('/')({
+  head: () => ({
+    // Structured data for search engines and answer engines: who runs this, what the site is
+    scripts: [{ type: 'application/ld+json', children: jsonLd(siteJsonLd('https://kuletxai.whop.site')) }],
+  }),
+  component: Home,
+})
 
 function Home() {
   return (

@@ -27,6 +27,8 @@ import type { PadButton, PadKind } from '#/lib/gamepad'
 import { YT_CHANNEL_URL, loadYoutubeVideos, rememberYoutubeVideos, ytEmbedUrl, ytThumb, ytWatchUrl } from '#/data/youtube'
 import type { YtVideo } from '#/data/youtube'
 import { MotionConfig } from 'motion/react'
+import { jsonLd, storyJsonLd } from '#/lib/machine'
+import { FirstBeat } from '#/components/first-beat'
 import type { IskCast, IskMedia } from '#/data/isk'
 
 const ALL_TRACKS: Track[] = [...Object.values(STORY_MUSIC), ...Object.values(SERIES_MUSIC)]
@@ -48,8 +50,16 @@ export const Route = createFileRoute('/stories/$slug')({
     return { story, videos }
   },
   head: ({ loaderData }) => ({
-    scripts: [{ children: BOOT_HEAD_SCRIPT }],
+    scripts: [
+      { children: BOOT_HEAD_SCRIPT },
+      // The page as a CreativeWork plus the questions people actually ask, answered from this story's own data
+      ...(loaderData
+        ? [{ type: 'application/ld+json', children: jsonLd(storyJsonLd(loaderData.story, siteOrigin())) }]
+        : []),
+    ],
     links: [
+      // The Markdown mirror: one fetch, no markup, for a model or a reader that wants the text
+      { rel: 'alternate', type: 'text/markdown', href: `/stories/${loaderData?.story.slug ?? ''}.md`, title: 'Markdown' },
       { rel: 'preload', href: '/sfx/ps5-startup.mp3', as: 'audio' },
       { rel: 'preload', href: '/brand/kuletx-ai-1200.webp', as: 'image' },
       { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -308,6 +318,12 @@ function StoryHub() {
     setSubIdx(null)
   }
 
+  // "Meet the cast" on the first beat: the story might not have a cast section on screen, so make sure it does
+  const meetCast = () => {
+    const panel = document.querySelector<HTMLElement>('.ps5-panel[role="tabpanel"]')
+    if (panel) panel.scrollTop = 0
+    pickSection('cast' as Section)
+  }
   const pickSection = (s: Section) => {
     if (s === section) return
     sfx('nav')
@@ -611,7 +627,7 @@ function StoryHub() {
 
         <section ref={detailsRef} data-sub-scope className="ps5-details mt-auto flex flex-col gap-3 pt-24 pb-4 md:max-w-[680px] md:pt-6">
           {tab === 'stories' ? (
-            <StoryDetails story={story} section={section} setSection={pickSection} sections={sections} series={series} openModal={openModal} padConnected={pad.connected} />
+            <StoryDetails story={story} section={section} setSection={pickSection} sections={sections} series={series} openModal={openModal} padConnected={pad.connected} onMeetCast={meetCast} />
           ) : tab === 'series' ? (
             <SeriesDetails
               idx={seriesIdx}
@@ -1196,6 +1212,7 @@ function StoryDetails({
   series,
   openModal,
   padConnected,
+  onMeetCast,
 }: {
   story: Story
   section: Section
@@ -1204,6 +1221,7 @@ function StoryDetails({
   series: typeof TRIMZ
   openModal: (m: Modal) => void
   padConnected: boolean
+  onMeetCast: () => void
 }) {
   const isk = ISK[story.slug]
   const live = useIskStats()
@@ -1240,9 +1258,19 @@ function StoryDetails({
       <div className="ps5-glass ps5-scroll ps5-panel max-h-[34vh] overflow-y-auto px-5 py-4 md:max-h-[30vh]" role="tabpanel">
         {section === 'overview' && (
           <div className="space-y-3 text-sm leading-relaxed text-white/85">
-            {story.pitch.map((p) => (
-              <p key={p.slice(0, 24)}>{p}</p>
-            ))}
+            {/* Overview opens on something you can do, not two paragraphs about the world */}
+            <FirstBeat story={story} onOpenCast={onMeetCast} />
+            <details className="group">
+              <summary className="cursor-pointer list-none text-xs font-semibold text-white/55 hover:text-white">
+                <span className="group-open:hidden">Read the full pitch ↓</span>
+                <span className="hidden group-open:inline">Hide the pitch ↑</span>
+              </summary>
+              <div className="mt-2 space-y-3">
+                {story.pitch.map((p) => (
+                  <p key={p.slice(0, 24)}>{p}</p>
+                ))}
+              </div>
+            </details>
             <p className="pt-1 text-xs font-semibold text-white/55">
               ♥ <LiveCount key={`${story.slug}:likes`} value={countOf(live, story, 'likes')} /> likes · <LiveCount key={`${story.slug}:saves`} value={countOf(live, story, 'saves')} /> saves · <LiveCount key={`${story.slug}:chats`} value={countOf(live, story, 'chats')} /> chats ·{' '}
               <LiveCount key={`${story.slug}:messages`} value={countOf(live, story, 'messages')} /> messages on {storyPlatformName(story)}
