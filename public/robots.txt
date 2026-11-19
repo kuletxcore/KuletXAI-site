@@ -2,3 +2,6 @@ User-agent: *
 Allow: /
 
 Sitemap: https://kuletxai.whop.site/sitemap.xml
+
+# A plain-text index of the site for language models
+# https://kuletxai.whop.site/llms.txt

@@ -8,12 +8,18 @@ Live at [kuletxai.whop.site](https://kuletxai.whop.site), mirrored at [kuletxai.
 
 ## What's in it
 
-- **KX://FIND.** One input to every world, series, channel and action. Press `/` (or ⌘K) anywhere on the home page, or tap FIND in the header or the hero's command bar, then type a vibe, a world or a rating ("kaiju", "comedy", "18+"). Enter opens a world's file, Shift+Enter plays it on its platform, and the empty state jumps you back into your save state and recent worlds. It renders and loads its art only when opened, so the first paint pays nothing for it.
-- **Save State.** The hub remembers you: it writes a memory card on every visit (world, tab, section), and returning players are greeted on the home page with a CONTINUE band — one tap (or the R key) back where they left off. One slot, erase anytime.
+- **KX://FIND.** One input to every world, series and channel. Press `/` (or ⌘K) on the home page, or tap FIND in the header, then type a vibe, a world or a rating ("kaiju", "comedy", "18+"). Enter opens a world's file, Shift+Enter plays it. The panel is a lazy chunk, so first paint pays nothing for it.
+- **Save State.** The hub remembers you: it writes a memory card on every visit (world, tab, section), and returning players are greeted on the home page with a CONTINUE band: one tap (or the R key) back where they left off. One slot, erase anytime.
 - **The World Dealer.** Can't pick a world? Tap a vibe (or SURPRISE ME) and the deck deals you a card: poster, live stats, a one-tap link to play on IsekaiZero, or its world file here. SFW/17+ only.
-- **The Cold Open.** The hero is the product: a real scene from the storyteller starts typing by itself the moment the page loads, takes one choice (tap, or press 1–2) and ends on the world's own play button — so the headline's CTA always points at the world on screen. Two worlds are playable: I AM THE TABLE (comedy) and the full Acolytes café-to-contact arc. Reduced motion, Lite mode and Pause motion get the whole scene at once instead of a typewriter. Deep teaser section removed: it competed with the console in the hero and asked for two more minutes before the visitor had been told what they were getting into.
+- **The Cold Open.** The hero is the product: a scene from the storyteller types itself in, takes your choice (tap, or press 1 or 2) and ends on that world's play button, and the hero's own button always names the world on screen. I AM THE TABLE and the Acolytes café arc are playable. Reduced motion, Lite mode and Pause motion get the whole scene at once. It replaces the separate Teaser section further down.
+- **The Loop.** Below the shelf, three beats explain what happens after you press play, then hand you the door.
 - **Story hub.** Every story gets its own screen with an overview, intro card, cast, gallery, soundtrack player and trophies. It works with a controller, a keyboard or touch.
 - **Controller prompts.** Button prompts match the pad you plug in: PlayStation (PS5 glyphs on light, PS4 on dark, and always PS4 for a DualShock 4), Xbox, Nintendo Switch, and the Infinix GT NX in split mode, where each half is read like a sideways Joy-Con. Keyboard hints show only on devices with a mouse. Prompt art is Nicolae "Xelu" Berbece's free set (CC0), at 256px in full mode and 100px in Lite mode.
+- **Controls sheet.** Press `?` anywhere (or Controls in the footer) for every keyboard and controller shortcut, drawn with the prompts of the pad you have plugged in.
+- **Share cards.** The hub's card button draws a 1080x1350 poster of the world on your device, with its live counts, to save or share.
+- **Trimz cinema.** The series section is a screen with the cover reel running (off in Lite mode and with Pause motion) beside the whole slate.
+- **Live badges.** The world shelf marks the most played and most saved worlds, worked out from the live counts.
+- **Readable by models.** `/llms.txt`, `/llms-full.txt`, `/llms.json` and a Markdown mirror of each story at `/stories/<slug>.md`, all generated from the same data as the pages, plus JSON-LD in the HTML.
 - **Creator credits.** Cast members made by other creators carry a "Character by" link to their profile on the cast card.
 - **Two platforms.** Stories live on [IsekaiZero](https://www.isekaizero.ai), and the 18+ ones on [KageSekai](https://www.kagesekai.ai). Likes, saves, chats and message counts are read from each platform's API every hour.
 - **Series and videos.** The Trimz series and YouTube videos sit in the same hub, next to the stories they came from.
@@ -25,7 +31,7 @@ Live at [kuletxai.whop.site](https://kuletxai.whop.site), mirrored at [kuletxai.
 
 [TanStack Start](https://tanstack.com/start) (React 19) on Vite, styled with Tailwind CSS 4. It runs on Cloudflare Workers and on Whop.
 
-The story hub uses SST as its primary face with Plus Jakarta Sans as fallback (`src/styles.css`). SST is Sony's typeface and is not openly licensed (see `DESIGN.md`); the site is non-commercial and the fallback keeps the hub readable if SST is ever removed.
+The story hub uses SST as its primary face with Plus Jakarta Sans as fallback (`src/styles.css`). SST is Sony's typeface and is not openly licensed; it stays by the owner's decision, and the fallback keeps the hub readable without it (see `DESIGN.md`).
 
 ## Run it locally
 

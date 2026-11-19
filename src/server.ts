@@ -1,5 +1,6 @@
 import handler from '@tanstack/react-start/server-entry'
 import { refreshIskStats } from '#/lib/isk-stats.server'
+import { machineResponse } from '#/lib/machine.server'
 
 /**
  * Worker entry: the TanStack Start app for requests, plus Whop's scheduled
@@ -7,7 +8,8 @@ import { refreshIskStats } from '#/lib/isk-stats.server'
  */
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
-    const res = await (handler.fetch as (r: Request, e: unknown, c: unknown) => Promise<Response>)(request, env, ctx)
+    // /llms.txt, /llms-full.txt, /llms.json and /stories/<slug>.md are files for models, answered before the router
+    const res = machineResponse(request) ?? await (handler.fetch as (r: Request, e: unknown, c: unknown) => Promise<Response>)(request, env, ctx)
     // Safe headers for SSR responses (static assets get theirs from public/_headers).
     // No CSP here: the app uses inline head scripts, so a strict policy would break it.
     // No X-Frame-Options either: on Whop the whole app is rendered inside whop.com's iframe.

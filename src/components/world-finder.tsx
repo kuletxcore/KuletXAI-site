@@ -2,20 +2,7 @@ import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { setStill, useStill } from '#/lib/still'
 import { play as sfx } from '#/lib/sfx'
 
-/**
- * KX://FIND — one input to every world, series, channel and action on the home page.
- *
- * The home page used to be a ~7,600px scroll: hero, dealer, grid, teaser, Trimz,
- * channels. A cold visitor had to learn that map before they could act on it.
- * The Finder inverts it: press `/` (or ⌘K / Ctrl-K) anywhere, type what you feel
- * like ("kaiju", "comedy", "school", "18+"), and jump straight there. Enter opens
- * a world's file, Shift+Enter plays it on its platform.
- *
- * Cost discipline: this shell only listens for the summon. The panel itself is a
- * separate chunk (`world-finder-panel.tsx`) fetched the first time it opens, it
- * renders nothing while closed, and it loads no art until then. First paint
- * pays for a key listener, nothing more.
- */
+// KX://FIND: press / or Cmd-K anywhere to search every world. This shell only listens; the panel is a lazy chunk.
 
 export const OPEN_FINDER_EVENT = 'kx:open-finder'
 

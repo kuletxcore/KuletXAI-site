@@ -7,13 +7,8 @@ import { useLite } from '#/lib/perf'
 import { play as sfx } from '#/lib/sfx'
 import { useStill } from '#/lib/still'
 
-/**
- * The landing page's hero is the product, not a poster: a real scene from the storyteller that starts typing on its
- * own, takes one choice, and hands back a world. It is the same script the deep teaser used, moved to where a cold
- * visitor is actually looking and cut to reach its call to action in about fifteen seconds.
- *
- * The world picker is owned by the hero, so the hero's own button always points at the world on screen.
- */
+// The hero console: a real scene that types itself in, takes one choice and ends on that world's play button.
+// The hero owns the world picker, so its own button always points at the world on screen.
 
 type Line = { who: 'them' | 'me'; text: string }
 

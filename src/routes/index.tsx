@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Footer, Header, SectionHead } from '#/components/site'
 import { ContinueBand } from '#/components/continue-band'
+import { jsonLd, siteJsonLd } from '#/lib/machine'
+import { siteOrigin } from '#/lib/origin'
 import { WorldFinder } from '#/components/world-finder'
-import { WorldDealer } from '#/components/world-dealer'
 import { ColdOpen } from '#/components/cold-open'
 import { HowItWorks } from '#/components/how-it-works'
 import { play as sfx } from '#/lib/sfx'
@@ -15,7 +16,35 @@ import { COVER_VIDEOS } from '#/data/cover-videos'
 import { useLite } from '#/lib/perf'
 import { setStill, useStill } from '#/lib/still'
 
-export const Route = createFileRoute('/')({ component: Home })
+export const Route = createFileRoute('/')({
+  // Structured data for search and answer engines: who runs this site and what it is
+  head: () => ({ scripts: [{ type: 'application/ld+json', children: jsonLd(siteJsonLd(siteOrigin())) }] }),
+  component: Home,
+})
+
+// The Dealer pulls in the motion library, so it loads once the reader is within 900px of it.
+// The #dealer anchor exists from first paint, so links to it never dangle.
+const WorldDealer = lazy(() => import('#/components/world-dealer').then((m) => ({ default: m.WorldDealer })))
+function DeferredDealer() {
+  const ref = useRef<HTMLElement>(null)
+  const [near, setNear] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || !('IntersectionObserver' in window)) return setNear(true)
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return
+        setNear(true)
+        io.disconnect()
+      },
+      { rootMargin: '900px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  if (near) return <Suspense fallback={null}><WorldDealer /></Suspense>
+  return <section id="dealer" ref={ref} className="min-h-[720px] scroll-mt-16 border-b border-line" aria-label="The World Dealer" />
+}
 
 function Home() {
   return (
@@ -26,7 +55,7 @@ function Home() {
         <Hero />
         <ContinueBand />
         <Stories />
-        <WorldDealer />
+        <DeferredDealer />
         <HowItWorks />
         <Trimz />
         <Channels />
@@ -229,6 +258,10 @@ function Stories() {
   const shelf = useRef<HTMLUListElement>(null)
   const [at, setAt] = useState(0)
   const total = STORIES.length + 1
+  // Badges come from the live counts, so they move when the players do
+  const topBy = (k: 'messages' | 'saves') => STORIES.reduce((a, b) => (countOf(live, b, k) > countOf(live, a, k) ? b : a))
+  const mostPlayed = topBy('messages').slug
+  const mostSaved = topBy('saves').slug
   const lite = useLite()
   const [hot, setHot] = useState<number | null>(null)
   const [shelfLive, setShelfLive] = useState(false)
@@ -288,7 +321,7 @@ function Stories() {
   }
 
   return (
-    <section id="stories" className="scroll-mt-16 border-b border-line">
+    <section id="stories" className="kx-cv scroll-mt-16 border-b border-line">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
         <SectionHead
           kicker="01 // IsekaiZero + KageSekai"
@@ -326,6 +359,12 @@ function Stories() {
                   >
                     {s.rating}
                   </span>
+                  {(s.slug === mostPlayed || s.slug === mostSaved) && (
+                    <span className="absolute top-3 right-3 flex flex-col items-end gap-1 font-gamer text-[10px]">
+                      {s.slug === mostPlayed && <span className="bg-neon px-2 py-1 text-void">★ Most played</span>}
+                      {s.slug === mostSaved && <span className="bg-ink px-2 py-1 text-void">★ Most saved</span>}
+                    </span>
+                  )}
                   {s.trimz && (
                     <span className="absolute bottom-3 left-3 bg-void/85 px-2 py-1 font-gamer text-xs text-ink">
                       ▶ ON TRIMZ
@@ -458,8 +497,39 @@ function Stories() {
 
 function Trimz() {
   const live = useIskStats()
+  const lite = useLite()
+  const still = useStill()
+  const [idx, setIdx] = useState(0)
+  const [hover, setHover] = useState(false)
+  const [inView, setInView] = useState(false)
+  const [calm, setCalm] = useState(false)
+  const screen = useRef<HTMLDivElement>(null)
+  const t = TRIMZ[idx]
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const sync = () => setCalm(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+
+  // The reel runs while the screen is on screen, or under the pointer, and never in lite or paused motion
+  useEffect(() => {
+    const el = screen.current
+    if (!el || !('IntersectionObserver' in window)) {
+      setInView(true)
+      return
+    }
+    const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { threshold: 0.35 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+
+  const reel = !lite && !still && !calm && (inView || hover)
+
   return (
-    <section id="trimz" className="scroll-mt-16 border-b border-line bg-panel/40">
+    <section id="trimz" className="kx-cv scroll-mt-16 border-b border-line bg-panel/40">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <SectionHead
@@ -471,51 +541,116 @@ function Trimz() {
             href={LINKS.trimz}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => sfx('enter')}
             className="inline-flex min-h-11 shrink-0 items-center self-start border border-neon px-4 font-gamer text-xs uppercase text-neon hover:bg-neon hover:text-void sm:self-auto"
           >
             Follow on Trimz →
           </a>
         </div>
-        <ul className="mt-12 grid gap-6 sm:grid-cols-2">
-          {TRIMZ.map((t) => (
-            <li key={t.slug}>
-              <a
-                href={trimzSeriesUrl(t.slug)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group grid h-full grid-cols-[2fr_3fr] border border-line bg-void hover:border-neon"
-              >
-                <div className="cover relative overflow-hidden border-r border-line">
-                  <img
-                    src={t.poster}
-                    alt={`Poster for ${t.title}`}
-                    loading="lazy"
-                    className="aspect-[2/3] h-full w-full object-cover"
-                  />
-                  <span
-                    aria-hidden
-                    className="absolute inset-0 grid place-items-center bg-void/30 opacity-0 transition-opacity group-hover:opacity-100"
+
+        <div className="mt-12 grid gap-4 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] lg:gap-6">
+          {/* The screen */}
+          <div
+            ref={screen}
+            onMouseEnter={() => setHover(true)}
+            onMouseLeave={() => setHover(false)}
+            className="group relative overflow-hidden border border-line bg-void"
+          >
+            <div className="relative aspect-[4/5] sm:aspect-[16/9]">
+              <img
+                key={`poster-${t.slug}`}
+                src={t.poster}
+                alt={`Poster for ${t.title}`}
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover object-top opacity-80"
+              />
+              {t.video && <CoverVideo key={t.video} src={t.video} play={reel} />}
+              <div className="absolute inset-0 bg-linear-to-t from-void via-void/55 to-void/5" aria-hidden />
+              <div className="absolute inset-x-0 top-0 flex items-center justify-between p-3 font-gamer text-[10px] uppercase">
+                <span className="flex items-center gap-2 bg-void/80 px-2 py-1 text-neon">
+                  <span className={reel ? 'text-danger-ink' : 'text-mute'}>●</span> {reel ? 'Reel running' : 'Still frame'}
+                </span>
+                <span className="bg-void/80 px-2 py-1 text-mute">
+                  Series {String(idx + 1).padStart(2, '0')} / {String(TRIMZ.length).padStart(2, '0')}
+                </span>
+              </div>
+
+              <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
+                <p className="font-gamer text-[10px] uppercase text-neon">Now showing</p>
+                <h3 className="mt-1 font-mono text-lg font-bold leading-snug text-ink sm:text-2xl">{t.title}</h3>
+                <p className="mt-2 hidden max-w-xl text-sm leading-relaxed text-ink/80 sm:block">{t.summary}</p>
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <a
+                    href={trimzSeriesUrl(t.slug)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => sfx('enter')}
+                    className="pixel inline-flex min-h-11 items-center gap-2 bg-neon px-4 font-gamer text-xs uppercase text-void hover:bg-ink"
                   >
-                    <span className="grid size-14 place-items-center bg-neon font-gamer text-xl text-void">▶</span>
+                    ▶ Watch on Trimz
+                  </a>
+                  <span className="inline-flex min-h-11 items-center border border-line bg-void/70 px-3 font-gamer text-[10px] uppercase text-mute">
+                    <LiveCount value={trimzCountOf(live, t, 'episodes')} /> ep ·{' '}
+                    <LiveCount value={trimzCountOf(live, t, 'views')} /> views
                   </span>
                 </div>
-                <div className="flex flex-col p-5">
-                  <span className="font-gamer text-xs text-neon">SERIES</span>
-                  <h3 className="mt-2 font-mono text-lg font-bold leading-snug text-ink group-hover:text-neon">
-                    {t.title}
-                  </h3>
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-mute">{t.summary}</p>
-                  <div className="mt-5 flex items-center justify-between border-t border-line pt-4 font-gamer text-xs">
-                    <span className="text-mute">
-                      <LiveCount value={trimzCountOf(live, t, 'episodes')} /> EP · <LiveCount value={trimzCountOf(live, t, 'views')} /> VIEWS
-                    </span>
-                    <span className="text-neon">WATCH →</span>
-                  </div>
-                </div>
-              </a>
-            </li>
-          ))}
-        </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* The slate: pick what's on the screen */}
+          <div className="flex flex-col gap-3">
+            <p className="font-gamer text-[10px] uppercase text-mute">The slate · {TRIMZ.length} series</p>
+            <ul className="grid gap-3">
+              {TRIMZ.map((x, i) => {
+                const on = i === idx
+                return (
+                  <li key={x.slug}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!on) sfx('tab')
+                        setIdx(i)
+                      }}
+                      aria-pressed={on}
+                      className={`group flex w-full items-stretch gap-3 border text-left transition-colors ${
+                        on ? 'border-neon bg-void' : 'border-line bg-void/60 hover:border-neon/60'
+                      }`}
+                    >
+                      <span className="cover relative w-20 shrink-0 overflow-hidden border-r border-line">
+                        <img src={x.poster} alt="" loading="lazy" decoding="async" className="aspect-[2/3] h-full w-full object-cover" />
+                      </span>
+                      <span className="flex min-w-0 flex-1 flex-col justify-center py-2 pr-3">
+                        <span className={`font-gamer text-[10px] uppercase ${on ? 'text-neon' : 'text-mute'}`}>
+                          {on ? '▸ On screen' : `Series ${String(i + 1).padStart(2, '0')}`}
+                        </span>
+                        <span className={`mt-0.5 line-clamp-2 font-mono text-sm font-bold leading-snug ${on ? 'text-ink' : 'text-ink/85'}`}>
+                          {x.title}
+                        </span>
+                        <span className="mt-1 font-gamer text-[10px] text-mute">
+                          <LiveCount value={trimzCountOf(live, x, 'episodes')} /> EP · <LiveCount value={trimzCountOf(live, x, 'views')} /> VIEWS
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+            <a
+              href={LINKS.youtube}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => sfx('enter')}
+              className="group mt-auto flex items-center justify-between gap-3 border border-line px-3 py-3 font-gamer text-[10px] uppercase text-mute hover:border-neon hover:text-neon"
+            >
+              <span>Full episodes and trailers on YouTube</span>
+              <span aria-hidden className="text-neon">
+                →
+              </span>
+            </a>
+          </div>
+        </div>
       </div>
     </section>
   )
@@ -558,7 +693,7 @@ const CHANNELS = [
 
 function Channels() {
   return (
-    <section id="watch" className="scroll-mt-16 border-b border-line">
+    <section id="watch" className="kx-cv scroll-mt-16 border-b border-line">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
         <SectionHead kicker="03 // Channels" title="Four ways in" body="Same universe, different screens." />
         <ul className="mt-12 grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2">

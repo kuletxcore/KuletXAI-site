@@ -7,10 +7,7 @@ import { readSave, resumeSearch, saveLabel } from '#/lib/save-state'
 import type { SaveState } from '#/lib/save-state'
 import { play as sfx } from '#/lib/sfx'
 
-/**
- * The Finder's panel. Kept in its own chunk (see world-finder.tsx): nothing here —
- * search, thumbs, live counts — is downloaded until the first summon.
- */
+// The Finder panel, in its own chunk: nothing here downloads until the first summon.
 
 type Kind = 'world' | 'watch' | 'go'
 type Filter = 'all' | 'worlds' | 'watch' | 'go' | 'safe' | 'adult'

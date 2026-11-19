@@ -5,6 +5,7 @@ import { siteOrigin } from '#/lib/origin'
 import { PERF_HEAD_SCRIPT } from '#/lib/perf'
 import { DARK_HEAD_SCRIPT } from '#/lib/dark'
 import { STILL_HEAD_SCRIPT } from '#/lib/still'
+import { ControlsSheet } from '#/components/controls-sheet'
 
 const DESCRIPTION =
   'KuletX AI: interactive AI stories on IsekaiZero and KageSekai, series on Trimz and videos on YouTube.'
@@ -26,6 +27,8 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
+      { rel: 'alternate', type: 'text/plain', href: '/llms.txt', title: 'llms.txt' },
+      { rel: 'alternate', type: 'application/json', href: '/llms.json', title: 'Site index as JSON' },
       { rel: 'icon', href: '/favicon.ico', sizes: '48x48' },
       { rel: 'icon', href: '/icon-192.png', type: 'image/png', sizes: '192x192' },
       { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
@@ -82,6 +85,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <ControlsSheet />
         <Scripts />
       </body>
     </html>

@@ -1,14 +1,7 @@
 import { LINKS, STORIES, storyUrl } from '#/data/content'
 import { play as sfx } from '#/lib/sfx'
 
-/**
- * THE LOOP — what actually happens after "play", in three beats.
- *
- * The hero proves the product; this explains it. It replaces the old deep teaser: a second scripted demo further
- * down the page competed with the one in the hero and asked for two more minutes before the visitor had been told
- * what they were getting into. Here the same space answers the three questions a cold visitor actually has —
- * what do I do, what does it do back, and does it remember me — then hands them the door.
- */
+// THE LOOP: what happens after "play", in three beats, then the door. It replaces the second scripted demo.
 
 const STEPS = [
   {

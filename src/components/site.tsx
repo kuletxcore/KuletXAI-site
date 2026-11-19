@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { LINKS } from '#/data/content'
+import { openControls } from '#/components/controls-sheet'
 import { openFinder } from '#/components/world-finder'
 
 export function Logo({ className = 'h-8' }: { className?: string }) {
@@ -79,7 +80,17 @@ export function Footer() {
           </a>
         </nav>
       </div>
-      <p className="mt-8 text-xs text-mute/70">
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+        <p className="font-gamer text-[10px] uppercase text-mute/70">Touch, mouse, keyboard and controller</p>
+        <button
+          type="button"
+          onClick={openControls}
+          className="inline-flex min-h-11 items-center gap-2 border border-line px-3 font-gamer text-[10px] uppercase text-mute hover:border-neon hover:text-neon"
+        >
+          <kbd className="border border-line px-1 text-[10px] text-ink">?</kbd> Controls
+        </button>
+      </div>
+      <p className="mt-6 text-xs text-mute/70">
         Fonts: pixel faces by 00ff (hicchicc) and Obel Mono by Typographic Systems, under the{' '}
         <a href="/fonts/OFL-00ff.txt" className="underline hover:text-neon">
           SIL Open Font License

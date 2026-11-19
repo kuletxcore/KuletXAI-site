@@ -52,12 +52,12 @@ Rules:
 | Obel Mono (`font-mono`) | Body copy | Monospace body reads as the storyteller's log, which is the site's motif. |
 | SST, Plus Jakarta Sans | Story hub | The console surface uses a console face. |
 
-The three pixel and mono faces are under the SIL Open Font License (credited in the footer). **SST is Sony's typeface and is not openly licensed.** It stays by decision: the site is non-commercial and Plus Jakarta Sans is already the declared fallback in `@font-face`, so removing SST would leave the hub readable. Revisit if the site is ever monetised; swapping in an open lookalike then only means changing the `src` list in `src/styles.css`.
+The three pixel and mono faces are under the SIL Open Font License (credited in the footer). **SST is Sony's typeface and is not openly licensed.** It stays by the owner's decision: Plus Jakarta Sans is the declared fallback in `@font-face`, so the hub still reads correctly without it, and swapping in an open lookalike only means changing the `src` list in `src/styles.css`.
 
 ## The console, all the way down
 
 The hub's job is to feel like a console, and a console never shows you the browser. Where the illusion breaks, it breaks
-all at once — a white overscroll bounce, the OS scrollbar, a neon text selection over black glass. So:
+all at once: a white overscroll bounce, the OS scrollbar, a neon text selection over black glass. So:
 
 - **The hub owns the browser chrome.** `[data-hub]` (set before first paint by `HUB_HEAD_SCRIPT`) gives the page
   `color-scheme: dark`, a themed thin scrollbar, `overscroll-behavior-y: none` and a neutral selection. It applies to
@@ -68,7 +68,7 @@ all at once — a white overscroll bounce, the OS scrollbar, a neon text selecti
 - **Type is set for a TV.** The story title runs to 84px with `-0.035em` tracking; the selected tile's name runs to 21px
   on desktop. At 1080p the title is the largest thing on screen, which is what makes the screen read as a console.
 - **The information card arrives as one object.** The console lifts the whole card on a selection change, so the title
-  and pill row hold still while `.ps5-details` moves — otherwise it reads as a website loading in pieces.
+  and pill row hold still while `.ps5-details` moves. Otherwise it reads as a website loading in pieces.
 - **Every surface has a definition.** `.ps5-panel` is the main reading surface and had no base style at all (it existed
   only inside the short-landscape query). It now has its own radius, padding and the hairline top highlight that makes
   glass read as a raised card.
@@ -83,7 +83,7 @@ frame-budget check on low-end phones before it earns its keep.
 
 ## The fold
 
-The first screen has one job: prove the product. So the hero is not a poster and a promise, it is a working console —
+The first screen has one job: prove the product. So the hero is not a poster and a promise, it is a working console:
 a real scene from a real world that types itself in, offers one choice and ends on that world's play button. The rule
 that follows from it:
 
@@ -97,7 +97,6 @@ that follows from it:
   typewriter, and the console never types while the tab is hidden or scrolled away.
 
 ## Layout
-
 
 - One centered column, `max-w-6xl`, 16px side padding on phones and 24px from `sm`.
 - Section padding is 64px on phones and 80px from `md`. The hero gets more room on desktop.

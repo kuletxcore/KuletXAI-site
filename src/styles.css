@@ -1610,3 +1610,13 @@ html.kx-lite .kx-rec,
 html.kx-still .kx-rec {
   animation: none;
 }
+/* Lite mode keeps the console flat: no thrown glow */
+html.kx-lite .kx-console {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+/* Below-the-fold home sections skip layout and paint until they near the screen */
+.kx-cv {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 760px;
+}
