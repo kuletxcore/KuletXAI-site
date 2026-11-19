@@ -14,6 +14,7 @@ import { glideIntoView, glideTo, stopAllGlides } from '#/lib/smooth-scroll'
 import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
 import { KeyLabel } from '#/components/pad-glyph'
 import { PlatformChip, PlatformIcon, type Platform } from '#/components/platform'
+import { ShareCard } from '#/components/share-card'
 import { siteOrigin } from '#/lib/origin'
 import { writeSave } from '#/lib/save-state'
 import { recordOpen } from '#/lib/taste'
@@ -190,6 +191,7 @@ function StoryHub() {
     ...(series.length ? (['watch'] as const) : []),
   ]
   const [modal, setModal] = useState<Modal | null>(null)
+  const [share, setShare] = useState(false)
   useEffect(() => {
     if (!sections.includes(section)) setSection('overview')
   }, [sections.join(), section])
@@ -396,6 +398,11 @@ function StoryHub() {
   const pad = useGamepad((b: PadButton) => {
     const fire = (key: string) => window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
     if (window.__kxBootActive) return fire('Enter') // any button skips the start screen
+    if (share) {
+      // The poster maker owns the pad while it is open
+      if (b === 'b' || b === 'start') setShare(false)
+      return
+    }
     if (modal) {
       const watch = modal.kind === 'cast' ? castTrimz(modal.cast.id) : undefined
       if (b === 'b') fire('Escape')
@@ -492,15 +499,15 @@ function StoryHub() {
   }, [pad.connected, pad.kind, pad.model])
 
   // Controller-style keyboard shortcuts
-  const keyState = useRef({ step, sections, section, tab, modal, cycleTab, pickSection, stepSection, primary })
-  keyState.current = { step, sections, section, tab, modal, cycleTab, pickSection, stepSection, primary }
+  const keyState = useRef({ step, sections, section, tab, modal, cycleTab, pickSection, stepSection, primary, share })
+  keyState.current = { step, sections, section, tab, modal, cycleTab, pickSection, stepSection, primary, share }
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
       const el = e.target as HTMLElement | null
       if (el && ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)) return
       const k = keyState.current
-      if (k.modal) return
+      if (k.modal || k.share) return
       if (e.key === 'ArrowRight') {
         e.preventDefault()
         k.step(1)
@@ -654,12 +661,26 @@ function StoryHub() {
                 <PlatformIcon platform="trimz" className="!h-[22px]" />
               </a>
             )}
+            <button
+              type="button"
+              onClick={() => {
+                sfx('enter')
+                setShare(true)
+              }}
+              className="ps5-round"
+              aria-label="Make a share card"
+              title="Make a share card"
+            >
+              <CardIcon />
+            </button>
             <ShareButton />
             <Link to="/" className="ps5-round" aria-label="KuletX AI home" title="Home" onClick={() => sfx('back')}>
               <HomeIcon />
             </Link>
           </div>
         </section>
+
+        {share && <ShareCard story={story} onClose={() => setShare(false)} />}
 
         {modal && (
           <ModalView
@@ -2249,6 +2270,13 @@ const iconProps = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', s
 const PlayIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
     <path d="M6 4l15 8-15 8z" />
+  </svg>
+)
+const CardIcon = () => (
+  <svg {...iconProps}>
+    <rect x="3" y="4" width="18" height="16" rx="2" />
+    <path d="M3 15l5-5 4 4 3-3 6 6" />
+    <circle cx="9" cy="8.5" r="1.2" fill="currentColor" />
   </svg>
 )
 const ShareIcon = () => (
