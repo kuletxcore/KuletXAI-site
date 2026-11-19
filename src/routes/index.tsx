@@ -7,6 +7,7 @@ import { FirstTurn } from '#/components/first-turn'
 import { FinderTrigger, WorldFinder } from '#/components/world-finder'
 import { SessionDock } from '#/components/session-dock'
 import { Challenge } from '#/components/challenge'
+import { QuickPeek, openPeek } from '#/components/quick-peek'
 import { StoryDemo } from '#/components/story-demo'
 import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, storyPlatformName, trimzSeriesUrl } from '#/data/content'
@@ -35,6 +36,7 @@ function Home() {
       </main>
       <Footer />
       <SessionDock />
+      <QuickPeek />
     </div>
   )
 }
@@ -276,7 +278,7 @@ function Stories() {
           className="relative mt-12 -mx-4 flex snap-x snap-mandatory scroll-pl-4 gap-4 overflow-x-auto overscroll-x-contain px-4 py-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:scroll-pl-0 sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:px-0 sm:py-0 lg:grid-cols-3 [&::-webkit-scrollbar]:hidden"
         >
           {visible.map((s, i) => (
-            <li key={s.id} className={SLOT}>
+            <li key={s.id} className={`${SLOT} relative`}>
               <Link
                 to="/stories/$slug"
                 params={{ slug: s.slug }}
@@ -302,7 +304,7 @@ function Stories() {
                   >
                     {s.rating}
                   </span>
-                  <span className="absolute top-3 right-3 flex flex-col items-end gap-1">
+                  <span className="absolute right-3 bottom-3 flex flex-col items-end gap-1">
                     {s.slug===mostPlayed.slug && <span className="bg-neon px-2 py-1 font-gamer text-[10px] text-void">★ MOST PLAYED</span>}
                     {s.slug===mostSaved.slug && <span className="bg-ink px-2 py-1 font-gamer text-[10px] text-void">★ MOST SAVED</span>}
                   </span>
@@ -331,6 +333,10 @@ function Stories() {
                   </div>
                 </div>
               </Link>
+              <button type="button" onClick={() => openPeek(s.slug)} aria-label={`Quick look at ${s.title}`}
+                className="absolute top-3 right-3 z-10 inline-flex min-h-11 items-center border border-line bg-void/85 px-3 font-gamer text-[10px] uppercase text-ink hover:border-neon hover:text-neon">
+                ◉ Peek
+              </button>
             </li>
           ))}
           {showCreator && (
