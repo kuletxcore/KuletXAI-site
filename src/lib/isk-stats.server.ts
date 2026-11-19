@@ -13,12 +13,14 @@ const API = { isk: 'https://api-global.isekaizero.ai/api/storylines/', kage: 'ht
 // One public listing covers every series on trimz.tv/u/kuletxcore
 const TRIMZ_API = 'https://api.trimz.tv/api/ms/public-series?limit=50&order=updated_desc&owner_username=kuletxcore&locale=en'
 const UA = 'kuletx-hub/1.0 (+https://kuletxai.whop.site)'
-// Cache API keys are URLs but never fetched: scope them to whichever host served the request
-// (custom domain, whop.site preview, localhost) so deploys don't share one stash.
-const ORIGIN =
-  ((globalThis as { location?: { origin?: string } }).location?.origin || 'https://kuletxai.whop.site').replace(/\/$/, '')
-const FRESH_KEY = `${ORIGIN}/__cache/isk-stats/v4`
-const LAST_KEY = `${ORIGIN}/__cache/isk-stats/v4-last`
+// Cache API keys are URLs that are never fetched; each Cloudflare zone keeps its own copy
+const FRESH_KEY = 'https://kuletxai.whop.site/__cache/isk-stats/v4'
+const LAST_KEY = 'https://kuletxai.whop.site/__cache/isk-stats/v4-last'
+// Upstream answers are also cached by Cloudflare for ten minutes, for hosts where the Cache API is missing or a no-op (Whop)
+const UPSTREAM = { cacheTtl: 600, cacheEverything: true }
+
+/** What the edge cache did on the last write: reported in /api/isk-stats as x-kx-cache. */
+export let edgeState: 'none' | 'ok' | 'put-failed' | 'untried' = 'untried'
 
 let memory: IskStats | null = null
 let inflight: Promise<IskStats | null> | null = null
@@ -31,7 +33,8 @@ async function readStory({ id, rating }: Pick<Story, 'id' | 'rating'>): Promise<
   const res = await fetch(API[storyPlatform({ rating })] + id, {
     headers: { accept: 'application/json', 'user-agent': UA },
     signal: AbortSignal.timeout(10_000),
-  })
+    cf: UPSTREAM,
+  } as RequestInit)
   if (!res.ok) throw new Error(`storyline ${id}: HTTP ${res.status}`)
   // The payload holds other objects with their own "engagement" (playlists,
   // characters), so read the storyline's own block from the parsed tree.
@@ -47,7 +50,7 @@ async function readStory({ id, rating }: Pick<Story, 'id' | 'rating'>): Promise<
 
 /** Views and episode counts for the content.ts series, by slug. */
 async function readTrimz(): Promise<Record<string, TrimzCounts>> {
-  const res = await fetch(TRIMZ_API, { headers: { accept: 'application/json', 'user-agent': UA }, signal: AbortSignal.timeout(10_000) })
+  const res = await fetch(TRIMZ_API, { headers: { accept: 'application/json', 'user-agent': UA }, signal: AbortSignal.timeout(10_000), cf: UPSTREAM } as RequestInit)
   if (!res.ok) throw new Error(`trimz: HTTP ${res.status}`)
   const body = (await res.json()) as { items?: { slug?: string; total_views?: unknown; episode_count?: unknown }[] }
   const out: Record<string, TrimzCounts> = {}
@@ -69,15 +72,22 @@ async function readCached(key: string): Promise<IskStats | null> {
 }
 
 async function writeCached(key: string, stats: IskStats, maxAge: number) {
+  const cache = edgeCache()
+  if (!cache) {
+    edgeState = 'none'
+    return
+  }
   try {
-    await edgeCache()?.put(
+    await cache.put(
       key,
       new Response(JSON.stringify(stats), {
         headers: { 'content-type': 'application/json', 'cache-control': `public, max-age=${maxAge}` },
       }),
     )
+    edgeState = 'ok'
   } catch {
-    // No edge cache here (local dev, preview hosts): memory still works.
+    // A Cache API that throws (local dev, some hosts): memory and the upstream cache still work
+    edgeState = 'put-failed'
   }
 }
 

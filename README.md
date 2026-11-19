@@ -43,14 +43,14 @@ npm install
 npm run dev
 ```
 
-The dev server is at http://localhost:3000. `npm run typecheck`, `npm test`, `npm run build` and `npm run preview` do what they say. CI (`.github/workflows/ci.yml`) runs typecheck, tests and build on every push and pull request.
+The dev server is at http://localhost:3000. `npm run typecheck`, `npm test`, `npm run build` and `npm run preview` do what they say. `npm run test:scripts` runs the Python tests for the refresh scripts (the card sanitiser's hostile-markup fixtures), and `npm run smoke` runs a browser check against a preview on port 4186: home and hub render in full and Lite mode on desktop and phone, the finder and controls sheet open, a pad moves focus, in-page links resolve. CI (`.github/workflows/ci.yml`) runs all of these on every push and pull request.
 
 `npm test` runs Vitest in plain Node (`vitest.config.ts`, not the Cloudflare/Whop Vite config) over four kinds of guard: the OST allowlist and byte-range rules (`src/lib/ost-rules.test.ts`), the live-count maths (`src/lib/isk-stats.test.ts`), gamepad name detection (`src/lib/gamepad.test.ts`), and a data-integrity check that every cover/tile/logo/poster path in `content.ts` exists on disk (`src/data/content.test.ts`). That last one is the one to run after a refresh script.
 
 ## Headers and routes worth knowing
 
 - SSR responses pick up `X-Content-Type-Options`, `Referrer-Policy` and `Permissions-Policy` in `src/server.ts`. Two things are deliberately left out: no CSP, because the app injects inline head scripts (lite mode, dark theme, pause motion) before paint; and no `X-Frame-Options`, because on Whop the whole app runs inside whop.com's iframe.
-- Static assets get their caching from `public/_headers`. Generated story cards under `/isk/*/cards/*` additionally get a `default-src 'none'`-style CSP with `frame-ancestors 'self'`, so remote HTML that slips past the builder's sanitiser still can't run scripts.
+- Static assets get their caching from `public/_headers`. Generated story cards (`/isk/:story/cards/*`: Cloudflare allows one `*` per rule, so the story segment is a named placeholder) additionally get a `default-src 'none'`-style CSP with `frame-ancestors 'self'`, so remote HTML that slips past the builder's sanitiser still can't run scripts.
 - `/sitemap.xml` is built at request time from `content.ts` and `trophies.ts` (`src/routes/sitemap[.]xml.ts`); `public/robots.txt` points at it.
 
 ## Where things are
@@ -76,13 +76,13 @@ python3 scripts/build_ost.py wristbound
 
 `build_isk.py` downloads covers, gallery images, cast portraits and intro cards from the public APIs into `public/isk` and rewrites `src/data/isk.ts`. `build_ost.py` rewrites `src/data/ost.ts`. Soundtrack audio is not hosted here: it streams from the platforms through `/api/ost` (allowlisted to the platforms' music CDNs in `src/lib/ost-rules.ts`). Leave the story name off to refresh every story. Pass `--force` to `build_isk.py` to re-download assets that already exist.
 
-Live counts are refreshed hourly by the Worker cron (`17 * * * *` in `wrangler.jsonc`, handled in `src/server.ts` via `src/lib/isk-stats.server.ts`); `/api/isk-stats` serves the cached copy and falls back to the last good one.
+Live counts are refreshed hourly by the Worker cron (`17 * * * *` in `wrangler.jsonc`, handled in `src/server.ts` via `src/lib/isk-stats.server.ts`); `/api/isk-stats` serves the cached copy and falls back to the last good one. Its `x-kx-stats` header says where the numbers came from (`memory`, `edge`, `isekaizero` or `stale`) and `x-kx-cache` says whether the edge cache works on that host; where it doesn't (Whop), Cloudflare still caches the upstream API answers for ten minutes.
 
 ## Branches and deploys
 
 - `main` is production. Cloudflare builds it with `npm run build` and `npx wrangler deploy`.
 - `test` is the preview, at [test-kuletxai.kuletxcore.workers.dev](https://test-kuletxai.kuletxcore.workers.dev). New work lands here first.
-- Whop is deployed by hand with `npm run deploy`, which runs `whop apps deploy` and needs the Whop CLI signed in. The build zip has to stay under 50 MB. The command also rewrites the Worker `name` in `wrangler.jsonc`, so put it back before committing.
+- Whop is deployed by hand with `npm run deploy` (`scripts/deploy-whop.sh`), which needs the Whop CLI signed in. The build zip has to stay under 50 MB. `whop apps deploy` rewrites the Worker `name` in `wrangler.jsonc`; the script refuses to start with that file dirty and restores it afterwards.
 
 ## License
 

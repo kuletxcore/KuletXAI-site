@@ -13,7 +13,17 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      - run: pip install pillow && npm run test:scripts
       - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Smoke test the build in a browser
+        run: |
+          npx vite preview --port 4186 --strictPort &
+          for i in $(seq 60); do curl -s localhost:4186 >/dev/null && break; sleep 1; done
+          npm run smoke

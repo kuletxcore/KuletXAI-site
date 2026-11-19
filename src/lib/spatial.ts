@@ -18,8 +18,6 @@ function candidates(scope: ParentNode) {
   })
 }
 
-const center = (r: DOMRect) => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 })
-
 /** Focus the best control in that direction; with nothing focused, the first one on screen. */
 export function moveFocus(dir: Dir, calm: boolean) {
   const scope = focusScope()
@@ -32,25 +30,32 @@ export function moveFocus(dir: Dir, calm: boolean) {
     })
     return focusEl(onScreen ?? all[0], calm)
   }
-  const from = current.getBoundingClientRect()
-  const c = center(from)
-  let best: HTMLElement | undefined
+  const others = all.filter((el) => el !== current && !el.contains(current) && !current.contains(el))
+  const i = pickNext(current.getBoundingClientRect(), others.map((el) => el.getBoundingClientRect()), dir)
+  const best = i < 0 ? undefined : others[i]
+  if (best) focusEl(best, calm)
+}
+
+type Box = Pick<DOMRect, 'top' | 'bottom' | 'left' | 'right' | 'width' | 'height'>
+
+/** Index of the box to move to from `from` in direction `dir`, or -1. Pure, so it can be tested without a browser. */
+export function pickNext(from: Box, boxes: Box[], dir: Dir) {
+  const cx = from.left + from.width / 2
+  const cy = from.top + from.height / 2
+  let best = -1
   let bestScore = Infinity
-  for (const el of all) {
-    if (el === current || el.contains(current) || current.contains(el)) continue
-    const r = el.getBoundingClientRect()
-    const p = center(r)
+  boxes.forEach((r, i) => {
     // Edge-to-edge distance along the direction, so a wide neighbour isn't skipped for a far one that lines up
     const main = dir === 'down' ? r.top - from.bottom : dir === 'up' ? from.top - r.bottom : dir === 'right' ? r.left - from.right : from.left - r.right
-    if (main < -4) continue
-    const cross = dir === 'up' || dir === 'down' ? Math.abs(p.x - c.x) : Math.abs(p.y - c.y)
+    if (main < -4) return
+    const cross = dir === 'up' || dir === 'down' ? Math.abs(r.left + r.width / 2 - cx) : Math.abs(r.top + r.height / 2 - cy)
     const score = Math.max(0, main) + cross * 2
     if (score < bestScore) {
       bestScore = score
-      best = el
+      best = i
     }
-  }
-  if (best) focusEl(best, calm)
+  })
+  return best
 }
 
 export function focusEl(el: HTMLElement | undefined, calm: boolean) {

@@ -59,8 +59,9 @@ const ZONES = [12, 13, 14, 15]
 // has lasted this long without a click; a press that lifts before it was counted (and had no click) counts as it lifts.
 const ZONE_SETTLE = 110
 
-function halvesOf(pads: Gamepad[]): Map<Half, Gamepad> {
-  const out = new Map<Half, Gamepad>()
+/** Which connected pad is which GT NX half; an unsuffixed name next to a right half is taken as the left. */
+export function halvesOf<P extends { id: string }>(pads: P[]): Map<Half, P> {
+  const out = new Map<Half, P>()
   for (const p of pads) {
     if (GTNX_L.test(p.id)) out.set('L', p)
     else if (GTNX_R.test(p.id)) out.set('R', p)

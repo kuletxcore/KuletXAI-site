@@ -13,10 +13,12 @@
     "generate-routes": "vite build",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "whop apps deploy",
+    "deploy": "bash scripts/deploy-whop.sh",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:scripts": "python3 -m unittest discover -s scripts -p 'test_*.py'",
+    "smoke": "node scripts/smoke.mjs http://localhost:4186"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
@@ -37,6 +39,7 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.1",
     "@whop/cli": "0.34.1",
+    "playwright": "1.63.0",
     "typescript": "^6.0.2",
     "vite": "^8.0.0",
     "vitest": "^5.1.1",

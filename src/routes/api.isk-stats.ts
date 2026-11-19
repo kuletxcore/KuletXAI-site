@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { getIskStats } from '#/lib/isk-stats.server'
+import { edgeState, getIskStats } from '#/lib/isk-stats.server'
 
 /** Live IsekaiZero counts for the hub (see src/lib/isk-stats.server.ts). */
 export const Route = createFileRoute('/api/isk-stats')({
@@ -18,6 +18,7 @@ export const Route = createFileRoute('/api/isk-stats')({
             'content-type': 'application/json; charset=utf-8',
             'cache-control': 'public, max-age=300',
             'x-kx-stats': got.source,
+            'x-kx-cache': edgeState,
           },
         })
       },

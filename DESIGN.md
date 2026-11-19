@@ -5,7 +5,7 @@ The home of KuletX's interactive AI stories. Visitors come to pick a world and p
 Dial: ENERGY 3 / RHYTHM 2 / MOTION 2
 
 - **ENERGY 3.** The front page opens on moving story art, a pixel headline and live numbers. It should say hello loudly.
-- **RHYTHM 2.** Sections share one frame (kicker, pixel title, short body) but change what sits inside it: a poster shelf, a card table, a playable demo, a two-up series list, a four-door grid.
+- **RHYTHM 2.** Sections share one frame (kicker, pixel title, short body) but change what sits inside it: a hero console you play, a poster shelf, a card table, a three-beat loop, a cinema screen with its slate, a four-door grid.
 - **MOTION 2.** Motion shows that the worlds are alive (drifting posters, cover videos, a typing storyteller). It never runs without an off switch.
 
 Arena rounds and what each one added or left out: [`docs/arena-findings.md`](docs/arena-findings.md) (round 1) and [`docs/arena-round-2.md`](docs/arena-round-2.md) (round 2).
@@ -120,6 +120,11 @@ that follows from it:
 - **Rating badge.** Square, uppercase StrongGamer, colour from the traffic light. No pills, no glow, no dot.
 - **Buttons.** Square corners. Primary is neon on void, secondary is a `line` border with `ink` text. An arrow (`→`) only when the action leaves the page or opens a world, never as decoration.
 - **CONTINUE band.** Amber, for returning players only, one tap or `R` to resume.
+- **Hero console.** The cold open: one scene that types itself in, one choice, then that world's play button. The only scripted surface on the page.
+- **Finder.** `/` or Cmd/Ctrl-K, a square-cornered dialog over the page, one field, results as rows with rating badges. Loaded on first summon.
+- **Controls sheet.** `?` or Controls in the footer. Actions, not devices: each row shows the keys and the connected pad's buttons that do it, using the Xelu prompt art. Touch screens get a touch note instead of keyboard rows.
+- **Pad legend.** On the home page, a small bottom-right strip of prompts, shown only while a controller is connected.
+- **Share card.** A 1080x1350 poster drawn on the device from the story's cover, hook and live counts, opened from the hub's card button.
 - **Settings switches** (hub panel). Sound, Lite graphics, Dark surfaces. Each switch row is a 44px tap target with a one-line note under it.
 
 ## Accessibility floor

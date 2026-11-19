@@ -77,6 +77,18 @@ const KEYS: Record<string, Entry> = {
   '⌘': ['key-command', 'Command key'],
 }
 
+type PadState = { connected: boolean; kind: PadKind; model?: string }
+
+/** Which prompt image a label resolves to, or null for plain text. keyboard skips the pad set, so a keyboard R never draws a Switch R shoulder. */
+export function promptFor(k: string, pad: PadState, { lite, dark, keyboard = false }: { lite: boolean; dark: boolean; keyboard?: boolean }) {
+  const hit = (pad.connected && !keyboard ? PAD[pad.kind][k] : undefined) ?? KEYS[k]
+  if (!hit) return null
+  const [file, name] = hit
+  // A DualShock 4 always gets the coloured PS4 set, which exists at 100px only
+  const ps4 = file.startsWith('ps-') && (dark || pad.model === 'DUALSHOCK 4')
+  return { name, src: ps4 ? `/prompts/lo/ps4-${file.slice(3)}.webp` : `/prompts/${lite ? 'lo' : 'hq'}/${file}.webp` }
+}
+
 /** Label inside a button-prompt chip: the connected pad's prompt image, a keyboard key, or the text itself. */
 export function KeyLabel({ k, keyboard = false }: { k: string; keyboard?: boolean }) {
   const lite = useLite()
@@ -91,11 +103,8 @@ export function KeyLabel({ k, keyboard = false }: { k: string; keyboard?: boolea
       </span>
     )
   }
-  // keyboard skips the pad set, so a keyboard R never draws a Switch R shoulder
-  const hit = (pad.connected && !keyboard ? PAD[pad.kind][k] : undefined) ?? KEYS[k]
-  if (!hit) return <>{k}</>
-  const [file, name] = hit
-  const ps4 = file.startsWith('ps-') && (dark || pad.model === 'DUALSHOCK 4')
-  const src = ps4 ? `/prompts/lo/ps4-${file.slice(3)}.webp` : `/prompts/${lite ? 'lo' : 'hq'}/${file}.webp`
+  const prompt = promptFor(k, pad, { lite, dark, keyboard })
+  if (!prompt) return <>{k}</>
+  const { src, name } = prompt
   return <img className="kx-prompt" src={src} alt={name} width={24} height={24} draggable={false} decoding="async" />
 }

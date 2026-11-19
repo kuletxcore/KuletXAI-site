@@ -1,4 +1,5 @@
 import { STORIES } from '#/data/content'
+import { publicOriginOf } from '#/lib/origin'
 import { llmsFullTxt, llmsJson, llmsTxt, storyMarkdown } from '#/lib/machine'
 
 // Serves /llms.txt, /llms-full.txt, /llms.json and /stories/<slug>.md from the Worker entry, before the router.
@@ -6,9 +7,7 @@ export function machineResponse(request: Request): Response | null {
   if (request.method !== 'GET' && request.method !== 'HEAD') return null
   const url = new URL(request.url)
   const path = url.pathname
-  const host = url.host
-  const local = /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i.test(host)
-  const origin = local ? url.origin : url.origin.replace(/^http:/, 'https:')
+  const origin = publicOriginOf(url)
 
   const text = (body: string, type: string) =>
     new Response(body, {

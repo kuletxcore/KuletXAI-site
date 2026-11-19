@@ -161,11 +161,26 @@ def story_text(slug, text, char_name=''):
     return fill_user(text, char_name, PLAYER_NOUN.get(slug, ''))
 
 
+# Remote HTML only ever shows in a script-free sandbox under a script-free CSP; this pass is the first of those layers.
+DANGEROUS_TAGS = 'script|iframe|frame|frameset|object|embed|applet|form|link|meta|base|noscript|template|portal'
+BAD_SCHEME = r'(?:javascript|vbscript|data(?!:image/(?:png|gif|jpe?g|webp|avif);))\s*:'
+
+
 def sanitize(markup):
-    markup = re.sub(r'<\s*(script|iframe|object|embed|form|link|meta)[^>]*>.*?<\s*/\s*\1\s*>', '', markup, flags=re.S | re.I)
-    markup = re.sub(r'<\s*(script|iframe|object|embed|form|link|meta|base)[^>]*/?>', '', markup, flags=re.I)
-    markup = re.sub(r'\son\w+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)', '', markup, flags=re.I)
-    markup = re.sub(r'(href|src)\s*=\s*(["\'])\s*javascript:[^"\']*\2', r'\1="#"', markup, flags=re.I)
+    markup = re.sub(r'<!--.*?-->', '', markup, flags=re.S)
+    markup = re.sub(rf'<\s*({DANGEROUS_TAGS})\b[^>]*>.*?<\s*/\s*\1\s*>', '', markup, flags=re.S | re.I)
+    markup = re.sub(rf'<\s*/?\s*({DANGEROUS_TAGS})\b[^>]*/?>', '', markup, flags=re.I)
+    # Event handlers, srcdoc and formaction, quoted or not
+    markup = re.sub(r'\s(?:on\w+|srcdoc|formaction)\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)', '', markup, flags=re.I)
+    # Script-capable URL schemes in any URL attribute, quoted or not; tabs and newlines inside the scheme are browser-ignored
+    def scheme(m):
+        value = re.sub(r'[\s\x00-\x1f]', '', htmllib.unescape(m.group(2).strip('"\'')))
+        return f'{m.group(1)}"#"' if re.match(BAD_SCHEME, value, re.I) else m.group(0)
+    markup = re.sub(r'(\b(?:href|src|xlink:href|action|poster|background|cite)\s*=\s*)("[^"]*"|\'[^\']*\'|[^\s>]+)', scheme, markup, flags=re.I)
+    # CSS that can run script, only inside style attributes and <style> blocks so prose is never touched
+    css_bad = re.compile(r'expression\s*\(|behavior\s*:|-moz-binding\s*:|url\s*\(\s*["\']?\s*(?:javascript|vbscript):', re.I)
+    markup = re.sub(r'(\sstyle\s*=\s*)("[^"]*"|\'[^\']*\')', lambda m: m.group(1) + css_bad.sub('blocked(', m.group(2)), markup, flags=re.I)
+    markup = re.sub(r'(<style\b[^>]*>)(.*?)(</style>)', lambda m: m.group(1) + css_bad.sub('blocked(', m.group(2)) + m.group(3), markup, flags=re.S | re.I)
     return markup
 
 
