@@ -11,6 +11,7 @@ import type { Story } from '#/data/content'
 import { QuickLook } from '#/components/quick-look'
 import { ForYou } from '#/components/for-you'
 import { StoryRadio } from '#/components/story-radio'
+import { ThumbDock } from '#/components/thumb-dock'
 import { recordOpen } from '#/lib/taste'
 import { LiveCount, LiveDot } from '#/components/live-count'
 import { countOf, totalOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
@@ -22,7 +23,7 @@ export const Route = createFileRoute('/')({ component: Home })
 
 function Home() {
   return (
-    <div className="crt min-h-screen">
+    <div className="crt min-h-screen pb-14 sm:pb-0">
       <Header />
       <main>
         <OnAir />
@@ -36,6 +37,7 @@ function Home() {
         <Channels />
       </main>
       <Footer />
+      <ThumbDock />
     </div>
   )
 }
