@@ -2,17 +2,20 @@ import { useEffect, useRef, useState } from 'react'
 import { STORIES, storyPlatformName } from '#/data/content'
 import type { Story, TrimzSeries } from '#/data/content'
 import { countOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
-import { renderSeriesCard, renderStoryCard } from '#/lib/share-card'
+import { renderSeriesCard, renderStoryCard, renderVideoCard } from '#/lib/share-card'
+import type { YtVideo } from '#/data/youtube'
 import { play as sfx } from '#/lib/sfx'
 
 // POSTER MAKER: turns the world you're looking at into a 1080x1350 card you can post.
 // Drawn on the visitor's device, shared with the native sheet where the browser has one.
 
-/** A story card, or with `series` (the hub's Trimz tab) a card for that series. */
-export function ShareCard({ story, series, onClose }: { story: Story; series?: TrimzSeries; onClose: () => void }) {
+/** A story card, or a card for the series (Trimz tab) or video (YouTube tab) on screen. */
+export function ShareCard({ story, series, video, onClose }: { story: Story; series?: TrimzSeries; video?: YtVideo; onClose: () => void }) {
   const live = useIskStats()
   // A series takes its accent and rating from the world it was cut from, not whichever world the hub last showed
   const parent = (series && STORIES.find((s) => s.trimz?.includes(series.slug))) || story
+  // A video belongs to a world only when its title says so; otherwise it carries no world's name or rating
+  const videoStory = video && STORIES.find((s) => video.title.toLowerCase().startsWith(s.title.split(':')[0].toLowerCase()))
   const [src, setSrc] = useState<string | null>(null)
   const [busy, setBusy] = useState(true)
   const [note, setNote] = useState<string | null>(null)
@@ -21,7 +24,9 @@ export function ShareCard({ story, series, onClose }: { story: Story; series?: T
   useEffect(() => {
     let alive = true
     setBusy(true)
-    const render = series
+    const render = video
+      ? renderVideoCard(video, videoStory, video.views)
+      : series
       ? renderSeriesCard(series, parent, { episodes: trimzCountOf(live, series, 'episodes'), views: trimzCountOf(live, series, 'views') })
       : renderStoryCard(story, {
           messages: countOf(live, story, 'messages'),
@@ -43,7 +48,7 @@ export function ShareCard({ story, series, onClose }: { story: Story; series?: T
       alive = false
     }
     // One card per world: the live numbers are snapshotted when it opens
-  }, [story.slug, series?.slug])
+  }, [story.slug, series?.slug, video?.id])
 
   useEffect(() => {
     const before = document.documentElement.style.overflow
@@ -62,9 +67,13 @@ export function ShareCard({ story, series, onClose }: { story: Story; series?: T
     }
   }, [onClose])
 
-  const name = series ? series.title : story.title
-  const file = `kuletx-${series ? series.slug : story.slug}-card.png`
-  const blurb = series ? `${series.title} · ${series.summary} · watch it on Trimz` : `${story.title} · ${story.hook} · play it on ${storyPlatformName(story)}`
+  const name = video ? video.title : series ? series.title : story.title
+  const file = `kuletx-${video ? `yt-${video.id}` : series ? series.slug : story.slug}-card.png`
+  const blurb = video
+    ? `${video.title} · watch it on YouTube`
+    : series
+      ? `${series.title} · ${series.summary} · watch it on Trimz`
+      : `${story.title} · ${story.hook} · play it on ${storyPlatformName(story)}`
 
   const download = () => {
     if (!src) return
