@@ -72,10 +72,18 @@ describe('trophies', () => {
 })
 
 describe('storyOfVideo', () => {
-  it('links clips by id and episodes by title', async () => {
+  it('reads the world from the storyline or Trimz link in a description', async () => {
+    const { storyFromDescription } = await import('#/data/youtube')
+    expect(storyFromDescription('Play on IsekaiZero: https://www.isekaizero.ai/storylines/6aa78f6bd17fe984ab332064?utm_campaign=share')).toBe('acolytes')
+    expect(storyFromDescription('Play: https://www.kagesekai.ai/storylines/6af2da17a519bbd9cf367837')).toBe('wristbound')
+    expect(storyFromDescription('watch on trimz: https://trimz.tv/acolytes-maid-for-your-protection-side-b')).toBe('acolytes')
+    expect(storyFromDescription('Subscribe for more')).toBeUndefined()
+  })
+
+  it('uses the description link first, then the title', async () => {
     const { storyOfVideo } = await import('#/data/youtube')
-    expect(storyOfVideo({ id: 'fcl4WcNrTQc', title: 'Random Bullshit GO!!!!' })?.slug).toBe('acolytes')
-    expect(storyOfVideo({ id: 'x', title: 'Acolytes: Maid for your Protection - Episode 3' })?.slug).toBe('acolytes')
-    expect(storyOfVideo({ id: 'y', title: 'Channel update' })).toBeUndefined()
+    expect(storyOfVideo({ title: 'Random Bullshit GO!!!!', story: 'acolytes' })?.slug).toBe('acolytes')
+    expect(storyOfVideo({ title: 'Acolytes: Maid for your Protection - Episode 3' })?.slug).toBe('acolytes')
+    expect(storyOfVideo({ title: 'Channel update' })).toBeUndefined()
   })
 })

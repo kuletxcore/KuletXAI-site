@@ -10,28 +10,36 @@ export type YtVideo = {
   published: string
   views: number
   short: boolean
+  /** The world the video is from, read from the storyline or Trimz link in its description */
+  story?: string
 }
 
 // Snapshot of the channel (Nov 2026). Used if the live feed can't be reached.
 export const YT_SNAPSHOT: YtVideo[] = [
-  { id: 'KIdeRQhgA-k', title: 'Acolytes: Maid for your Protection - Episode 3', published: '2026-10-30', views: 4, short: false },
-  { id: 'fcl4WcNrTQc', title: 'Random Bullshit GO!!!!', published: '2026-10-29', views: 182, short: true },
-  { id: 'UvnvUym34Lg', title: 'Acolytes: Maid for your Protection - Episode 2', published: '2026-10-29', views: 11, short: false },
-  { id: 'cl8mBfpIjdo', title: 'Acolytes: Maid for your Protection - Episode 1', published: '2026-10-28', views: 20, short: false },
-  { id: 'BPrv_HxKxU4', title: 'Acolytes: Maid for Your Protection', published: '2026-10-28', views: 1292, short: true },
-  { id: 'P6PO_5AIPaY', title: 'Acolytes: Maid for your Protection (Side B) - Episode 1', published: '2026-10-28', views: 56, short: false },
-  { id: '1-6a_xlnhYQ', title: 'Acolytes side B out now on Trimz', published: '2026-10-27', views: 415, short: true },
+  { id: 'KIdeRQhgA-k', title: 'Acolytes: Maid for your Protection - Episode 3', published: '2026-10-30', views: 4, short: false, story: 'acolytes' },
+  { id: 'fcl4WcNrTQc', title: 'Random Bullshit GO!!!!', published: '2026-10-29', views: 182, short: true, story: 'acolytes' },
+  { id: 'UvnvUym34Lg', title: 'Acolytes: Maid for your Protection - Episode 2', published: '2026-10-29', views: 11, short: false, story: 'acolytes' },
+  { id: 'cl8mBfpIjdo', title: 'Acolytes: Maid for your Protection - Episode 1', published: '2026-10-28', views: 20, short: false, story: 'acolytes' },
+  { id: 'BPrv_HxKxU4', title: 'Acolytes: Maid for Your Protection', published: '2026-10-28', views: 1292, short: true, story: 'acolytes' },
+  { id: 'P6PO_5AIPaY', title: 'Acolytes: Maid for your Protection (Side B) - Episode 1', published: '2026-10-28', views: 56, short: false, story: 'acolytes' },
+  { id: '1-6a_xlnhYQ', title: 'Acolytes side B out now on Trimz', published: '2026-10-27', views: 415, short: true, story: 'acolytes' },
 ]
 
-// Clips whose titles don't name their world, by video id
-const VIDEO_STORY: Record<string, string> = {
-  fcl4WcNrTQc: 'acolytes', // Random Bullshit GO!!!!, a clip from Acolytes
+/** Which world a description points at: a storyline link (IsekaiZero or KageSekai), else a Trimz series link. */
+export function storyFromDescription(text: string) {
+  const id = text.match(/(?:isekaizero|kagesekai)\.ai\/storylines\/([a-f0-9]{24})/i)?.[1]
+  const byId = id && STORIES.find((s) => s.id === id)
+  if (byId) return byId.slug
+  for (const m of text.matchAll(/trimz\.tv\/([a-z0-9-]+)/gi)) {
+    const parent = STORIES.find((s) => s.trimz?.includes(m[1]))
+    if (parent) return parent.slug
+  }
+  return undefined
 }
 
-/** The world a video belongs to: the override list, else a title that starts with the world's name. */
-export function storyOfVideo(video: Pick<YtVideo, 'id' | 'title'>) {
-  const slug = VIDEO_STORY[video.id]
-  if (slug) return STORIES.find((s) => s.slug === slug)
+/** The world a video belongs to: its description's link, else a title that starts with the world's name. */
+export function storyOfVideo(video: Pick<YtVideo, 'title' | 'story'>) {
+  if (video.story) return STORIES.find((s) => s.slug === video.story)
   return STORIES.find((s) => video.title.toLowerCase().startsWith(s.title.split(':')[0].toLowerCase()))
 }
 
@@ -60,6 +68,8 @@ function parseFeed(xml: string): YtVideo[] {
       published: (entry.match(/<published>([^<]+)<\/published>/)?.[1] ?? '').slice(0, 10),
       views: Number(entry.match(/views="(\d+)"/)?.[1] ?? 0),
       short: /<link rel="alternate" href="https:\/\/www\.youtube\.com\/shorts\//.test(entry),
+      // Only the world the description links to is kept, not the description itself
+      story: storyFromDescription(decode(entry.match(/<media:description>([\s\S]*?)<\/media:description>/)?.[1] ?? '')),
     })
   }
   return out
