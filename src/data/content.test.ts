@@ -70,3 +70,12 @@ describe('trophies', () => {
     }
   })
 })
+
+describe('storyOfVideo', () => {
+  it('links clips by id and episodes by title', async () => {
+    const { storyOfVideo } = await import('#/data/youtube')
+    expect(storyOfVideo({ id: 'fcl4WcNrTQc', title: 'Random Bullshit GO!!!!' })?.slug).toBe('acolytes')
+    expect(storyOfVideo({ id: 'x', title: 'Acolytes: Maid for your Protection - Episode 3' })?.slug).toBe('acolytes')
+    expect(storyOfVideo({ id: 'y', title: 'Channel update' })).toBeUndefined()
+  })
+})

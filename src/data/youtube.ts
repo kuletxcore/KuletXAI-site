@@ -1,3 +1,4 @@
+import { STORIES } from '#/data/content'
 import { createServerFn } from '@tanstack/react-start'
 
 export const YT_CHANNEL_ID = 'UCpNxX1ziFLkEFA3nW-lYxfw'
@@ -21,6 +22,18 @@ export const YT_SNAPSHOT: YtVideo[] = [
   { id: 'P6PO_5AIPaY', title: 'Acolytes: Maid for your Protection (Side B) - Episode 1', published: '2026-10-28', views: 56, short: false },
   { id: '1-6a_xlnhYQ', title: 'Acolytes side B out now on Trimz', published: '2026-10-27', views: 415, short: true },
 ]
+
+// Clips whose titles don't name their world, by video id
+const VIDEO_STORY: Record<string, string> = {
+  fcl4WcNrTQc: 'acolytes', // Random Bullshit GO!!!!, a clip from Acolytes
+}
+
+/** The world a video belongs to: the override list, else a title that starts with the world's name. */
+export function storyOfVideo(video: Pick<YtVideo, 'id' | 'title'>) {
+  const slug = VIDEO_STORY[video.id]
+  if (slug) return STORIES.find((s) => s.slug === slug)
+  return STORIES.find((s) => video.title.toLowerCase().startsWith(s.title.split(':')[0].toLowerCase()))
+}
 
 export const ytThumb = (id: string, size: 'maxresdefault' | 'hqdefault' | 'default' = 'hqdefault') => `https://i.ytimg.com/vi/${id}/${size}.jpg`
 export const ytWatchUrl = (v: YtVideo) => (v.short ? `https://www.youtube.com/shorts/${v.id}` : `https://www.youtube.com/watch?v=${v.id}`)

@@ -4,6 +4,7 @@ import type { Story, TrimzSeries } from '#/data/content'
 import { countOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
 import { renderSeriesCard, renderStoryCard, renderVideoCard } from '#/lib/share-card'
 import type { YtVideo } from '#/data/youtube'
+import { storyOfVideo } from '#/data/youtube'
 import { play as sfx } from '#/lib/sfx'
 
 // POSTER MAKER: turns the world you're looking at into a 1080x1350 card you can post.
@@ -14,8 +15,8 @@ export function ShareCard({ story, series, video, onClose }: { story: Story; ser
   const live = useIskStats()
   // A series takes its accent and rating from the world it was cut from, not whichever world the hub last showed
   const parent = (series && STORIES.find((s) => s.trimz?.includes(series.slug))) || story
-  // A video belongs to a world only when its title says so; otherwise it carries no world's name or rating
-  const videoStory = video && STORIES.find((s) => video.title.toLowerCase().startsWith(s.title.split(':')[0].toLowerCase()))
+  // A video that isn't from a world carries no world's name or rating
+  const videoStory = video && storyOfVideo(video)
   const [src, setSrc] = useState<string | null>(null)
   const [busy, setBusy] = useState(true)
   const [note, setNote] = useState<string | null>(null)

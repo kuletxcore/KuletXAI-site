@@ -26,7 +26,7 @@ import { TROPHIES } from '#/data/trophies'
 import { SERIES_MUSIC, STORY_MUSIC } from '#/data/music'
 import type { Track } from '#/data/music'
 import type { PadButton, PadKind } from '#/lib/gamepad'
-import { YT_CHANNEL_URL, loadYoutubeVideos, rememberYoutubeVideos, ytEmbedUrl, ytThumb, ytWatchUrl } from '#/data/youtube'
+import { YT_CHANNEL_URL, loadYoutubeVideos, rememberYoutubeVideos, storyOfVideo, ytEmbedUrl, ytThumb, ytWatchUrl } from '#/data/youtube'
 import type { YtVideo } from '#/data/youtube'
 import { MotionConfig } from 'motion/react'
 import type { IskCast, IskMedia } from '#/data/isk'
@@ -1607,7 +1607,7 @@ function VideoDetails({ video }: { video?: YtVideo }) {
       </>
     )
   }
-  const related = STORIES.find((s) => video.title.toLowerCase().startsWith(s.title.split(':')[0].toLowerCase()))
+  const related = storyOfVideo(video)
   return (
     <>
       <Badge platform="youtube" meta={[video.short ? 'Short' : 'Episode', fmtDate(video.published), `${video.views.toLocaleString('en-US')} views`]} />

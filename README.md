@@ -82,7 +82,7 @@ Live counts are refreshed hourly by the Worker cron (`17 * * * *` in `wrangler.j
 
 - `main` is production. Cloudflare builds it with `npm run build` and `npx wrangler deploy`.
 - `test` is the preview, at [test-kuletxai.kuletxcore.workers.dev](https://test-kuletxai.kuletxcore.workers.dev). New work lands here first.
-- Whop is deployed by hand with `npm run deploy` (`scripts/deploy-whop.sh`), which needs the Whop CLI signed in. The build zip has to stay under 50 MB. `whop apps deploy` rewrites the Worker `name` in `wrangler.jsonc`; the script refuses to start with that file dirty and restores it afterwards.
+- Whop is deployed by hand with `npm run deploy:whop` (`scripts/deploy-whop.sh`), which needs the Whop CLI signed in. The build zip has to stay under 50 MB. `whop apps deploy` rewrites the Worker `name` in `wrangler.jsonc` and the `deploy` script in `package.json` (which stays `whop apps deploy` for that reason); the wrapper refuses to start with either file dirty and restores both afterwards.
 
 ## License
 
