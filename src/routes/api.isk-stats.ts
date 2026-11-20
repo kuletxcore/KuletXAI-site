@@ -5,8 +5,8 @@ import { edgeState, getIskStats } from '#/lib/isk-stats.server'
 export const Route = createFileRoute('/api/isk-stats')({
   server: {
     handlers: {
-      GET: async () => {
-        const got = await getIskStats()
+      GET: async ({ request }) => {
+        const got = await getIskStats(new URL(request.url).host)
         if (!got) {
           return new Response('{"error":"IsekaiZero unavailable"}', {
             status: 503,

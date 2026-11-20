@@ -55,6 +55,43 @@ for (const [label, opts] of [
       await page.goto(`${base}/stories/${slug}`, { waitUntil: 'networkidle' })
       check(await page.locator('.ps5-title, h1').first().isVisible(), `${tag}: hub ${slug} renders`)
     }
+    // Share cards: one per tab, the right size, not blank, and titled for what's on screen
+    if (label === 'desktop') {
+      for (const [tabName, query, expect] of [
+        ['story', '', 'Acolytes'],
+        ['series', '?tab=trimz&series=side-b', 'Side B'],
+        ['video', '?tab=youtube', ''],
+      ]) {
+        await page.goto(`${base}/stories/acolytes${query}`, { waitUntil: 'networkidle' })
+        await page.locator('button[aria-label="Make a share card"]').first().click()
+        const img = page.locator('img[alt^="Share card for"]')
+        const shown = await img.waitFor({ timeout: 15000 }).then(() => true).catch(() => false)
+        const info = shown
+          ? await img.evaluate((el) => {
+              const c = document.createElement('canvas')
+              c.width = 54
+              c.height = 68
+              const x = c.getContext('2d')
+              x.drawImage(el, 0, 0, 54, 68)
+              const d = x.getImageData(0, 0, 54, 68).data
+              let sum = 0
+              let sq = 0
+              for (let i = 0; i < d.length; i += 4) {
+                const v = (d[i] + d[i + 1] + d[i + 2]) / 3
+                sum += v
+                sq += v * v
+              }
+              const n = d.length / 4
+              return { w: el.naturalWidth, h: el.naturalHeight, std: Math.sqrt(sq / n - (sum / n) ** 2), alt: el.alt }
+            })
+          : null
+        // The video card must not fall back to the story's card, which is what the YouTube tab used to draw
+        const rightOne = tabName === 'video' ? info?.alt !== 'Share card for Acolytes: Maid for your Protection' : info?.alt.includes(expect)
+        const ok = !!info && info.w === 1080 && info.h === 1350 && info.std > 10 && rightOne
+        check(ok, `${tag}: ${tabName} share card ${info ? `${info.w}x${info.h} "${info.alt}"` : 'missing'}`)
+        await page.keyboard.press('Escape')
+      }
+    }
     const md = await page.request.get(`${base}/stories/acolytes.md`)
     check(md.ok() && (await md.text()).startsWith('# '), `${tag}: Markdown mirror`)
     check(errors.length === 0, `${tag}: no page errors ${errors.join(' | ')}`)

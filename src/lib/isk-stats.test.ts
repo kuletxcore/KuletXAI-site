@@ -68,3 +68,14 @@ describe('formatCount', () => {
     expect(formatCount(0)).toBe('0')
   })
 })
+
+describe('usesMirror', () => {
+  it('mirrors production stats only on hosts without a working edge cache', async () => {
+    const { usesMirror } = await import('#/lib/isk-stats.server')
+    expect(usesMirror('kuletxai.whop.site')).toBe(true)
+    expect(usesMirror('kuletxai.kuletxcore.workers.dev')).toBe(false)
+    expect(usesMirror('test-kuletxai.kuletxcore.workers.dev')).toBe(false)
+    expect(usesMirror('localhost:4186')).toBe(false)
+    expect(usesMirror(undefined)).toBe(false)
+  })
+})

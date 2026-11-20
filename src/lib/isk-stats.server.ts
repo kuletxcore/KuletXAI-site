@@ -133,15 +133,41 @@ export async function refreshIskStats(): Promise<IskStats | null> {
 
 const isFresh = (s: IskStats | null) => !!s && Date.now() - s.t < (REFRESH_S + GRACE_S) * 1000
 
-export type IskStatsSource = 'memory' | 'edge' | 'isekaizero' | 'stale'
+export type IskStatsSource = 'memory' | 'edge' | 'mirror' | 'isekaizero' | 'stale'
 
-/** The newest copy: memory, then edge cache, then IsekaiZero, then the last good copy. */
-export async function getIskStats(): Promise<{ stats: IskStats; source: IskStatsSource } | null> {
+// Production's stats on workers.dev, where the edge cache works. Hosts without a working cache (Whop starts
+// every request empty) read this one fast answer instead of making eight platform calls.
+const MIRROR = 'https://kuletxai.kuletxcore.workers.dev/api/isk-stats'
+export const usesMirror = (host?: string) => !!host && !/(\.workers\.dev|^localhost|^127\.0\.0\.1)(:\d+)?$/i.test(host)
+
+async function fromMirror(): Promise<IskStats | null> {
+  try {
+    const res = await fetch(MIRROR, {
+      headers: { accept: 'application/json', 'user-agent': UA },
+      signal: AbortSignal.timeout(4000),
+      cf: { cacheTtl: 60, cacheEverything: true },
+    } as RequestInit)
+    if (!res.ok) return null
+    const body = (await res.json()) as IskStats
+    if (typeof body?.t !== 'number' || typeof body.stories !== 'object' || !isFresh(body)) return null
+    memory = body
+    return body
+  } catch {
+    return null
+  }
+}
+
+/** The newest copy: memory, then edge cache, then (off workers.dev) the production mirror, then the platforms, then the last good copy. */
+export async function getIskStats(host?: string): Promise<{ stats: IskStats; source: IskStatsSource } | null> {
   if (isFresh(memory)) return { stats: memory!, source: 'memory' }
   const cached = await readCached(FRESH_KEY)
   if (cached && isFresh(cached)) {
     memory = cached
     return { stats: cached, source: 'edge' }
+  }
+  if (usesMirror(host)) {
+    const mirrored = await fromMirror()
+    if (mirrored) return { stats: mirrored, source: 'mirror' }
   }
   const stats = await refreshIskStats()
   if (stats) return { stats, source: 'isekaizero' }
