@@ -7,4 +7,6 @@ if ! git diff --quiet -- wrangler.jsonc package.json; then
   exit 1
 fi
 trap 'git checkout -- wrangler.jsonc package.json' EXIT
+# Under `npm run`, the npm_* variables npm sets make the upload fail with "Authentication failed"
+for v in $(compgen -e | grep '^npm_'); do unset "$v"; done
 if command -v whop >/dev/null; then whop apps deploy "$@"; else npx whop apps deploy "$@"; fi
