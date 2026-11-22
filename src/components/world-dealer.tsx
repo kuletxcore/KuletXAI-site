@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { motion } from 'motion/react'
-import { LINKS, STORIES, storyPlatformName, storyUrl } from '#/data/content'
+import { STORIES, storyPlatformName, storyUrl } from '#/data/content'
 import type { Story } from '#/data/content'
-import { LiveCount, LiveDot } from '#/components/live-count'
+import { LiveCount } from '#/components/live-count'
 import { countOf, useIskStats } from '#/lib/isk-stats'
 import { useLite } from '#/lib/perf'
 import { play as sfx } from '#/lib/sfx'
@@ -80,7 +80,6 @@ export function WorldDealer() {
     sfx('tab')
   }
 
-  const deckSize = DECK.length
   const shuffleCover = DECK[shuffleIdx % DECK.length]?.cover ?? DECK[0].cover
 
   return (
@@ -89,7 +88,7 @@ export function WorldDealer() {
         <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-14">
           <div>
             <p className="font-gamer text-sm text-neon">
-              {'//'} THE WORLD DEALER<span className="text-mute"> v1.0</span>
+              {'//'} THE WORLD DEALER
             </p>
             <h2 className="pixel mt-3 font-pixel text-4xl leading-[1.05] text-ink sm:text-6xl">
               CAN'T
@@ -97,8 +96,7 @@ export function WorldDealer() {
               DECIDE<span className="text-neon glow">?</span>
             </h2>
             <p className="mt-4 max-w-md text-base leading-relaxed text-mute">
-              {deckSize} worlds, one deck. Pick a vibe and the Dealer shuffles, then slides your card across the
-              counter. One tap to start playing.
+              Pick a vibe and get a world. The 18+ world isn't in this deck; it's in the grid above.
             </p>
 
             <fieldset className="mt-7">
@@ -140,16 +138,10 @@ export function WorldDealer() {
                 <>▶ Deal me in</>
               )}
             </button>
-            <p className="mt-3 font-gamer text-[11px] uppercase text-mute">
-              Deck: {deckSize} SFW + 17+ worlds · the 18+ world sits this one out, find it in the grid above
-            </p>
           </div>
 
           {/* The table: face-down deck, shuffle, then the dealt card */}
           <div className="relative" aria-live="polite">
-            <p className="pointer-events-none absolute -top-3 right-0 z-10 font-gamer text-[10px] uppercase text-mute/70">
-              Table 01 · No bets, only stories
-            </p>
 
             {phase === 'dealt' && dealt ? (
               <DealtCard key={`${dealt.slug}-${dealNo}`} story={dealt} lite={noMotion} onRedeal={() => deal(vibe)} live={live} />
@@ -168,10 +160,6 @@ export function WorldDealer() {
                 <img src="/brand/kx-mark.webp" alt="" aria-hidden className="relative w-28 opacity-90 sm:w-36" />
                 <p className="pixel relative mt-6 font-pixel text-2xl text-ink sm:text-3xl">
                   {phase === 'shuffling' ? 'SHUFFLING' : 'AWAITING DEAL'}
-                  <span className="cursor text-neon" />
-                </p>
-                <p className="relative mt-2 font-gamer text-xs uppercase text-mute">
-                  {phase === 'shuffling' ? 'the dealer sweeps the deck' : 'pick a vibe, then press deal'}
                 </p>
                 <div className="kx-deal-scan absolute inset-0" aria-hidden />
               </div>
@@ -246,7 +234,7 @@ function DealtCard({
           <p className="mt-4 font-gamer text-xs text-mute" title={`Likes · saves · chats · messages on ${platform}`}>
             ♥ <LiveCount value={countOf(live, story, 'likes')} /> · ★ <LiveCount value={countOf(live, story, 'saves')} /> · ✉{' '}
             <LiveCount value={countOf(live, story, 'chats')} />{' '}
-            · <LiveCount value={countOf(live, story, 'messages')} compact /> MSG <LiveDot className="ml-1 inline-block align-middle" />
+            · <LiveCount value={countOf(live, story, 'messages')} compact /> MSG
           </p>
 
           <div className="mt-auto pt-5">
@@ -276,12 +264,6 @@ function DealtCard({
                 ↻ Deal again
               </button>
             </div>
-            <p className="mt-3 text-center font-mono text-[10px] text-mute/70">
-              Free to start · runs in your browser ·{' '}
-              <a href={LINKS.isekai} target="_blank" rel="noopener noreferrer" className="underline hover:text-neon">
-                isekaizero.ai
-              </a>
-            </p>
           </div>
         </div>
       </div>

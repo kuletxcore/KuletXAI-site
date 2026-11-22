@@ -49,7 +49,7 @@ export function ContinueBand() {
       <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6 sm:py-5">
         <Link to="/stories/$slug" params={{ slug: save.slug }} search={search} onClick={() => sfx('enter')} className="group min-w-0" title={`Resume ${story.title}`}>
           <p className="font-gamer text-[10px] uppercase text-warn">
-            ▣ Save state<span className="text-mute"> // memory card</span>
+            ▣ Save state
           </p>
           <p className="pixel mt-1.5 line-clamp-1 font-pixel text-lg leading-none text-ink transition-colors group-hover:text-warn sm:text-2xl">
             {story.title}

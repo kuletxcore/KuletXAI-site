@@ -81,7 +81,6 @@ export function Footer() {
         </nav>
       </div>
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
-        <p className="font-gamer text-[10px] uppercase text-mute/70">Touch, mouse, keyboard and controller</p>
         <button
           type="button"
           onClick={openControls}

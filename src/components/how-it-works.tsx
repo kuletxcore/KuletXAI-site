@@ -24,8 +24,6 @@ const STEPS = [
   },
 ]
 
-const PERKS = ['Free to start', 'No install', 'Phone-ready', '18+ worlds on KageSekai']
-
 export function HowItWorks() {
   const flagship = STORIES[0]
   return (
@@ -38,9 +36,6 @@ export function HowItWorks() {
               PICK. PLAY.
               <br className="sm:hidden" /> <span className="text-neon glow">COME BACK.</span>
             </h2>
-            <p className="mt-4 text-mute">
-              Three beats, every world. The first one is running in the console above right now.
-            </p>
           </div>
           <a
             href="#top"
@@ -66,16 +61,6 @@ export function HowItWorks() {
         </ol>
 
         <div className="mt-6 flex flex-col items-start justify-between gap-4 border border-line bg-panel/40 p-5 sm:flex-row sm:items-center">
-          <ul className="flex flex-wrap items-center gap-x-4 gap-y-2 font-gamer text-[10px] uppercase text-mute">
-            {PERKS.map((p) => (
-              <li key={p} className="flex items-center gap-2">
-                <span aria-hidden className="text-neon">
-                  ✓
-                </span>
-                {p}
-              </li>
-            ))}
-          </ul>
           <div className="flex flex-wrap items-center gap-2">
             <a
               href={storyUrl(flagship)}

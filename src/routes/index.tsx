@@ -11,7 +11,7 @@ import { HowItWorks } from '#/components/how-it-works'
 import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, storyPlatformName, storyUrl, trimzSeriesUrl } from '#/data/content'
 import type { DemoWorld } from '#/data/demo'
-import { LiveCount, LiveDot } from '#/components/live-count'
+import { LiveCount } from '#/components/live-count'
 import { countOf, totalOf, trimzCountOf, useIskStats } from '#/lib/isk-stats'
 import { COVER_VIDEOS } from '#/data/cover-videos'
 import { useLite } from '#/lib/perf'
@@ -114,15 +114,12 @@ function Hero() {
               Browse all {STORIES.length} worlds
             </a>
           </div>
-          <p className="mt-3 font-gamer text-[10px] uppercase text-mute">
-            Free to start · no account on this side · picks up in your browser
-          </p>
 
           {/* The receipts, kept as one quiet strip so they sell without shouting */}
           <dl className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line pt-5 font-gamer text-[11px] uppercase text-mute">
             <div className="flex items-baseline gap-2">
               <dt className="flex items-center">
-                messages <LiveDot className="ml-1" />
+                messages
               </dt>
               <dd className="font-pixel text-lg text-neon">
                 <LiveCount value={totalOf(live, 'messages')} compact />
@@ -148,11 +145,6 @@ function Hero() {
         </div>
 
         <div className="lg:pl-2">
-          <p className="mb-2 flex items-center gap-2 font-gamer text-[10px] uppercase text-mute">
-            <span className="text-warn">▸ playable now</span>
-            <span className="h-px flex-1 bg-line" aria-hidden />
-            <span>no sign-up</span>
-          </p>
           <ColdOpen slug={world} onSlug={setWorld} />
           <p className="mt-2 text-center font-gamer text-[10px] uppercase text-mute/70">
             Press <kbd className="border border-line px-1 text-ink">1</kbd> or{' '}
@@ -328,7 +320,7 @@ function Stories() {
         <SectionHead
           kicker="01 // IsekaiZero + KageSekai"
           title="Pick a world"
-          body="Interactive AI storylines. You make the choices, the storyteller keeps up. Open a world to see its cast and lore."
+          body="Open a world to see its cast and lore."
         />
         <ul
           ref={shelf}
@@ -413,7 +405,7 @@ function Stories() {
                   <span className="text-center">
                     <span className="pixel block font-pixel text-5xl text-neon glow">+</span>
                     <span className="mt-2 block font-gamer text-xs text-ink">
-                      NEXT_WORLD.LOADING<span className="cursor text-neon" />
+                      Next world
                     </span>
                   </span>
                 </div>
@@ -537,7 +529,7 @@ function Trimz() {
           <SectionHead
             kicker="02 // Trimz"
             title="Now streaming"
-            body="AI anime series cut from the stories. Short episodes, made to binge."
+            body="Anime series cut from the stories."
           />
           <a
             href={LINKS.trimz}
@@ -697,7 +689,7 @@ function Channels() {
   return (
     <section id="watch" className="kx-cv scroll-mt-16 border-b border-line">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
-        <SectionHead kicker="03 // Channels" title="Four ways in" body="Same universe, different screens." />
+        <SectionHead kicker="03 // Channels" title="Four ways in" />
         <ul className="mt-12 grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2">
           {CHANNELS.map((c, i) => (
             <li key={c.key} className="bg-void">

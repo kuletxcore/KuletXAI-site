@@ -173,9 +173,8 @@ export function ColdOpen({ slug, onSlug }: { slug: DemoWorld['slug']; onSlug: (s
       style={{ ['--kx-accent' as string]: accent }}
       aria-label={`Playable opening scene: ${story.title}`}
     >
-      {/* Title bar: what this is, that it is live, and the other world one tap away */}
+      {/* Title bar, with the other world one tap away */}
       <div className="flex items-center gap-2 border-b border-line bg-panel/70 px-3 py-2">
-        <span className="kx-rec size-2 shrink-0 rounded-full bg-danger" aria-hidden />
         <p className="font-mono text-[11px] text-mute">
           storyteller<span className="text-mute/60">.exe</span> <span className="text-neon">--cold-open</span>
         </p>
@@ -316,16 +315,6 @@ export function ColdOpen({ slug, onSlug }: { slug: DemoWorld['slug']; onSlug: (s
           </div>
         ) : (
           <div className="flex min-h-[4.25rem] items-center gap-2" aria-hidden>
-            <span className="font-gamer text-[10px] uppercase tracking-widest text-mute">the world is writing…</span>
-            <span className="flex gap-1">
-              {[0, 1, 2].map((i) => (
-                <span
-                  key={i}
-                  className="size-1.5 animate-pulse rounded-full bg-neon/70"
-                  style={{ animationDelay: `${i * 180}ms` }}
-                />
-              ))}
-            </span>
           </div>
         )}
       </div>

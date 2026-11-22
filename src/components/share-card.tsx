@@ -116,7 +116,6 @@ export function ShareCard({ story, series, video, onClose }: { story: Story; ser
         <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
           <p id="kx-card-title" className="font-gamer text-[10px] uppercase text-neon">
             {'//'} Poster maker
-            <span className="text-mute"> · 1080 × 1350</span>
           </p>
           <button
             ref={closeRef}
@@ -157,9 +156,7 @@ export function ShareCard({ story, series, video, onClose }: { story: Story; ser
             ↗ Share card
           </button>
         </div>
-        <p className="border-t border-line px-4 py-2 text-center font-mono text-[10px] text-mute/70">
-          {note ?? 'Drawn on your device · the numbers are live from the platforms'}
-        </p>
+        {note && <p className="border-t border-line px-4 py-2 text-center font-mono text-[10px] text-mute/70" role="status">{note}</p>}
       </div>
     </div>
   )

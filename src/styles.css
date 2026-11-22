@@ -1618,19 +1618,6 @@ html.kx-lite .kx-deal-cta {
   pointer-events: none;
   background-image: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0, 0, 0, 0.18) 2px 3px);
 }
-/* Recording dot: slow, so it reads as "live" and not as an alarm */
-.kx-rec {
-  animation: kxRec 2.2s ease-in-out infinite;
-}
-@keyframes kxRec {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.25;
-  }
-}
 
 /* The hero console is the first thing the eye should land on after the headline */
 @media (min-width: 1024px) {
@@ -1639,15 +1626,6 @@ html.kx-lite .kx-deal-cta {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .kx-rec {
-    animation: none;
-  }
-}
-html.kx-lite .kx-rec,
-html.kx-still .kx-rec {
-  animation: none;
-}
 /* Lite mode keeps the console flat: no thrown glow */
 html.kx-lite .kx-console {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
