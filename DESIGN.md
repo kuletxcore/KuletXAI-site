@@ -89,8 +89,7 @@ that follows from it:
 
 - **The primary button always does the thing.** No "Play" that scrolls to a section that deals a card that has another
   button. The hero's call to action opens the world currently on screen, and names it.
-- **Proof before explanation.** The console runs above the fold; what happens after you press play is explained
-  further down (`THE LOOP`), once the visitor has already felt it. Never the other way round.
+- **Proof, not explanation.** The console in the hero shows what playing is like; there is no "how it works" section after it.
 - **No two competing demos.** One scripted surface per page. A second, deeper teaser splits attention and delays the
   hand-off; depth belongs in the world file and the hub, not in a second script.
 - **Motion rules apply here too.** Reduced motion, Lite mode and Pause motion all get the scene instantly, with no
@@ -148,6 +147,7 @@ The front page follows the antislop rules: `antislop` (the core filter), `antisl
 
 - **Live numbers stay; the decoration around them goes.** Counts are content. A blinking dot or "LIVE" label next to them is not.
 - **The brand line "outslopping the competition" stays.** It is the brand, not filler.
+- **The terminal styling stays.** It is the front page's theme, the way the PS5 look is the hub's; antislop's fake-terminal rule does not apply to it.
 - **Status text appears after something happens** ("Saved to your downloads", "Link copied"), never as standing copy.
 
 ### The anti-reference: Slopstrap

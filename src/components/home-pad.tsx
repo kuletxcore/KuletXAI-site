@@ -9,7 +9,7 @@ import { isMuted, play as sfx, setMuted } from '#/lib/sfx'
 
 // Controller support for the home page: the D-pad moves focus, A selects, B backs out, LB/RB jump sections.
 
-const SECTIONS = ['top', 'stories', 'dealer', 'loop', 'trimz', 'watch']
+const SECTIONS = ['top', 'stories', 'dealer', 'trimz', 'watch']
 
 const calm = () =>
   window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('kx-still')

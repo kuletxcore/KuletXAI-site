@@ -7,7 +7,6 @@ import { siteOrigin } from '#/lib/origin'
 import { WorldFinder } from '#/components/world-finder'
 import { HomePad } from '#/components/home-pad'
 import { ColdOpen } from '#/components/cold-open'
-import { HowItWorks } from '#/components/how-it-works'
 import { play as sfx } from '#/lib/sfx'
 import { LINKS, STORIES, TRIMZ, storyPlatformName, storyUrl, trimzSeriesUrl } from '#/data/content'
 import type { DemoWorld } from '#/data/demo'
@@ -58,7 +57,6 @@ function Home() {
         <ContinueBand />
         <Stories />
         <DeferredDealer />
-        <HowItWorks />
         <Trimz />
         <Channels />
       </main>
