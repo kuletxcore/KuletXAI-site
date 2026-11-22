@@ -1,4 +1,4 @@
-import { STORIES } from '#/data/content'
+import { STORIES, TRIMZ } from '#/data/content'
 import { createServerFn } from '@tanstack/react-start'
 
 export const YT_CHANNEL_ID = 'UCpNxX1ziFLkEFA3nW-lYxfw'
@@ -12,17 +12,21 @@ export type YtVideo = {
   short: boolean
   /** The world the video is from, read from the storyline or Trimz link in its description */
   story?: string
+  /** The Trimz series its description links to */
+  series?: string
+  /** The description's own words, without its link lines */
+  blurb?: string
 }
 
 // Snapshot of the channel (Nov 2026). Used if the live feed can't be reached.
 export const YT_SNAPSHOT: YtVideo[] = [
-  { id: 'KIdeRQhgA-k', title: 'Acolytes: Maid for your Protection - Episode 3', published: '2026-10-30', views: 4, short: false, story: 'acolytes' },
-  { id: 'fcl4WcNrTQc', title: 'Random Bullshit GO!!!!', published: '2026-10-29', views: 182, short: true, story: 'acolytes' },
-  { id: 'UvnvUym34Lg', title: 'Acolytes: Maid for your Protection - Episode 2', published: '2026-10-29', views: 11, short: false, story: 'acolytes' },
-  { id: 'cl8mBfpIjdo', title: 'Acolytes: Maid for your Protection - Episode 1', published: '2026-10-28', views: 20, short: false, story: 'acolytes' },
-  { id: 'BPrv_HxKxU4', title: 'Acolytes: Maid for Your Protection', published: '2026-10-28', views: 1292, short: true, story: 'acolytes' },
-  { id: 'P6PO_5AIPaY', title: 'Acolytes: Maid for your Protection (Side B) - Episode 1', published: '2026-10-28', views: 56, short: false, story: 'acolytes' },
-  { id: '1-6a_xlnhYQ', title: 'Acolytes side B out now on Trimz', published: '2026-10-27', views: 415, short: true, story: 'acolytes' },
+  { id: 'KIdeRQhgA-k', title: 'Acolytes: Maid for your Protection - Episode 3', published: '2026-10-30', views: 4, short: false, story: 'acolytes', series: 'acolytes-maid-for-your-protection' },
+  { id: 'fcl4WcNrTQc', title: 'Random Bullshit GO!!!!', published: '2026-10-29', views: 182, short: true, story: 'acolytes', series: 'acolytes-maid-for-your-protection' },
+  { id: 'UvnvUym34Lg', title: 'Acolytes: Maid for your Protection - Episode 2', published: '2026-10-29', views: 11, short: false, story: 'acolytes', series: 'acolytes-maid-for-your-protection' },
+  { id: 'cl8mBfpIjdo', title: 'Acolytes: Maid for your Protection - Episode 1', published: '2026-10-28', views: 20, short: false, story: 'acolytes', series: 'acolytes-maid-for-your-protection' },
+  { id: 'BPrv_HxKxU4', title: 'Acolytes: Maid for Your Protection', published: '2026-10-28', views: 1292, short: true, story: 'acolytes', series: 'acolytes-maid-for-your-protection' },
+  { id: 'P6PO_5AIPaY', title: 'Acolytes: Maid for your Protection (Side B) - Episode 1', published: '2026-10-28', views: 56, short: false, story: 'acolytes', series: 'acolytes-maid-for-your-protection' },
+  { id: '1-6a_xlnhYQ', title: 'Acolytes side B out now on Trimz', published: '2026-10-27', views: 415, short: true, story: 'acolytes', series: 'acolytes-maid-for-your-protection-side-b' },
 ]
 
 /** Which world a description points at: a storyline link (IsekaiZero or KageSekai), else a Trimz series link. */
@@ -35,6 +39,26 @@ export function storyFromDescription(text: string) {
     if (parent) return parent.slug
   }
   return undefined
+}
+
+/** The first Trimz series a description links to. */
+export function seriesFromDescription(text: string) {
+  for (const m of text.matchAll(/trimz\.tv\/([a-z0-9-]+)/gi)) {
+    const series = TRIMZ.find((t) => t.slug === m[1].toLowerCase())
+    if (series) return series.slug
+  }
+  return undefined
+}
+
+/** A description's own words: every line that holds a link is dropped, since those are "Play on ...: <url>" labels. */
+export function blurbFromDescription(text: string) {
+  const words = text
+    .split('\n')
+    .filter((line) => !/https?:\/\/|www\./i.test(line))
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return words ? words[0].toUpperCase() + words.slice(1) : undefined
 }
 
 /** The world a video belongs to: its description's link, else a title that starts with the world's name. */
@@ -55,6 +79,8 @@ const decode = (s: string) =>
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
 
+const describe = (text: string) => ({ story: storyFromDescription(text), series: seriesFromDescription(text), blurb: blurbFromDescription(text) })
+
 /** Parse YouTube's Atom feed without a DOM (runs in the server worker). */
 function parseFeed(xml: string): YtVideo[] {
   const out: YtVideo[] = []
@@ -68,8 +94,7 @@ function parseFeed(xml: string): YtVideo[] {
       published: (entry.match(/<published>([^<]+)<\/published>/)?.[1] ?? '').slice(0, 10),
       views: Number(entry.match(/views="(\d+)"/)?.[1] ?? 0),
       short: /<link rel="alternate" href="https:\/\/www\.youtube\.com\/shorts\//.test(entry),
-      // Only the world the description links to is kept, not the description itself
-      story: storyFromDescription(decode(entry.match(/<media:description>([\s\S]*?)<\/media:description>/)?.[1] ?? '')),
+      ...describe(decode(entry.match(/<media:description>([\s\S]*?)<\/media:description>/)?.[1] ?? '')),
     })
   }
   return out

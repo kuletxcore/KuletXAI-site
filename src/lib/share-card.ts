@@ -1,4 +1,4 @@
-import { storyPlatformName } from '#/data/content'
+import { storyPlatformName, TRIMZ } from '#/data/content'
 import type { Story, TrimzSeries } from '#/data/content'
 import type { YtVideo } from '#/data/youtube'
 import { ytThumb } from '#/data/youtube'
@@ -127,6 +127,7 @@ export function renderSeriesCard(series: TrimzSeries, story: Story, stats: Serie
 
 /** A YouTube video's card: its thumbnail and title, plus the world it belongs to when it's from one. */
 export function renderVideoCard(video: YtVideo, story: Story | undefined, views: number) {
+  const from = TRIMZ.find((t) => t.slug === video.series)?.title ?? story?.title
   return renderCard({
     // Not every video has a maxres thumbnail; hqdefault always exists
     art: [ytThumb(video.id, 'maxresdefault'), ytThumb(video.id, 'hqdefault')],
@@ -134,7 +135,8 @@ export function renderVideoCard(video: YtVideo, story: Story | undefined, views:
     rating: story?.rating,
     where: 'YouTube',
     title: video.title,
-    hook: story ? `From @kuletxai: outslopping the competition. Part of ${story.title}.` : 'From @kuletxai: outslopping the competition.',
+    // The video's own description; one that is only links says which series it's from
+    hook: video.blurb ?? (from ? `From ${from}.` : 'From @kuletxai: outslopping the competition.'),
     tags: [video.short ? 'Short' : 'Episode', 'YouTube', ...(story ? [`from ${story.title.split(':')[0]}`] : [])],
     stats: [{ icon: '\u25b6', value: views, label: 'views' }],
   })

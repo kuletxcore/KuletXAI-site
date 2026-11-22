@@ -80,6 +80,14 @@ describe('storyOfVideo', () => {
     expect(storyFromDescription('Subscribe for more')).toBeUndefined()
   })
 
+  it('keeps a description\'s own words and the Trimz series it links to', async () => {
+    const { blurbFromDescription, seriesFromDescription } = await import('#/data/youtube')
+    expect(blurbFromDescription('made with suno since the OG is made on suno as well\nhttps://suno.com/song/00d4')).toBe('Made with suno since the OG is made on suno as well')
+    expect(blurbFromDescription('Play on IsekaiZero: https://www.isekaizero.ai/storylines/6aa7\nWatch on Trimz: https://trimz.tv/acolytes-maid-for-your-protection')).toBeUndefined()
+    expect(seriesFromDescription('watch on trimz: https://trimz.tv/acolytes-maid-for-your-protection-side-b')).toBe('acolytes-maid-for-your-protection-side-b')
+    expect(seriesFromDescription('nothing here')).toBeUndefined()
+  })
+
   it('uses the description link first, then the title', async () => {
     const { storyOfVideo } = await import('#/data/youtube')
     expect(storyOfVideo({ title: 'Random Bullshit GO!!!!', story: 'acolytes' })?.slug).toBe('acolytes')
