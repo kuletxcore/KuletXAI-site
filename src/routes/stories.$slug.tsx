@@ -69,7 +69,7 @@ export const Route = createFileRoute('/stories/$slug')({
     ],
     meta: loaderData
       ? [
-          { title: `${loaderData.story.title} | KuletX AI` },
+          { title: `${loaderData.story.title} | KuletXAI` },
           { name: 'description', content: loaderData.story.logline },
           { property: 'og:title', content: loaderData.story.title },
           { property: 'og:description', content: loaderData.story.logline },
@@ -94,7 +94,7 @@ export const Route = createFileRoute('/stories/$slug')({
         <p className="ps5-title">World not found</p>
         <p className="mt-4 text-white/70">That world hasn’t spawned yet.</p>
         <Link to="/" className="ps5-cta mt-8">
-          Back to KuletX AI
+          Back to KuletXAI
         </Link>
       </div>
     </div>
@@ -687,7 +687,7 @@ function StoryHub() {
               <CardIcon />
             </button>
             <ShareButton />
-            <Link to="/" className="ps5-round" aria-label="KuletX AI home" title="Home" onClick={() => sfx('back')}>
+            <Link to="/" className="ps5-round" aria-label="KuletXAI home" title="Home" onClick={() => sfx('back')}>
               <HomeIcon />
             </Link>
           </div>
@@ -1227,7 +1227,7 @@ function TopBar({
         </Link>
         <div className="flex items-center gap-4 md:gap-5">
           <SoundMenu nowPlaying={nowPlaying} />
-          <Link to="/" aria-label="KuletX AI home" className="shrink-0 transition-transform hover:scale-[1.03]">
+          <Link to="/" aria-label="KuletXAI home" className="shrink-0 transition-transform hover:scale-[1.03]">
             <Logo className="h-8 md:h-9" />
           </Link>
           <Clock />

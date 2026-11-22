@@ -29,7 +29,7 @@ export const Route = createFileRoute('/stories_/$slug/trophies')({
     ],
     meta: loaderData
       ? [
-          { title: `Trophies · ${loaderData.story.title} | KuletX AI` },
+          { title: `Trophies · ${loaderData.story.title} | KuletXAI` },
           { name: 'description', content: `All ${loaderData.set.trophies.length} trophies in ${loaderData.story.title}, an interactive story on ${storyPlatformName(loaderData.story)}.` },
           { name: 'theme-color', content: '#05070c' },
         ]
@@ -41,7 +41,7 @@ export const Route = createFileRoute('/stories_/$slug/trophies')({
       <div>
         <p className="ps5-title">No trophies here</p>
         <Link to="/" className="ps5-cta mt-8">
-          Back to KuletX AI
+          Back to KuletXAI
         </Link>
       </div>
     </div>

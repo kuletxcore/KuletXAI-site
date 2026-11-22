@@ -1,4 +1,4 @@
-# KuletX AI: design direction
+# KuletXAI: design direction
 
 The home of KuletX's interactive AI stories. Visitors come to pick a world and play it, then binge the series cut from it. The site should feel like switching on a machine that is already running stories: a terminal on the front page, a games console in the story hub.
 
@@ -121,7 +121,7 @@ that follows from it:
 - **Finder.** `/` or Cmd/Ctrl-K, a square-cornered dialog over the page, one field, results as rows with rating badges. Loaded on first summon.
 - **Controls sheet.** `?` or Controls in the footer. Actions, not devices: each row shows the keys and the connected pad's buttons that do it, using the Xelu prompt art. Touch screens get a touch note instead of keyboard rows.
 - **Pad legend.** On the home page, a small bottom-right strip of prompts, shown only while a controller is connected.
-- **Share card.** A 1080x1350 poster drawn on the device, opened from the hub's card button, for whatever is on screen: the world (cover, hook, live counts), the Trimz series (poster, summary, episodes, views) or the YouTube video (thumbnail, title, views; a video that isn't from a world carries no world's name or rating). Numbers are in the highlight colour `#5a6faa`, the footer is the KuletX AI logo and the host the card was made on, the rating badge keeps its traffic-light colour, and the platform label sits on a dark plate so it reads over any art.
+- **Share card.** A 1080x1350 poster drawn on the device, opened from the hub's card button, for whatever is on screen: the world (cover, hook, live counts), the Trimz series (poster, summary, episodes, views) or the YouTube video (thumbnail, title, views; a video that isn't from a world carries no world's name or rating). Numbers are in the highlight colour `#5a6faa`, the footer is the KuletXAI logo and the host the card was made on, the rating badge keeps its traffic-light colour, and the platform label sits on a dark plate so it reads over any art.
 - **Settings switches** (hub panel). Sound, Lite graphics, Dark surfaces. Each switch row is a 44px tap target with a one-line note under it.
 
 ## Accessibility floor

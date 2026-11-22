@@ -10,7 +10,7 @@ import { TROPHIES } from '#/data/trophies'
 export type Origin = string
 
 export const SITE = {
-  name: 'KuletX AI',
+  name: 'KuletXAI',
   tagline: 'Interactive AI stories you play, cut into series you binge.',
   summary:
     'KuletX builds interactive worlds on IsekaiZero and KageSekai, cuts them into series on Trimz, and breaks the process down on YouTube.',
@@ -321,7 +321,7 @@ export function storyJsonLd(s: Story, origin: Origin) {
       {
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'KuletX AI', item: url(origin, '/') },
+          { '@type': 'ListItem', position: 1, name: 'KuletXAI', item: url(origin, '/') },
           { '@type': 'ListItem', position: 2, name: s.title, item: page },
         ],
       },

@@ -1,4 +1,4 @@
-# KuletX AI
+# KuletXAI
 
 The home of KuletX's interactive AI stories: a landing page, a console-style hub for every story, and links out to the series and videos made from them.
 

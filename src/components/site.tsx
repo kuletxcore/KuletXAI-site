@@ -4,14 +4,14 @@ import { openControls } from '#/components/controls-sheet'
 import { openFinder } from '#/components/world-finder'
 
 export function Logo({ className = 'h-8' }: { className?: string }) {
-  return <img src="/brand/kuletx-ai-480.webp" srcSet="/brand/kuletx-ai-480.webp 480w, /brand/kuletx-ai-1200.webp 1200w" sizes="240px" alt="KuletX AI" width={480} height={165} className={`w-auto ${className}`} />
+  return <img src="/brand/kuletx-ai-480.webp" srcSet="/brand/kuletx-ai-480.webp 480w, /brand/kuletx-ai-1200.webp 1200w" sizes="240px" alt="KuletXAI" width={480} height={165} className={`w-auto ${className}`} />
 }
 
 export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-void/85 backdrop-blur">
       <div className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:gap-4 sm:px-6">
-        <Link to="/" aria-label="KuletX AI home" className="flex min-h-11 shrink-0 items-center transition-transform hover:scale-[1.03]">
+        <Link to="/" aria-label="KuletXAI home" className="flex min-h-11 shrink-0 items-center transition-transform hover:scale-[1.03]">
           <Logo className="h-9 sm:h-10" />
         </Link>
         <nav aria-label="Main" className="flex items-center gap-1 font-gamer text-xs uppercase sm:gap-2 sm:text-sm">

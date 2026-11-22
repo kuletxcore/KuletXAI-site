@@ -273,7 +273,7 @@ function startBootSounds(onEnd: () => void): BootSound {
   }
 }
 
-export function BootScreen({ wordmark = 'KuletX AI' }: { wordmark?: string }) {
+export function BootScreen({ wordmark = 'KuletXAI' }: { wordmark?: string }) {
   const [phase, setPhase] = useState<Phase>('off')
   const [fast, setFast] = useState(false)
   const reduce = useReducedMotion()

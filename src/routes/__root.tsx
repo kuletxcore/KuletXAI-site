@@ -8,21 +8,21 @@ import { STILL_HEAD_SCRIPT } from '#/lib/still'
 import { ControlsSheet } from '#/components/controls-sheet'
 
 const DESCRIPTION =
-  'KuletX AI: interactive AI stories on IsekaiZero and KageSekai, series on Trimz and videos on YouTube.'
+  'KuletXAI: interactive AI stories on IsekaiZero and KageSekai, series on Trimz and videos on YouTube.'
 
 export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'KuletX AI | AI Storytelling' },
+      { title: 'KuletXAI | AI Storytelling' },
       { name: 'description', content: DESCRIPTION },
       { name: 'theme-color', content: '#050806' },
-      { property: 'og:title', content: 'KuletX AI | AI Storytelling' },
+      { property: 'og:title', content: 'KuletXAI | AI Storytelling' },
       { property: 'og:description', content: DESCRIPTION },
       { property: 'og:image', content: `${siteOrigin()}/covers/1.webp` },
       { property: 'og:type', content: 'website' },
-      { property: 'og:site_name', content: 'KuletX AI' },
+      { property: 'og:site_name', content: 'KuletXAI' },
       { name: 'twitter:card', content: 'summary_large_image' },
     ],
     links: [
@@ -70,7 +70,7 @@ function RootNotFound() {
         <p className="font-gamer text-sm uppercase text-mute">404 // not found</p>
         <p className="mt-3 text-ink">That page hasn’t spawned yet.</p>
         <a href="/" className="mt-6 inline-block bg-neon px-5 py-3 font-gamer text-sm uppercase text-void hover:bg-ink">
-          Back to KuletX AI
+          Back to KuletXAI
         </a>
       </div>
     </div>
