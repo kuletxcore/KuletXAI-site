@@ -403,7 +403,7 @@ function Stories() {
                   <span className="text-center">
                     <span className="pixel block font-pixel text-5xl text-neon glow">+</span>
                     <span className="mt-2 block font-gamer text-xs text-ink">
-                      Next world
+                      NEXT_WORLD.LOADING<span className="cursor text-neon" />
                     </span>
                   </span>
                 </div>
