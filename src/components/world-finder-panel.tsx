@@ -232,10 +232,7 @@ export function FinderPanel({
     if (item.story) pushRecent(item.story.slug)
     onClose(true)
     if (playNow && item.story) {
-      const url = storyUrl(item.story)
-      const w = window.open(url, '_blank', 'noreferrer')
-      if (w) w.opener = null
-      else window.location.assign(url)
+      window.open(storyUrl(item.story), '_blank', 'noreferrer')
       return
     }
     if (item.to) {
@@ -243,11 +240,7 @@ export function FinderPanel({
       else if (item.to.hash) document.getElementById(item.to.hash)?.scrollIntoView({ behavior: 'smooth' })
       return
     }
-    if (item.href) {
-      const w = window.open(item.href, '_blank', 'noreferrer')
-      if (w) w.opener = null
-      else window.location.assign(item.href)
-    }
+    if (item.href) window.open(item.href, '_blank', 'noreferrer')
   }
 
   const onInputKey = (e: React.KeyboardEvent) => {
@@ -257,8 +250,7 @@ export function FinderPanel({
     }
   }
 
-  // ArrowUp/Down work anywhere inside the dialog (including after Tab/D-pad moves to filters or Play);
-  // Escape closes; Tab cycles inside the dialog instead of escaping behind it
+  // Arrow keys move through results from anywhere in the dialog; Escape closes it and Tab stays inside
   const onDialogKey = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       e.preventDefault()

@@ -20,7 +20,7 @@ describe('save-state', () => {
     writeSave({ slug: 'acolytes', section: 'cast', at: now })
     expect(readSave()).toEqual({ slug: 'acolytes', section: 'cast', at: now })
 
-    // Invalid slug or NaN timestamp are rejected
+    // Rejected: unknown world, or a timestamp that isn't a number
     storage.setItem('kx_savestate', JSON.stringify({ slug: 'nope', at: now }))
     expect(readSave()).toBeNull()
 
@@ -31,7 +31,7 @@ describe('save-state', () => {
     storage.setItem('kx_savestate', JSON.stringify({ slug: 'acolytes', at: now - 121 * 24 * 60 * 60 * 1000 }))
     expect(readSave()).toBeNull()
 
-    // Unknown section falls back without crashing
+    // An unknown section is dropped and the rest of the save kept
     storage.setItem('kx_savestate', JSON.stringify({ slug: 'acolytes', section: 'unknown', at: now }))
     expect(readSave()).toEqual({ slug: 'acolytes', at: now })
 

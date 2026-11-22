@@ -46,7 +46,7 @@ const GROUPS = (mod: string): { title: string; rows: Row[] }[] => [
       { label: 'Switch tab: story, series, video', keys: ['Q', 'E'], pad: ['lb', 'rb'] },
       { label: 'Play the world, series or video', keys: ['Enter'], pad: ['a'] },
       { label: 'Open the selected section', pad: ['x'] },
-      { label: 'Unredact card (pad in viewer)', keys: ['R'], pad: ['x'] },
+      { label: 'Unredact the intro card', keys: ['R'], pad: ['x'] },
       { label: 'Sound on or off', pad: ['y'] },
       { label: 'Back to the home page', pad: ['b'] },
       { label: 'Scroll', pad: ['LS'] },
@@ -63,10 +63,14 @@ export function ControlsSheet() {
   const pad = usePadInfo()
   const closeRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
+  // Read through a ref: an Escape that lands before the listener is re-bound must still see the sheet as open
+  const openRef = useRef(open)
+  openRef.current = open
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (open && e.key === 'Escape') {
+      if (openRef.current && e.key === 'Escape') {
+        openRef.current = false
         e.preventDefault()
         e.stopImmediatePropagation()
         sfx('back')
@@ -77,17 +81,21 @@ export function ControlsSheet() {
       const typing = !!el && (['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName) || el.isContentEditable)
       if (!typing && (e.key === '?' || (e.shiftKey && e.key === '/'))) {
         e.preventDefault()
-        setOpen((o) => !o)
+        openRef.current = !openRef.current
+        setOpen(openRef.current)
       }
     }
-    const onAsk = () => setOpen(true)
+    const onAsk = () => {
+      openRef.current = true
+      setOpen(true)
+    }
     window.addEventListener('keydown', onKey, true)
     window.addEventListener('kx:controls', onAsk)
     return () => {
       window.removeEventListener('keydown', onKey, true)
       window.removeEventListener('kx:controls', onAsk)
     }
-  }, [open])
+  }, [])
 
   useEffect(() => {
     if (!open) return
