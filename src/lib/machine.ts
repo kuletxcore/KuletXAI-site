@@ -227,7 +227,7 @@ export function siteJsonLd(origin: Origin) {
         name: SITE.name,
         alternateName: 'KuletX',
         url: origin,
-        logo: `${origin}/brand/kuletx-ai-1200.webp`,
+        logo: `${origin}/brand/kuletxai-1200.webp`,
         sameAs: [SITE.isekaiZero, SITE.kageSekai, SITE.trimz, SITE.youtube],
       },
       {

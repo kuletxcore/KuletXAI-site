@@ -1,5 +1,5 @@
 {
-  "projectName": "kuletx-ai",
+  "projectName": "kuletxai",
   "mode": "file-router",
   "bundler": "vite",
   "typescript": true,

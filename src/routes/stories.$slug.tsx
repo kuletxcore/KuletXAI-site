@@ -59,7 +59,7 @@ export const Route = createFileRoute('/stories/$slug')({
     links: [
       { rel: 'preload', href: '/sfx/ps5-startup.mp3', as: 'audio' },
       ...(loaderData ? [{ rel: 'alternate', type: 'text/markdown', href: `/stories/${loaderData.story.slug}.md`, title: 'Markdown' }] : []),
-      { rel: 'preload', href: '/brand/kuletx-ai-1200.webp', as: 'image' },
+      { rel: 'preload', href: '/brand/kuletxai-1200.webp', as: 'image' },
       { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
       { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
       {

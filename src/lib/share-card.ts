@@ -231,7 +231,7 @@ async function renderCard(card: CardSpec): Promise<string> {
   })
 
   // Footer: the logo and the address this card was made on
-  const logo = await loadImage('/brand/kuletx-ai-1200.webp')
+  const logo = await loadImage('/brand/kuletxai-1200.webp')
   const logoH = 96
   const kw = logo ? (logo.naturalWidth / logo.naturalHeight) * logoH : 0
   if (logo) ctx.drawImage(logo, 56, H - 84 - logoH * 0.78, kw, logoH)

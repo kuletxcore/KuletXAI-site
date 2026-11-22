@@ -4,7 +4,7 @@ import { openControls } from '#/components/controls-sheet'
 import { openFinder } from '#/components/world-finder'
 
 export function Logo({ className = 'h-8' }: { className?: string }) {
-  return <img src="/brand/kuletx-ai-480.webp" srcSet="/brand/kuletx-ai-480.webp 480w, /brand/kuletx-ai-1200.webp 1200w" sizes="240px" alt="KuletXAI" width={480} height={165} className={`w-auto ${className}`} />
+  return <img src="/brand/kuletxai-480.webp" srcSet="/brand/kuletxai-480.webp 480w, /brand/kuletxai-1200.webp 1200w" sizes="240px" alt="KuletXAI" width={480} height={165} className={`w-auto ${className}`} />
 }
 
 export function Header() {
