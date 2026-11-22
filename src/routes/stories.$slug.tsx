@@ -670,12 +670,13 @@ function StoryHub() {
             <VideoDetails video={activeVideo} />
           )}
 
-          <div className="mt-2 flex items-center gap-3">
+          {/* Phones have no room for the label beside four round buttons, so Play takes its own row there */}
+          <div className="mt-2 flex flex-wrap items-center gap-3 sm:flex-nowrap">
             <a
               href={primaryHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="ps5-cta grow sm:grow-0"
+              className="ps5-cta grow basis-full whitespace-nowrap sm:grow-0 sm:basis-auto"
               onClick={(e) => {
                 e.preventDefault()
                 primary()
