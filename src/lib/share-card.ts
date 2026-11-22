@@ -137,7 +137,8 @@ export function renderVideoCard(video: YtVideo, story: Story | undefined, views:
     title: video.title,
     // The video's own description; one that is only links says which series it's from
     hook: video.blurb ?? (from ? `From ${from}.` : 'From @kuletxai: outslopping the competition.'),
-    tags: [video.short ? 'Short' : 'Episode', 'YouTube', ...(story ? [`from ${story.title.split(':')[0]}`] : [])],
+    // Only an episode is tagged as one; a remix or trailer is just a video
+    tags: [...(video.short ? ['Short'] : /\bepisode\b/i.test(video.title) ? ['Episode'] : []), 'YouTube', ...(story ? [`from ${story.title.split(':')[0]}`] : [])],
     stats: [{ icon: '\u25b6', value: views, label: 'views' }],
   })
 }
