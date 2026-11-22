@@ -470,6 +470,8 @@ svg.ps5-picon {
 }
 
 .ps5-ribbon {
+  /* A scroller can shrink to nothing in the hub's flex column, which drops the tiles onto the meta line on short screens */
+  flex-shrink: 0;
   margin: 0 clamp(-28px, -3.5vw, -16px) -30px;
   padding: 16px clamp(16px, 3.5vw, 28px) 46px;
   overflow-x: auto;
@@ -531,6 +533,11 @@ html:not(.kx-lite) .ps5-ribbon-row {
 }
 html:not(.kx-lite) .ps5-tile-slot {
   transform-style: preserve-3d;
+  /* Tiles sit behind the slot's plane, so the slot would take every tap */
+  pointer-events: none;
+}
+html:not(.kx-lite) .ps5-tile-slot > * {
+  pointer-events: auto;
 }
 html:not(.kx-lite) .ps5-tile:not(.is-active) {
   transform: rotateY(calc(var(--side, 0) * -16deg)) translateZ(calc(var(--dist, 0) * -14px));
@@ -1384,6 +1391,21 @@ html.kx-lite .ps5-boot-dots { animation: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .kx-live-dot::after { animation: none; }
+}
+
+/* 720p and 768p laptops: the console layout is locked to the viewport, so trim the logo, panel and gaps
+   instead of letting Play and the footer fall below it */
+@media (min-width: 768px) and (min-height: 541px) and (max-height: 820px) {
+  .ps5-details {
+    gap: 8px;
+    padding-top: 8px;
+  }
+  .ps5-logo {
+    max-height: 9vh;
+  }
+  .ps5 .ps5-panel {
+    max-height: 24vh;
+  }
 }
 
 /* Short landscape screens (phones on their side, small windows): the console layout locks to the viewport from 768px up,
