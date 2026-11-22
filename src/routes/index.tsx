@@ -636,7 +636,7 @@ function Trimz() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => sfx('enter')}
-              className="group mt-auto flex items-center justify-between gap-3 border border-line px-3 py-3 font-gamer text-[10px] uppercase text-mute hover:border-neon hover:text-neon"
+              className="group mt-auto flex min-h-11 items-center justify-between gap-3 border border-line px-3 py-3 font-gamer text-[10px] uppercase text-mute hover:border-neon hover:text-neon"
             >
               <span>Full episodes and trailers on YouTube</span>
               <span aria-hidden className="text-neon">

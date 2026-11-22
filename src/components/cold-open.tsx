@@ -191,7 +191,7 @@ export function ColdOpen({ slug, onSlug }: { slug: DemoWorld['slug']; onSlug: (s
                   onSlug(w.slug)
                 }}
                 aria-pressed={on}
-                className={`min-h-9 border px-2 font-gamer text-[10px] uppercase transition-colors ${
+                className={`min-h-11 border px-2 font-gamer text-[10px] uppercase transition-colors ${
                   on ? 'border-ink bg-ink text-void' : 'border-line text-mute hover:border-neon hover:text-neon'
                 }`}
               >
@@ -287,7 +287,7 @@ export function ColdOpen({ slug, onSlug }: { slug: DemoWorld['slug']; onSlug: (s
                 to="/stories/$slug"
                 params={{ slug }}
                 onClick={() => sfx('nav')}
-                className="inline-flex min-h-9 items-center text-mute hover:text-neon"
+                className="inline-flex min-h-11 items-center text-mute hover:text-neon"
               >
                 World file →
               </Link>
@@ -297,7 +297,7 @@ export function ColdOpen({ slug, onSlug }: { slug: DemoWorld['slug']; onSlug: (s
               <button
                 type="button"
                 onClick={replay}
-                className="inline-flex min-h-9 items-center text-mute hover:text-warn"
+                className="inline-flex min-h-11 items-center text-mute hover:text-warn"
               >
                 ↻ Run it again
               </button>
@@ -307,7 +307,7 @@ export function ColdOpen({ slug, onSlug }: { slug: DemoWorld['slug']; onSlug: (s
                   sfx('tab')
                   onSlug(other.slug)
                 }}
-                className="inline-flex min-h-9 items-center text-mute hover:text-neon"
+                className="inline-flex min-h-11 items-center text-mute hover:text-neon"
               >
                 Try {shortTitle(other.slug)}
               </button>

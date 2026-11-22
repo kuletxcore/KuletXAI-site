@@ -67,7 +67,7 @@ export function HowItWorks() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => sfx('enter')}
-              className="pixel bg-neon px-4 py-2.5 font-gamer text-xs uppercase text-void hover:bg-ink"
+              className="pixel inline-flex min-h-11 items-center bg-neon px-4 font-gamer text-xs uppercase text-void hover:bg-ink"
             >
               ▶ Start with {flagship.title.split(':')[0]}
             </a>
@@ -75,7 +75,7 @@ export function HowItWorks() {
               href={LINKS.kageProfile}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-10 items-center border border-line px-4 font-gamer text-xs uppercase text-mute hover:border-danger-ink hover:text-danger-ink"
+              className="inline-flex min-h-11 items-center border border-line px-4 font-gamer text-xs uppercase text-mute hover:border-danger-ink hover:text-danger-ink"
             >
               18+ worlds →
             </a>

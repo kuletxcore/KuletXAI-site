@@ -144,12 +144,11 @@ that follows from it:
 
 ## Say it once (front page)
 
-This applies to the front page and its overlays. The story hub (`/stories/*`) is a fully custom PS5-style design and is exempt: its glass, live counts and console furniture are intended.
+The front page follows the antislop rules: `antislop` (the core filter), `antislop-code` (comments) and `antislop-layoutmobile` (reflow, tap targets). This section only adds what is specific to this site. The story hub (`/stories/*`) is a fully custom PS5-style design and is exempt.
 
-- **No status lights.** No green "live" dots, recording dots or pulsing dots on the front page. A number is live because the README says so, not because a light blinks next to it.
-- **No slogans.** No tagline under a button ("free to start · no account · picks up in your browser"), no strap line on a card ("Table 01 · No bets, only stories"), no version numbers on features. The brand line "outslopping the competition" is the one exception, because it is the brand.
-- **One label per control.** A button's text says what it does; it gets no subtitle restating it and no tooltip repeating it. Tooltips are for icons with no text.
-- **Notes only when they carry news.** A line of status appears only after something happened (a card saved, a link copied), never as standing copy.
+- **Live numbers stay; the decoration around them goes.** Counts are content. A blinking dot or "LIVE" label next to them is not.
+- **The brand line "outslopping the competition" stays.** It is the brand, not filler.
+- **Status text appears after something happens** ("Saved to your downloads", "Link copied"), never as standing copy.
 
 ### The anti-reference: Slopstrap
 
