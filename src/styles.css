@@ -1408,6 +1408,29 @@ html.kx-lite .ps5-boot-dots { animation: none; }
   }
 }
 
+/* Laptop browsers with their toolbars (1366x768 leaves about 657px): smaller tiles and logo, and if it still
+   doesn't fit the page scrolls rather than cutting off Play and the footer */
+@media (min-width: 768px) and (min-height: 541px) and (max-height: 740px) {
+  .ps5 {
+    --ps-tile: 54px;
+  }
+  .ps5-app {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+  .ps5-ribbon {
+    margin-top: 6px;
+    padding-top: 10px;
+  }
+  .ps5-logo {
+    max-height: 8vh;
+  }
+  .ps5 .ps5-panel {
+    max-height: 22vh;
+  }
+}
+
 /* Short landscape screens (phones on their side, small windows): the console layout locks to the viewport from 768px up,
    which cut the details off, so here the hub shrinks to fit and the page scrolls (touch, wheel, left stick) */
 @media (orientation: landscape) and (max-height: 540px) {
