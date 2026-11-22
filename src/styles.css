@@ -1483,7 +1483,7 @@ html.kx-lite .ps5-boot-dots { animation: none; }
   }
 }
 
-/* SAVE STATE — the memory-card band between hero and grid (returning players only) */
+/* SAVE STATE: the memory-card band between hero and grid (returning players only) */
 .kx-saveband {
   animation: kxSaveIn 450ms var(--ps-ease, cubic-bezier(0.16, 1, 0.3, 1)) both;
 }
@@ -1499,7 +1499,7 @@ html.kx-lite .ps5-boot-dots { animation: none; }
 }
 .kx-saveband-scan {
   background: linear-gradient(90deg, transparent, rgba(255, 184, 0, 0.32), transparent);
-  animation: kxSaveScan 3.2s ease-in-out 2;
+  animation: kxSaveScan 3.2s ease-in-out infinite;
   mix-blend-mode: screen;
 }
 @keyframes kxSaveScan {
@@ -1520,6 +1520,10 @@ html.kx-lite .ps5-boot-dots { animation: none; }
 html.kx-lite .kx-saveband,
 html.kx-lite .kx-saveband-scan {
   animation: none;
+}
+/* The scan loops, so Pause motion stops it like the Dealer's */
+html.kx-still .kx-saveband-scan {
+  animation-play-state: paused;
 }
 
 /* The World Dealer's card table; the scan and the button pulse run a few times, then rest */
