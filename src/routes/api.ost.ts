@@ -28,6 +28,7 @@ export const Route = createFileRoute('/api/ost')({
           clearTimeout(timer)
         }
         if (!upstream.ok && upstream.status !== 206) return new Response('Upstream error', { status: 502 })
+        if (!upstream.body) return new Response('Upstream error', { status: 502 })
 
         const headers = new Headers()
         for (const h of PASS_HEADERS) {
@@ -35,6 +36,7 @@ export const Route = createFileRoute('/api/ost')({
           if (v) headers.set(h, v)
         }
         headers.set('cache-control', 'public, max-age=86400')
+        headers.set('x-content-type-options', 'nosniff')
         return new Response(upstream.body, { status: upstream.status, headers })
       },
     },

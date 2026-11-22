@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { STORIES } from '#/data/content'
-import { llmsFullTxt, llmsJson, llmsTxt, storyMarkdown } from '#/lib/machine'
+import { firstBeat, jsonLd, llmsFullTxt, llmsJson, llmsTxt, shortTitle, storyJsonLd, storyMarkdown } from '#/lib/machine'
 
 const origin = 'https://kuletxai.whop.site'
 
@@ -32,5 +32,18 @@ describe('machine layer', () => {
       expect(md.startsWith(`# ${s.title}`)).toBe(true)
       expect(md).toContain(`${origin}/stories/${s.slug}`)
     }
+  })
+
+  it('builds a playable first beat and escapes JSON-LD safely', () => {
+    for (const s of STORIES) {
+      const beat = firstBeat(s)
+      expect(beat.slug).toBe(s.slug)
+      expect(beat.choices).toHaveLength(2)
+      expect(beat.hook).toBe(s.hook)
+      const ld = jsonLd(storyJsonLd(s, origin))
+      expect(ld).not.toContain('<')
+    }
+    expect(shortTitle('Acolytes: Maid for your Protection')).toBe('Acolytes')
+    expect(shortTitle('I AM THE TABLE!!!')).toBe('I AM THE TABLE')
   })
 })

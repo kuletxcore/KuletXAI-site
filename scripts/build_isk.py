@@ -12,10 +12,10 @@ import io
 import json
 import os
 import re
+import shutil
+import subprocess
 import sys
 import urllib.request
-
-from PIL import Image
 
 SITE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PUB = os.path.join(SITE, 'public', 'isk')
@@ -89,6 +89,8 @@ FORCE = '--force' in sys.argv
 
 
 def save_image(url, path, max_w, max_h, quality=80):
+    from PIL import Image
+
     if os.path.exists(path) and not FORCE:
         im = Image.open(path)
         return im.size
@@ -264,8 +266,37 @@ COVERS_TS = os.path.join(SITE, 'src', 'data', 'cover-videos.ts')
 ISK_DECL = 'export const ISK: Record<string, IskStory> = '
 
 
+def encode_cover_webm(mp4_path):
+    """Build or refresh the lightweight VP9 loop alongside cover.mp4 when ffmpeg is available."""
+    webm_path = re.sub(r'\.mp4$', '.webm', mp4_path)
+    if os.path.exists(webm_path) and not FORCE and os.path.getmtime(webm_path) >= os.path.getmtime(mp4_path):
+        return
+    ffmpeg = shutil.which('ffmpeg')
+    if not ffmpeg:
+        print(f'note: ffmpeg not found; skipping {os.path.relpath(webm_path, SITE)}', file=sys.stderr)
+        return
+    subprocess.run(
+        [
+            ffmpeg, '-y', '-loglevel', 'error', '-i', mp4_path,
+            '-an', '-c:v', 'libvpx-vp9', '-b:v', '220k', '-vf', 'scale=480:-2', '-t', '4',
+            webm_path,
+        ],
+        check=True,
+    )
+
+
+def public_size_bytes():
+    total = 0
+    pub_root = os.path.join(SITE, 'public')
+    for root, _, files in os.walk(pub_root):
+        for name in files:
+            total += os.path.getsize(os.path.join(root, name))
+    return total
+
+
 def main():
-    only = sys.argv[1:]
+    FIX_HITS.clear()
+    only = [a for a in sys.argv[1:] if not a.startswith('-')]
     result = {}
     if only:
         with open(ISK_TS, encoding='utf-8') as f:
@@ -292,6 +323,7 @@ def main():
                 except Exception:
                     pass
         if vc and save_file(vc, os.path.join(PUB, slug, 'cover.mp4'), MAX_VIDEO):
+            encode_cover_webm(os.path.join(PUB, slug, 'cover.mp4'))
             entry['videoCover'] = versioned(f'/isk/{slug}/cover.mp4')
 
         if d.get('plot'):
@@ -358,6 +390,10 @@ def main():
         f.write('export const COVER_VIDEOS: Record<string, string> = ')
         f.write(json.dumps({slug: s['videoCover'] for slug, s in result.items() if s.get('videoCover')}, indent=2))
         f.write('\n')
+    size_mb = public_size_bytes() / (1024 * 1024)
+    if size_mb > 48:
+        print(f'warning: public/ is {size_mb:.1f} MiB (Whop deploy zip limit is 50 MB)', file=sys.stderr)
 
 
-main()
+if __name__ == '__main__':
+    main()

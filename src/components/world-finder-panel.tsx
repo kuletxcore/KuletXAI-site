@@ -75,7 +75,7 @@ const isSubsequence = (needle: string, hay: string) => {
 }
 
 /** Case- and accent-insensitive, so "cafe" and "café" both find the maid café. */
-const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 
 function scoreOf(item: Item, raw: string): number {
   const q = norm(raw.trim())
@@ -232,7 +232,10 @@ export function FinderPanel({
     if (item.story) pushRecent(item.story.slug)
     onClose(true)
     if (playNow && item.story) {
-      window.open(storyUrl(item.story), '_blank', 'noreferrer')
+      const url = storyUrl(item.story)
+      const w = window.open(url, '_blank', 'noreferrer')
+      if (w) w.opener = null
+      else window.location.assign(url)
       return
     }
     if (item.to) {
@@ -240,26 +243,34 @@ export function FinderPanel({
       else if (item.to.hash) document.getElementById(item.to.hash)?.scrollIntoView({ behavior: 'smooth' })
       return
     }
-    if (item.href) window.open(item.href, '_blank', 'noreferrer')
+    if (item.href) {
+      const w = window.open(item.href, '_blank', 'noreferrer')
+      if (w) w.opener = null
+      else window.location.assign(item.href)
+    }
   }
 
   const onInputKey = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-      e.preventDefault()
-      if (!visible.length) return
-      sfx('nav')
-      setSel((s) => (e.key === 'ArrowDown' ? (s + 1) % visible.length : (s - 1 + visible.length) % visible.length))
-    } else if (e.key === 'Enter' && visible[sel]) {
+    if (e.key === 'Enter' && visible[sel]) {
       e.preventDefault()
       run(visible[sel], e.shiftKey)
     }
   }
 
+  // ArrowUp/Down work anywhere inside the dialog (including after Tab/D-pad moves to filters or Play);
   // Escape closes; Tab cycles inside the dialog instead of escaping behind it
   const onDialogKey = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       e.preventDefault()
+      e.stopPropagation()
       onClose()
+      return
+    }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      if (!visible.length) return
+      sfx('nav')
+      setSel((s) => (e.key === 'ArrowDown' ? (s + 1) % visible.length : (s - 1 + visible.length) % visible.length))
       return
     }
     if (e.key !== 'Tab') return

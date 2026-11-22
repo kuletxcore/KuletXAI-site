@@ -150,6 +150,7 @@ export function ColdOpen({ slug, onSlug }: { slug: DemoWorld['slug']; onSlug: (s
     if (!inView || !running || phase !== 'choices') return
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return
       const t = e.target as HTMLElement | null
       if (t && /^(input|textarea|select)$/i.test(t.tagName)) return
       const n = Number.parseInt(e.key, 10)
@@ -206,9 +207,11 @@ export function ColdOpen({ slug, onSlug }: { slug: DemoWorld['slug']; onSlug: (s
       {/* The scene */}
       <div
         ref={logRef}
+        tabIndex={0}
         role="log"
         aria-live="polite"
-        className="relative h-[19rem] overflow-y-auto px-4 py-4 font-mono text-[13px] leading-relaxed sm:h-[21rem] sm:text-sm"
+        aria-label="Scene transcript"
+        className="relative h-[19rem] overflow-y-auto px-4 py-4 font-mono text-[13px] leading-relaxed focus:outline-none focus-visible:ring-1 focus-visible:ring-neon sm:h-[21rem] sm:text-sm"
       >
         <p className="flex items-center gap-2 font-gamer text-[10px] uppercase">
           <span className={RATING_CLASS(story.rating)}>{story.rating}</span>

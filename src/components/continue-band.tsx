@@ -13,11 +13,12 @@ export function ContinueBand() {
   // Client-only: SSR renders nothing, the band fades in after mount for returning players
   useEffect(() => setSave(readSave()), [])
 
-  // R resumes from anywhere on the home page
+  // R resumes from anywhere on the home page (unless a dialog is open)
   useEffect(() => {
     if (!save) return
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || e.key.toLowerCase() !== 'r') return
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return
       const t = e.target as HTMLElement | null
       if (t && /^(input|textarea|select)$/i.test(t.tagName)) return
       e.preventDefault()

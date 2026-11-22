@@ -11,6 +11,7 @@ import type { PadButton } from '#/lib/gamepad'
 import { setMusic, stopOst } from '#/lib/music'
 import { isMuted, play as sfx, setMuted } from '#/lib/sfx'
 import { glideIntoView, stopAllGlides } from '#/lib/smooth-scroll'
+import { focusScope, moveFocus } from '#/lib/spatial'
 import { HUB_HEAD_SCRIPT, useHubTheme } from '#/lib/hub-theme'
 
 export const Route = createFileRoute('/stories_/$slug/trophies')({
@@ -135,6 +136,7 @@ function TrophyPage() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return
       if (e.key === 'ArrowDown') {
         e.preventDefault()
         move(1)
@@ -149,9 +151,21 @@ function TrophyPage() {
 
   const pad = useGamepad(
     (b: PadButton) => {
+      const scope = focusScope()
+      if (scope !== document) {
+        if (b === 'b' || b === 'start') {
+          window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+        } else if (b === 'up' || b === 'down' || b === 'left' || b === 'right') {
+          moveFocus(b, true)
+        } else if (b === 'a') {
+          const el = document.activeElement
+          if (el instanceof HTMLElement && scope.contains(el)) el.click()
+        }
+        return
+      }
       if (b === 'down') move(1)
       else if (b === 'up') move(-1)
-      else if (b === 'a') toggleReveal(trophies[selected])
+      else if (b === 'a' && trophies[selected]) toggleReveal(trophies[selected])
       else if (b === 'b') back()
       else if (b === 'x') flipSort()
       else if (b === 'y') {
@@ -161,6 +175,7 @@ function TrophyPage() {
       }
     },
     (dy) => {
+      if (focusScope() !== document) return
       stopAllGlides()
       window.scrollBy({ top: dy, behavior: 'instant' })
     },

@@ -10,6 +10,7 @@ import { BOOT_HEAD_SCRIPT, BootScreen, useBootActive } from '#/components/boot-s
 import { Logo } from '#/components/site'
 import { isMuted, play as sfx, setMuted } from '#/lib/sfx'
 import { glideIntoView, glideTo, stopAllGlides } from '#/lib/smooth-scroll'
+import { focusScope, moveFocus } from '#/lib/spatial'
 import { PAD_LABEL, useGamepad } from '#/lib/gamepad'
 import { KeyLabel } from '#/components/pad-glyph'
 import { PlatformChip, PlatformIcon, type Platform } from '#/components/platform'
@@ -205,6 +206,10 @@ function StoryHub() {
   ]
   const [modal, setModal] = useState<Modal | null>(null)
   const [share, setShare] = useState(false)
+  useEffect(() => {
+    setModal(null)
+    setShare(false)
+  }, [story.slug])
   useEffect(() => {
     if (!sections.includes(section)) setSection('overview')
   }, [sections.join(), section])
@@ -426,6 +431,16 @@ function StoryHub() {
       else if (b === 'right') fire('ArrowRight')
       return
     }
+    const scope = focusScope()
+    if (scope !== document) {
+      if (b === 'b' || b === 'start') fire('Escape')
+      else if (b === 'up' || b === 'down' || b === 'left' || b === 'right') moveFocus(b, true)
+      else if (b === 'a') {
+        const el = document.activeElement
+        if (el instanceof HTMLElement && scope.contains(el)) el.click()
+      }
+      return
+    }
     if (subIdx !== null) {
       // Inside a section: D-pad picks an item, A opens/plays it, B or X steps back out
       if (b === 'left' || b === 'up') moveSub(-1)
@@ -520,7 +535,7 @@ function StoryHub() {
       const el = e.target as HTMLElement | null
       if (el && ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)) return
       const k = keyState.current
-      if (k.modal || k.share) return
+      if (k.modal || k.share || document.querySelector('[role="dialog"][aria-modal="true"]')) return
       if (e.key === 'ArrowRight') {
         e.preventDefault()
         k.step(1)
@@ -563,7 +578,7 @@ function StoryHub() {
           <Backdrop key={t.slug} src={t.poster} crop={t.crop} video={t.video} active={tab === 'series' && i === seriesIdx} warm={warm('series', i, seriesIdx)} />
         ))}
         {videos.map((v, i) => (
-          <Backdrop key={v.id} src={ytThumb(v.id, 'maxresdefault')} blurSrc={ytThumb(v.id)} softSrc={ytThumb(v.id, 'default')} active={tab === 'youtube' && i === ytIdx} warm={warm('youtube', i, ytIdx)} />
+          <Backdrop key={v.id} src={ytThumb(v.id, 'maxresdefault')} fallbackSrc={ytThumb(v.id, 'hqdefault')} blurSrc={ytThumb(v.id)} softSrc={ytThumb(v.id, 'default')} active={tab === 'youtube' && i === ytIdx} warm={warm('youtube', i, ytIdx)} />
         ))}
         <div className="ps5-vignette" />
       </div>
@@ -641,9 +656,14 @@ function StoryHub() {
               idx={seriesIdx}
               onOpenStory={(slug) => {
                 sfx('enter')
-                // One navigation; the address switches the tab (see the sync above). Also setting the tab here
-                // made the sync write the current story's address over this one
-                navigate({ to: '/stories/$slug', params: { slug }, search: {}, resetScroll: false })
+                const atDefault = searchKey(search) === '|||'
+                if (atDefault) {
+                  wantTab.current = 'stories'
+                  setTab('stories')
+                }
+                if (slug !== story.slug || !atDefault) {
+                  navigate({ to: '/stories/$slug', params: { slug }, search: {}, resetScroll: false })
+                }
               }}
             />
           ) : (
@@ -775,6 +795,7 @@ const softOf = (src: string) => (src.startsWith('/') ? `/soft/${src.slice(1).rep
  */
 const Backdrop = memo(function Backdrop({
   src,
+  fallbackSrc,
   blurSrc,
   softSrc,
   video: videoSrc,
@@ -783,6 +804,7 @@ const Backdrop = memo(function Backdrop({
   crop,
 }: {
   src: string
+  fallbackSrc?: string
   blurSrc?: string
   softSrc?: string
   video?: string
@@ -794,6 +816,8 @@ const Backdrop = memo(function Backdrop({
 }) {
   // The old single crop was `center 20%`; that stays the default for anything without art direction
   const focus = { objectPosition: `${crop?.x ?? 50}% ${crop?.y ?? 20}%` }
+  const [artSrc, setArtSrc] = useState(src)
+  useEffect(() => setArtSrc(src), [src])
   const [wanted, setWanted] = useState(() => active || warm)
   if ((active || warm) && !wanted) setWanted(true)
   // Lite graphics: the still image only
@@ -877,7 +901,20 @@ const Backdrop = memo(function Backdrop({
       ) : (
         <img className="ps5-layer-blur" src={blurSrc ?? src} alt="" loading={active ? 'eager' : 'lazy'} />
       )}
-      <img ref={artRef} className={`ps5-layer-art ${settled >= 1 && video ? 'invisible' : ''}`} src={src} alt="" loading={active ? 'eager' : 'lazy'} style={focus} />
+      <img
+        ref={artRef}
+        className={`ps5-layer-art ${settled >= 1 && video ? 'invisible' : ''}`}
+        src={artSrc}
+        alt=""
+        loading={active ? 'eager' : 'lazy'}
+        style={focus}
+        onLoad={(e) => {
+          if (fallbackSrc && artSrc !== fallbackSrc && e.currentTarget.naturalWidth <= 200) setArtSrc(fallbackSrc)
+        }}
+        onError={() => {
+          if (fallbackSrc && artSrc !== fallbackSrc) setArtSrc(fallbackSrc)
+        }}
+      />
       {plan?.preview && webm && (
         <video
           ref={previewRef}
@@ -1846,8 +1883,14 @@ function ModalView({ modal, setModal, padLabel, padX }: { modal: Modal; setModal
   }
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null
+    const root = document.documentElement
+    const beforeOverflow = root.style.overflow
+    root.style.overflow = 'hidden'
     closeRef.current?.focus()
-    return () => prev?.focus()
+    return () => {
+      root.style.overflow = beforeOverflow
+      prev?.focus()
+    }
   }, [])
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

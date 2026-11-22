@@ -407,6 +407,8 @@ export function BootScreen({ wordmark = 'KuletXAI' }: { wordmark?: string }) {
       alive.current = false
       timers.current.forEach(clearTimeout)
       timers.current = []
+      sound.current?.stop(0.1)
+      startup.current?.pause()
     }
   }, [armStartup, begin])
 

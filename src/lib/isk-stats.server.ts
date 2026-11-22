@@ -138,7 +138,7 @@ export type IskStatsSource = 'memory' | 'edge' | 'mirror' | 'isekaizero' | 'stal
 // Production's stats on workers.dev, where the edge cache works. Hosts without a working cache (Whop starts
 // every request empty) read this one fast answer instead of making eight platform calls.
 const MIRROR = 'https://kuletxai.kuletxcore.workers.dev/api/isk-stats'
-export const usesMirror = (host?: string) => !!host && !/(\.workers\.dev|^localhost|^127\.0\.0\.1)(:\d+)?$/i.test(host)
+export const usesMirror = (host?: string) => !!host && !/(\.workers\.dev|^localhost|^127\.0\.0\.1|^\[::1\])(:\d+)?$/i.test(host)
 
 async function fromMirror(): Promise<IskStats | null> {
   try {

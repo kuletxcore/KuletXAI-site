@@ -65,5 +65,32 @@ class Sanitize(unittest.TestCase):
                 self.assertEqual(clean(raw), raw)
 
 
+class StoryText(unittest.TestCase):
+    def test_fill_user_handles_pronoun_and_verb_agreement(self):
+        self.assertEqual(build_isk.fill_user('{{user}} walks into the room.'), 'You walk into the room.')
+        self.assertEqual(build_isk.fill_user("Tell {{user}} {{user}}'s plan."), 'Tell you your plan.')
+        self.assertEqual(build_isk.fill_user('{{user}} has no clue and {{user}} tries anyway.'), 'You have no clue and you try anyway.')
+        self.assertEqual(build_isk.fill_user('{{char}} smiles at {{user}}.', 'Mitsuki'), 'Mitsuki smiles at you.')
+
+    def test_you_verb_irregulars_and_non_verbs(self):
+        self.assertEqual(build_isk.you_verb('is'), 'are')
+        self.assertEqual(build_isk.you_verb('was'), 'were')
+        self.assertEqual(build_isk.you_verb('watches'), 'watch')
+        self.assertEqual(build_isk.you_verb('always'), 'always')
+
+    def test_story_text_applies_player_noun(self):
+        self.assertEqual(
+            build_isk.story_text('queen-bee', '{{user}} opens the door for {{user}}.'),
+            'The new girl opens the door for the new girl.',
+        )
+
+    def test_tidy_caption_strips_prompt_and_picker_notes(self):
+        self.assertEqual(build_isk.tidy_caption('Cover art: something long'), 'Cover art')
+        self.assertEqual(
+            build_isk.tidy_caption('A rainy street. Use for the opening scene.'),
+            'A rainy street.',
+        )
+
+
 if __name__ == '__main__':
     unittest.main()
