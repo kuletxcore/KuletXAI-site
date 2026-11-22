@@ -79,7 +79,8 @@ export function ColdOpen({ slug, onSlug }: { slug: DemoWorld['slug']; onSlug: (s
     dumped.current = false
   }, [demo])
 
-  const node = demo.nodes[nodeId]
+  // On a world switch the old step id lingers for one render before the reset above lands
+  const node = demo.nodes[nodeId] ?? demo.nodes[demo.start]
   const lines = node.say
   const running = awake && inView
 
