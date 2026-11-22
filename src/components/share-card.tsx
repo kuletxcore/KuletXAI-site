@@ -112,7 +112,7 @@ export function ShareCard({ story, series, video, onClose }: { story: Story; ser
   return (
     <div className="fixed inset-0 z-[65] flex items-center justify-center overflow-y-auto p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="kx-card-title">
       <button type="button" tabIndex={-1} aria-label="Close poster maker" onClick={onClose} className="fixed inset-0 cursor-default bg-void/92 backdrop-blur-sm" />
-      <div className="kx-find-panel relative my-auto w-full max-w-md border border-line bg-panel shadow-[0_40px_120px_rgba(0,0,0,0.85)]">
+      <div className="kx-finder-panel relative my-auto w-full max-w-md border border-line bg-panel shadow-[0_40px_120px_rgba(0,0,0,0.85)]">
         <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
           <p id="kx-card-title" className="font-gamer text-[10px] uppercase text-neon">
             {'//'} Poster maker

@@ -22,7 +22,9 @@ let timer: ReturnType<typeof setTimeout> | undefined
 const listeners = new Set<() => void>()
 
 function valid(v: unknown): v is IskStats {
-  return !!v && typeof (v as IskStats).t === 'number' && typeof (v as IskStats).stories === 'object'
+  if (!v || typeof v !== 'object') return false
+  const s = v as IskStats
+  return typeof s.t === 'number' && Number.isFinite(s.t) && !!s.stories && typeof s.stories === 'object' && !Array.isArray(s.stories)
 }
 
 function load() {

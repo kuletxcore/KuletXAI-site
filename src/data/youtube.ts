@@ -82,7 +82,7 @@ const decode = (s: string) =>
 const describe = (text: string) => ({ story: storyFromDescription(text), series: seriesFromDescription(text), blurb: blurbFromDescription(text) })
 
 /** Parse YouTube's Atom feed without a DOM (runs in the server worker). */
-function parseFeed(xml: string): YtVideo[] {
+export function parseFeed(xml: string): YtVideo[] {
   const out: YtVideo[] = []
   for (const entry of xml.split('<entry>').slice(1)) {
     const id = entry.match(/<yt:videoId>([^<]+)<\/yt:videoId>/)?.[1]

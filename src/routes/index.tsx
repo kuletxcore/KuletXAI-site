@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Footer, Header, SectionHead } from '#/components/site'
 import { ContinueBand } from '#/components/continue-band'
-import { jsonLd, siteJsonLd } from '#/lib/machine'
+import { jsonLd, shortTitle, siteJsonLd } from '#/lib/machine'
 import { siteOrigin } from '#/lib/origin'
 import { WorldFinder } from '#/components/world-finder'
 import { HomePad } from '#/components/home-pad'
@@ -99,11 +99,11 @@ function Hero() {
             <a
               href={storyUrl(heroStory)}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               onClick={() => sfx('enter')}
               className="pixel bg-neon px-5 py-3 font-gamer text-sm uppercase text-void hover:bg-ink"
             >
-              ▶ Play {world === 'acolytes' ? 'Acolytes' : 'I AM THE TABLE'}
+              ▶ Play {shortTitle(heroStory.title)}
             </a>
             <a
               href="#stories"
@@ -288,9 +288,11 @@ function Stories() {
     let raf = 0
     const read = () => {
       raf = 0
-      const first = el.children[0] as HTMLElement
-      const second = el.children[1] as HTMLElement
+      const first = el.children[0] as HTMLElement | undefined
+      const second = el.children[1] as HTMLElement | undefined
+      if (!first || !second) return
       const step = second.offsetLeft - first.offsetLeft
+      if (step <= 0) return
       const end = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2
       setAt(end ? el.children.length - 1 : Math.round(el.scrollLeft / step))
     }

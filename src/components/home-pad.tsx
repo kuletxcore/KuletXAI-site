@@ -35,17 +35,20 @@ export function HomePad() {
   const lastNav = useRef(0)
   const pad = useGamepad(
     (b: PadButton) => {
-      const inDialog = focusScope() !== document
+      const scope = focusScope()
       const dir = b === 'up' || b === 'down' || b === 'left' || b === 'right' ? b : null
-      if (inDialog) {
-        if (dir === 'up') keyToFocused('ArrowUp')
-        else if (dir === 'down') keyToFocused('ArrowDown')
-        else if (dir) moveFocus(dir, true)
-        else if (b === 'a') {
+      if (scope !== document) {
+        if ((dir === 'up' || dir === 'down') && scope.querySelector('#kx-finder-list')) {
+          keyToFocused(dir === 'up' ? 'ArrowUp' : 'ArrowDown')
+        } else if (dir) {
+          moveFocus(dir, true)
+        } else if (b === 'a') {
           const el = document.activeElement
           if (el instanceof HTMLInputElement) keyToFocused('Enter')
-          else if (el instanceof HTMLElement) el.click()
-        } else if (b === 'b' || b === 'start') keyToFocused('Escape')
+          else if (el instanceof HTMLElement && scope.contains(el)) el.click()
+        } else if (b === 'b' || b === 'start') {
+          keyToFocused('Escape')
+        }
         return
       }
       if (dir) {

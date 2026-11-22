@@ -76,6 +76,7 @@ describe('usesMirror', () => {
     expect(usesMirror('kuletxai.kuletxcore.workers.dev')).toBe(false)
     expect(usesMirror('test-kuletxai.kuletxcore.workers.dev')).toBe(false)
     expect(usesMirror('localhost:4186')).toBe(false)
+    expect(usesMirror('[::1]:4186')).toBe(false)
     expect(usesMirror(undefined)).toBe(false)
   })
 })

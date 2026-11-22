@@ -22,7 +22,7 @@ export function readSave(): SaveState | null {
     const raw = JSON.parse(localStorage.getItem(KEY) ?? 'null') as Partial<SaveState> | null
     if (!raw || typeof raw !== 'object') return null
     if (typeof raw.slug !== 'string' || !VALID_SLUGS.has(raw.slug)) return null
-    if (typeof raw.at !== 'number' || Date.now() - raw.at > TTL_MS) return null
+    if (typeof raw.at !== 'number' || !Number.isFinite(raw.at) || Date.now() - raw.at > TTL_MS) return null
     const save: SaveState = { slug: raw.slug, at: raw.at }
     if (raw.tab === 'trimz' || raw.tab === 'youtube') save.tab = raw.tab
     else if (typeof raw.section === 'string' && VALID_SECTIONS.has(raw.section)) save.section = raw.section

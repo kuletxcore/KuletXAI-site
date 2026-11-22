@@ -1,7 +1,10 @@
-import { existsSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, statSync } from 'node:fs'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { STORIES, TRIMZ } from '#/data/content'
+import { COVER_VIDEOS } from '#/data/cover-videos'
+import { ISK } from '#/data/isk'
 import { TROPHIES } from '#/data/trophies'
 
 /**
@@ -12,6 +15,15 @@ const root = fileURLToPath(new URL('../../', import.meta.url))
 /** Asset paths carry a `?v=` cache-busting suffix; the file on disk has none. */
 const publicFile = (p: string) => `${root}public${p.split('?')[0]}`
 const onDisk = (p: string) => existsSync(publicFile(p))
+
+function dirSize(dir: string): number {
+  let total = 0
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name)
+    total += entry.isDirectory() ? dirSize(full) : statSync(full).size
+  }
+  return total
+}
 
 describe('stories', () => {
   it('has unique slugs and ids', () => {
@@ -37,21 +49,48 @@ describe('stories', () => {
     }
   })
 
-  it('keeps published media under a sensible per-file size', () => {
-    // Whop zips the whole build; one runaway asset can push it past the upload limit.
+  it('keeps published media under a sensible per-file size and total public/ budget', () => {
+    // Whop zips the whole build; one runaway asset or unchecked folder growth can push it past the 50 MB upload limit.
     for (const s of STORIES) {
       for (const p of [s.cover, s.tile, s.logo?.src].filter((v): v is string => !!v)) {
         expect(statSync(publicFile(p)).size, `${p} is too large`).toBeLessThan(2_000_000)
+      }
+    }
+    expect(dirSize(`${root}public`)).toBeLessThan(50_000_000)
+  })
+
+  it('has matching .webm preview loops and generated isk assets on disk', () => {
+    for (const [slug, mp4] of Object.entries(COVER_VIDEOS)) {
+      expect(onDisk(mp4), `${slug} cover video ${mp4}`).toBe(true)
+      const webm = mp4.replace(/\.mp4(?=\?|$)/, '.webm')
+      expect(onDisk(webm), `${slug} cover webm ${webm}`).toBe(true)
+    }
+    for (const s of STORIES) {
+      const isk = ISK[s.slug]
+      expect(isk, `ISK entry for ${s.slug}`).toBeDefined()
+      if (isk.introCard) expect(onDisk(isk.introCard), `${s.slug} introCard`).toBe(true)
+      for (const c of isk.cast) {
+        if (c.portrait) expect(onDisk(c.portrait), `${s.slug} cast portrait ${c.id}`).toBe(true)
+        if (c.card) expect(onDisk(c.card), `${s.slug} cast card ${c.id}`).toBe(true)
+      }
+      for (const m of isk.gallery) {
+        expect(onDisk(m.src), `${s.slug} gallery ${m.src}`).toBe(true)
+        if (m.thumb) expect(onDisk(m.thumb), `${s.slug} gallery thumb ${m.thumb}`).toBe(true)
       }
     }
   })
 })
 
 describe('trimz series', () => {
-  it('has unique slugs and poster files', () => {
+  it('has unique slugs, poster files, and matching .webm preview loops', () => {
     expect(new Set(TRIMZ.map((t) => t.slug)).size).toBe(TRIMZ.length)
     for (const t of TRIMZ) {
       expect(onDisk(t.poster), `${t.slug} poster ${t.poster}`).toBe(true)
+      if (t.tile) expect(onDisk(t.tile), `${t.slug} tile ${t.tile}`).toBe(true)
+      if (t.video) {
+        expect(onDisk(t.video), `${t.slug} video ${t.video}`).toBe(true)
+        expect(onDisk(t.video.replace(/\.mp4(?=\?|$)/, '.webm')), `${t.slug} video webm`).toBe(true)
+      }
     }
   })
 })
@@ -93,5 +132,34 @@ describe('storyOfVideo', () => {
     expect(storyOfVideo({ title: 'Random Bullshit GO!!!!', story: 'acolytes' })?.slug).toBe('acolytes')
     expect(storyOfVideo({ title: 'Acolytes: Maid for your Protection - Episode 3' })?.slug).toBe('acolytes')
     expect(storyOfVideo({ title: 'Channel update' })).toBeUndefined()
+  })
+
+  it('parses Atom entries including shorts, view counts, entities, and links', async () => {
+    const { parseFeed } = await import('#/data/youtube')
+    const xml = `
+      <feed>
+        <entry>
+          <yt:videoId>abc123</yt:videoId>
+          <title>Acolytes &amp; Friends&#39; Cut</title>
+          <link rel="alternate" href="https://www.youtube.com/shorts/abc123"/>
+          <published>2026-11-01T12:00:00+00:00</published>
+          <media:group>
+            <media:description>Watch the maid chaos&#10;https://trimz.tv/acolytes-maid-for-your-protection</media:description>
+            <media:community><media:statistics views="420"/></media:community>
+          </media:group>
+        </entry>
+      </feed>
+    `
+    const parsed = parseFeed(xml)
+    expect(parsed).toHaveLength(1)
+    expect(parsed[0]).toMatchObject({
+      id: 'abc123',
+      title: "Acolytes & Friends' Cut",
+      published: '2026-11-01',
+      views: 420,
+      short: true,
+      story: 'acolytes',
+      series: 'acolytes-maid-for-your-protection',
+    })
   })
 })

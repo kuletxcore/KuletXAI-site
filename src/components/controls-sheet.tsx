@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { KeyLabel } from '#/components/pad-glyph'
 import { PAD_LABEL, usePadInfo } from '#/lib/gamepad'
 import type { PadKind } from '#/lib/gamepad'
@@ -46,7 +46,7 @@ const GROUPS = (mod: string): { title: string; rows: Row[] }[] => [
       { label: 'Switch tab: story, series, video', keys: ['Q', 'E'], pad: ['lb', 'rb'] },
       { label: 'Play the world, series or video', keys: ['Enter'], pad: ['a'] },
       { label: 'Open the selected section', pad: ['x'] },
-      { label: 'Unredact the intro card', keys: ['R'], pad: ['x'] },
+      { label: 'Unredact card (pad in viewer)', keys: ['R'], pad: ['x'] },
       { label: 'Sound on or off', pad: ['y'] },
       { label: 'Back to the home page', pad: ['b'] },
       { label: 'Scroll', pad: ['LS'] },
@@ -61,37 +61,44 @@ const padGlyph = (k: PadKey, kind: PadKind) => (BTNS.has(k) ? PAD_LABEL[kind][k 
 export function ControlsSheet() {
   const [open, setOpen] = useState(false)
   const pad = usePadInfo()
+  const closeRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (open && e.key === 'Escape') {
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        sfx('back')
+        setOpen(false)
+        return
+      }
       const el = e.target as HTMLElement | null
       const typing = !!el && (['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName) || el.isContentEditable)
       if (!typing && (e.key === '?' || (e.shiftKey && e.key === '/'))) {
         e.preventDefault()
         setOpen((o) => !o)
-        return
-      }
-      if (open && e.key === 'Escape') {
-        e.preventDefault()
-        setOpen(false)
       }
     }
     const onAsk = () => setOpen(true)
-    window.addEventListener('keydown', onKey)
+    window.addEventListener('keydown', onKey, true)
     window.addEventListener('kx:controls', onAsk)
     return () => {
-      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('keydown', onKey, true)
       window.removeEventListener('kx:controls', onAsk)
     }
   }, [open])
 
   useEffect(() => {
     if (!open) return
+    const prev = document.activeElement as HTMLElement | null
     const root = document.documentElement
     const before = root.style.overflow
     root.style.overflow = 'hidden'
+    closeRef.current?.focus()
     return () => {
       root.style.overflow = before
+      prev?.focus?.()
     }
   }, [open])
 
@@ -103,6 +110,25 @@ export function ControlsSheet() {
     setOpen(false)
   }
 
+  const onDialogKey = (e: React.KeyboardEvent) => {
+    if (e.key !== 'Tab') return
+    const root = panelRef.current
+    if (!root) return
+    const focusables = Array.from(root.querySelectorAll<HTMLElement>('button, a[href], input, [tabindex]:not([tabindex="-1"])')).filter(
+      (el) => !el.hasAttribute('disabled'),
+    )
+    if (!focusables.length) return
+    const first = focusables[0]
+    const last = focusables[focusables.length - 1]
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
+
   // Rows that only a controller can do are hidden until one is connected
   const groups = GROUPS(MAC ? '⌘' : 'Ctrl')
     .map((g) => ({ ...g, rows: g.rows.filter((r) => r.keys || pad.connected) }))
@@ -111,7 +137,7 @@ export function ControlsSheet() {
   return (
     <div className="fixed inset-0 z-[68] flex items-start justify-center overflow-y-auto p-3 pt-[6vh] sm:p-6 sm:pt-[9vh]" role="dialog" aria-modal="true" aria-labelledby="kx-controls-title">
       <button type="button" tabIndex={-1} aria-label="Close controls" onClick={close} className="fixed inset-0 cursor-default bg-void/92 backdrop-blur-sm" />
-      <div className="kx-find-panel relative w-full max-w-3xl border border-line bg-panel shadow-[0_40px_120px_rgba(0,0,0,0.85)]">
+      <div ref={panelRef} onKeyDown={onDialogKey} className="kx-finder-panel relative w-full max-w-3xl border border-line bg-panel shadow-[0_40px_120px_rgba(0,0,0,0.85)]">
         <div className="flex items-center justify-between gap-3 border-b border-line bg-void/60 px-4 py-2.5">
           <p id="kx-controls-title" className="font-gamer text-[10px] uppercase text-neon">
             {'//'} Controls{' '}
@@ -120,7 +146,7 @@ export function ControlsSheet() {
               {pad.connected ? ` and ${pad.model ?? KIND_NAME[pad.kind]}` : ''}
             </span>
           </p>
-          <button type="button" onClick={close} aria-label="Close controls" className="grid size-11 place-items-center border border-line font-gamer text-xs text-mute hover:border-danger-ink hover:text-danger-ink">
+          <button ref={closeRef} type="button" onClick={close} aria-label="Close controls" className="grid size-11 place-items-center border border-line font-gamer text-xs text-mute hover:border-danger-ink hover:text-danger-ink">
             ✕
           </button>
         </div>
@@ -167,7 +193,7 @@ export function ControlsSheet() {
             <div>
               <p className="font-gamer text-[10px] uppercase text-mute">Controller</p>
               <p className="mt-2 text-sm leading-relaxed text-mute">
-                Connect any controller and press a button: the story hub works with all of it, and this sheet shows your
+                Connect any controller and press a button: both the home page and story hub work with it, and this sheet shows your
                 pad's own buttons.
               </p>
             </div>
