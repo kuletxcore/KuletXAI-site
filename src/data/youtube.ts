@@ -67,6 +67,17 @@ export function storyOfVideo(video: Pick<YtVideo, 'title' | 'story'>) {
   return STORIES.find((s) => video.title.toLowerCase().startsWith(s.title.split(':')[0].toLowerCase()))
 }
 
+/** "Short" or "Episode" for a video that is one; a remix or trailer has no type. */
+export function videoKind(video: Pick<YtVideo, 'title' | 'short'>) {
+  if (video.short) return 'Short'
+  return /\bepisode\b/i.test(video.title) ? 'Episode' : undefined
+}
+
+/** The series (or else the world) a video is from, by name, for a description that is only links. */
+export function videoFrom(video: Pick<YtVideo, 'title' | 'story' | 'series'>) {
+  return TRIMZ.find((t) => t.slug === video.series)?.title ?? storyOfVideo(video)?.title
+}
+
 export const ytThumb = (id: string, size: 'maxresdefault' | 'hqdefault' | 'default' = 'hqdefault') => `https://i.ytimg.com/vi/${id}/${size}.jpg`
 export const ytWatchUrl = (v: YtVideo) => (v.short ? `https://www.youtube.com/shorts/${v.id}` : `https://www.youtube.com/watch?v=${v.id}`)
 export const ytEmbedUrl = (id: string) => `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&playsinline=1&modestbranding=1`

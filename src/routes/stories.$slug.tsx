@@ -27,7 +27,7 @@ import { TROPHIES } from '#/data/trophies'
 import { SERIES_MUSIC, STORY_MUSIC } from '#/data/music'
 import type { Track } from '#/data/music'
 import type { PadButton, PadKind } from '#/lib/gamepad'
-import { YT_CHANNEL_URL, loadYoutubeVideos, rememberYoutubeVideos, storyOfVideo, ytEmbedUrl, ytThumb, ytWatchUrl } from '#/data/youtube'
+import { YT_CHANNEL_URL, loadYoutubeVideos, rememberYoutubeVideos, storyOfVideo, videoFrom, videoKind, ytEmbedUrl, ytThumb, ytWatchUrl } from '#/data/youtube'
 import type { YtVideo } from '#/data/youtube'
 import { MotionConfig } from 'motion/react'
 import type { IskCast, IskMedia } from '#/data/isk'
@@ -1645,23 +1645,38 @@ function VideoDetails({ video }: { video?: YtVideo }) {
     )
   }
   const related = storyOfVideo(video)
+  const kind = videoKind(video)
+  const link = (text: string) =>
+    related ? (
+      <Link to="/stories/$slug" params={{ slug: related.slug }} className="font-bold text-white underline-offset-2 hover:underline">
+        {text}
+      </Link>
+    ) : (
+      text
+    )
+  const from = videoFrom(video)
   return (
     <>
-      <Badge platform="youtube" meta={[video.short ? 'Short' : 'Episode', fmtDate(video.published), `${video.views.toLocaleString('en-US')} views`]} />
+      <Badge platform="youtube" meta={[...(kind ? [kind] : []), fmtDate(video.published), `${video.views.toLocaleString('en-US')} views`]} />
       <h1 key={video.id} className="ps5-title">
         {video.title}
       </h1>
       <p className="ps5-shadow max-w-[560px] text-sm leading-relaxed text-white/85 md:text-[15px]">
-        From @kuletxai: outslopping the competition.
-        {related && (
+        {/* The video's own description; one that is only links says which series it's from */}
+        {video.blurb ? (
           <>
-            {' '}
-            Part of{' '}
-            <Link to="/stories/$slug" params={{ slug: related.slug }} className="font-bold text-white underline-offset-2 hover:underline">
-              {related.title}
-            </Link>
-            .
+            {related && !/[.!?…]$/.test(video.blurb) ? `${video.blurb}.` : video.blurb}
+            {related && (
+              <>
+                {' '}
+                Part of {link(related.title)}.
+              </>
+            )}
           </>
+        ) : from ? (
+          <>From {link(from)}.</>
+        ) : (
+          'From @kuletxai: outslopping the competition.'
         )}
       </p>
       <div className="ps5-glass flex items-center justify-center p-3">

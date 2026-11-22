@@ -1,7 +1,7 @@
-import { storyPlatformName, TRIMZ } from '#/data/content'
+import { storyPlatformName } from '#/data/content'
 import type { Story, TrimzSeries } from '#/data/content'
 import type { YtVideo } from '#/data/youtube'
-import { ytThumb } from '#/data/youtube'
+import { videoFrom, videoKind, ytThumb } from '#/data/youtube'
 
 // Draws a 1080x1350 share poster for a world: its cover, its rating, its hook and its live numbers.
 // Everything happens on the visitor's device; nothing is uploaded.
@@ -127,7 +127,8 @@ export function renderSeriesCard(series: TrimzSeries, story: Story, stats: Serie
 
 /** A YouTube video's card: its thumbnail and title, plus the world it belongs to when it's from one. */
 export function renderVideoCard(video: YtVideo, story: Story | undefined, views: number) {
-  const from = TRIMZ.find((t) => t.slug === video.series)?.title ?? story?.title
+  const from = videoFrom(video)
+  const kind = videoKind(video)
   return renderCard({
     // Not every video has a maxres thumbnail; hqdefault always exists
     art: [ytThumb(video.id, 'maxresdefault'), ytThumb(video.id, 'hqdefault')],
@@ -137,8 +138,7 @@ export function renderVideoCard(video: YtVideo, story: Story | undefined, views:
     title: video.title,
     // The video's own description; one that is only links says which series it's from
     hook: video.blurb ?? (from ? `From ${from}.` : 'From @kuletxai: outslopping the competition.'),
-    // Only an episode is tagged as one; a remix or trailer is just a video
-    tags: [...(video.short ? ['Short'] : /\bepisode\b/i.test(video.title) ? ['Episode'] : []), 'YouTube', ...(story ? [`from ${story.title.split(':')[0]}`] : [])],
+    tags: [...(kind ? [kind] : []), 'YouTube', ...(story ? [`from ${story.title.split(':')[0]}`] : [])],
     stats: [{ icon: '\u25b6', value: views, label: 'views' }],
   })
 }
