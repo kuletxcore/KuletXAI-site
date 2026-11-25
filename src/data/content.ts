@@ -64,6 +64,18 @@ export const TRIMZ: TrimzSeries[] = [
     episodes: 1,
     views: 90,
   },
+  {
+    slug: 'wristbound-zero-to-hero',
+    key: 'wristbound',
+    logo: { src: '/titles/wristbound.webp', w: 1100, h: 310 },
+    tile: '/tiles/wristbound.webp?v=645d4484',
+    title: 'Wristbound: Zero to Hero',
+    summary: "A graphic artist's bracelet borrows women's hours, and the bill comes due.",
+    poster: '/trimz/wristbound.webp',
+    video: '/trimz/wristbound.mp4',
+    episodes: 1,
+    views: 0,
+  },
 ]
 
 /**
@@ -333,6 +345,7 @@ export const STORIES: Story[] = [
     slug: 'wristbound',
     logo: { src: '/titles/wristbound.webp', w: 1100, h: 310 },
     tile: '/tiles/wristbound.webp?v=645d4484',
+    trimz: ['wristbound-zero-to-hero'],
     id: '6af2da17a519bbd9cf367837',
     title: 'Wristbound: Zero to Hero',
     logline: 'You find a magical artifact that turns you into different women. Now use that to become a hero.',
