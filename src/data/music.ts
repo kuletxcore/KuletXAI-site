@@ -50,4 +50,12 @@ export const SERIES_MUSIC: Record<string, Track> = {
     trackUrl: track('6aeaf701f82f999841e5eb92'),
     ost: OST.acolytes,
   },
+  // Streamed to keep the deploy under 50 MB; trimmed 4.5 dB from its -13.5 LUFS
+  'wristbound-zero-to-hero': {
+    title: 'Ten Minutes',
+    src: streamed('https://media.kagesekai.ai/uploads/music/55012c81-1ba5-472b-9917-538d15ed9bff_rtmwcaf7cp.mp3'),
+    gain: 0.6,
+    trackUrl: kageTrack('6af48945a01f6f3163a764af'),
+    ost: OST.wristbound,
+  },
 }
