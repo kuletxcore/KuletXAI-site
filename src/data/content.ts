@@ -68,7 +68,7 @@ export const TRIMZ: TrimzSeries[] = [
     slug: 'wristbound-zero-to-hero',
     key: 'wristbound',
     logo: { src: '/titles/wristbound.webp', w: 1100, h: 310 },
-    tile: '/tiles/wristbound.webp?v=645d4484',
+    tile: '/tiles/wristbound-zero-to-hero.webp',
     title: 'Wristbound: Zero to Hero',
     summary: "A graphic artist's bracelet borrows women's hours, and the bill comes due.",
     poster: '/trimz/wristbound.webp',
