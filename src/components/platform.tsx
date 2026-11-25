@@ -21,7 +21,7 @@ export function PlatformChip({ platform }: { platform: Platform }) {
           sizes="48px"
           alt="Trimz"
           width={320}
-          height={136}
+          height={56}
           decoding="async"
         />
       ) : (
