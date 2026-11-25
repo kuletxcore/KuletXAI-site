@@ -157,7 +157,7 @@ export function WorldDealer() {
                   />
                 )}
                 <div className="grid-bg absolute inset-0 opacity-60" aria-hidden />
-                <img src="/brand/kx-mark.webp" alt="" aria-hidden className="relative w-28 opacity-90 sm:w-36" />
+                <img src="/brand/kx-mark.webp" alt="" width={240} height={224} loading="lazy" aria-hidden className="relative w-28 opacity-90 sm:w-36" />
                 <p className="pixel relative mt-6 font-pixel text-2xl text-ink sm:text-3xl">
                   {phase === 'shuffling' ? 'SHUFFLING' : 'AWAITING DEAL'}
                 </p>

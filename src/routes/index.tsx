@@ -209,6 +209,8 @@ function MotionToggle() {
 }
 
 // On phones the worlds sit in a swipeable shelf, not a seven-screen stack; sm and up keep the grid
+// Story covers also ship a 420px copy beside the original, for the shelf
+const small = (src: string) => src.replace(/\.webp(\?.*)?$/, '-420.webp$1')
 const SLOT = 'w-[min(80vw,22rem)] shrink-0 snap-start sm:w-auto sm:shrink'
 const pad2 = (n: number) => String(n).padStart(2, '0')
 
@@ -336,11 +338,15 @@ function Stories() {
                 onMouseLeave={() => cool(i)}
                 onFocus={() => setHot(i)}
                 onBlur={() => cool(i)}
-                className="group flex h-full flex-col border border-line bg-panel hover:border-neon"
+                className="group flex h-full flex-col border border-line bg-panel hover:border-neon focus-visible:outline-offset-[-3px]"
               >
                 <div className="cover relative aspect-[3/4] overflow-hidden border-b border-line">
                   <img
                     src={s.cover}
+                    srcSet={`${small(s.cover)} 420w, ${s.cover} 900w`}
+                    sizes="(min-width: 640px) 350px, 80vw"
+                    width={600}
+                    height={800}
                     alt={`Cover art for ${s.title}`}
                     loading={i < 3 ? 'eager' : 'lazy'}
                     className="h-full w-full object-cover"
@@ -394,7 +400,9 @@ function Stories() {
                   {STORIES.map((s, i) => (
                     <img
                       key={s.slug}
-                      src={s.cover}
+                      src={small(s.cover)}
+                      width={420}
+                      height={560}
                       alt=""
                       loading="lazy"
                       className={`h-full w-full object-cover opacity-35 grayscale transition duration-500 group-hover:opacity-60 group-hover:grayscale-0 ${i === 0 ? 'row-span-2' : ''}`}
@@ -554,6 +562,8 @@ function Trimz() {
               <img
                 key={`poster-${t.slug}`}
                 src={t.poster}
+                width={720}
+                height={1080}
                 alt={`Poster for ${t.title}`}
                 loading="lazy"
                 decoding="async"

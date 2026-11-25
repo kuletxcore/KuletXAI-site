@@ -3,8 +3,8 @@ import { LINKS } from '#/data/content'
 import { openControls } from '#/components/controls-sheet'
 import { openFinder } from '#/components/world-finder'
 
-export function Logo({ className = 'h-8' }: { className?: string }) {
-  return <img src="/brand/kuletxai-480.webp" srcSet="/brand/kuletxai-480.webp 480w, /brand/kuletxai-1200.webp 1200w" sizes="240px" alt="KuletXAI" width={480} height={165} className={`w-auto ${className}`} />
+export function Logo({ className = 'h-8', lazy = false }: { className?: string; lazy?: boolean }) {
+  return <img src="/brand/kuletxai-480.webp" srcSet="/brand/kuletxai-480.webp 480w, /brand/kuletxai-1200.webp 1200w" sizes="240px" alt="KuletXAI" width={480} height={165} loading={lazy ? 'lazy' : undefined} className={`w-auto ${className}`} />
 }
 
 export function Header() {
@@ -62,7 +62,7 @@ export function Footer() {
     <footer className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <Logo className="h-12" />
+          <Logo className="h-12" lazy />
           <p className="mt-2 text-sm text-mute">AI storytelling. © {new Date().getFullYear()} KuletX.</p>
         </div>
         <nav aria-label="Elsewhere" className="flex flex-wrap items-center gap-x-2 font-gamer text-xs [&>a]:px-1">

@@ -167,7 +167,9 @@ body {
   transform: scale(1.04);
 }
 
-a:focus-visible {
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
   outline: 2px solid var(--color-neon);
   outline-offset: 3px;
 }

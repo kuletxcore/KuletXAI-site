@@ -177,10 +177,10 @@ export function ColdOpen({ slug, onSlug }: { slug: DemoWorld['slug']; onSlug: (s
     >
       {/* Title bar, with the other world one tap away */}
       <div className="flex items-center gap-2 border-b border-line bg-panel/70 px-3 py-2">
-        <p className="font-mono text-[11px] text-mute">
-          storyteller<span className="text-mute/60">.exe</span> <span className="text-neon">--cold-open</span>
+        <p className="min-w-0 truncate font-mono text-[11px] text-mute">
+          storyteller<span className="text-mute">.exe</span> <span className="text-neon">--cold-open</span>
         </p>
-        <span className="ml-auto flex items-center gap-1">
+        <span className="ml-auto flex shrink-0 items-center gap-1">
           {DEMO_WORLDS.map((w) => {
             const on = w.slug === slug
             return (
@@ -211,7 +211,7 @@ export function ColdOpen({ slug, onSlug }: { slug: DemoWorld['slug']; onSlug: (s
         role="log"
         aria-live="polite"
         aria-label="Scene transcript"
-        className="relative h-[19rem] overflow-y-auto px-4 py-4 font-mono text-[13px] leading-relaxed focus:outline-none focus-visible:ring-1 focus-visible:ring-neon sm:h-[21rem] sm:text-sm"
+        className="relative h-[19rem] overflow-y-auto px-4 py-4 font-mono text-[13px] leading-relaxed focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neon sm:h-[21rem] sm:text-sm"
       >
         <p className="flex items-center gap-2 font-gamer text-[10px] uppercase">
           <span className={RATING_CLASS(story.rating)}>{story.rating}</span>
